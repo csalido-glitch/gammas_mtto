@@ -455,12 +455,26 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     toast('¡App instalada! Búscala en tu pantalla de inicio 🎉');
   });
 
-  // Sin Service Worker — Ctrl+Shift+R funciona normal
+  // Service Worker v10
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(regs=>{
-      regs.forEach(r=>r.unregister());
+    navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
+      reg.addEventListener('updatefound',()=>{
+        const newSW=reg.installing;
+        newSW.addEventListener('statechange',()=>{
+          if(newSW.state==='installed'&&navigator.serviceWorker.controller){
+            newSW.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+      let reloading=false;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{
+        if(reloading)return; reloading=true; window.location.reload();
+      });
+      navigator.serviceWorker.addEventListener('message',e=>{
+        if(e.data&&e.data.type==='RELOAD'&&!reloading){reloading=true;window.location.reload();}
+      });
+      reg.update().catch(()=>{});
     }).catch(()=>{});
-    caches.keys().then(keys=>keys.forEach(k=>caches.delete(k))).catch(()=>{});
   }
 })();
 
