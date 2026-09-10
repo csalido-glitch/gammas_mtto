@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v13 (fix sync delete + paginación escalable)
-const CACHE = 'gamas-mrt-v13';
+// Gamas MRT – Service Worker v15 (checkForUpdate en navegación/guardar/borrar)
+const CACHE = 'gamas-mrt-v15';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

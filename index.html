@@ -473,7 +473,21 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
       navigator.serviceWorker.addEventListener('message',e=>{
         if(e.data&&e.data.type==='RELOAD'&&!reloading){reloading=true;window.location.reload();}
       });
-      reg.update().catch(()=>{});
+      // checkForUpdate central con cooldown de 20s: se puede llamar seguido (navegación, guardar,
+      // reconexión, etc.) sin generar peticiones de más
+      let lastUpdateCheck=0;
+      window.checkForUpdate=()=>{
+        const now=Date.now();
+        if(now-lastUpdateCheck<20000)return; // ya se revisó hace poco
+        lastUpdateCheck=now;
+        reg.update().catch(()=>{});
+      };
+      window.checkForUpdate();
+      setInterval(window.checkForUpdate,60000);
+      document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='visible')window.checkForUpdate();
+      });
+      window.addEventListener('online',window.checkForUpdate);
     }).catch(()=>{});
   }
 })();
@@ -803,6 +817,7 @@ async function persist(key,val){try{await dbPut('kv',{k:key,v:val});}catch(e){co
 // NAVIGATION
 // =====================================================================
 function showView(v){
+  if(window.checkForUpdate)window.checkForUpdate();
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
@@ -918,6 +933,7 @@ function setItem(idx,estado){
   });
 }
 async function saveForm(){
+  if(window.checkForUpdate)window.checkForUpdate();
   const items=getCatalogItems(currentEq[0]);
   const ins={
     id:makeid(),equipoId:currentEq[0],equipoNombre:currentEq[1],
@@ -1476,6 +1492,7 @@ function confirmCancel(){
 // BORRAR INSPECCIÓN (solo admin)
 // =====================================================================
 function deleteInspeccion(id){
+  if(window.checkForUpdate)window.checkForUpdate();
   const ins=inspecciones.find(i=>i.id===id);
   const label=ins?`${ins.equipoId} · ${ins.fecha} · T${ins.turno}`:'esta inspección';
   showConfirm(`Se borrará "${label}" en todos los dispositivos. ¿Continuar?`, async()=>{
