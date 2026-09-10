@@ -145,6 +145,27 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 #adm-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);padding:0 8px;}
 .adm-tab{padding:10px 14px;font-size:12px;font-weight:700;color:var(--sub);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
 .adm-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+#rep-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);margin:0 -0px 6px;}
+.rep-tab{padding:10px 14px;font-size:12px;font-weight:700;color:var(--sub);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0;}
+.rep-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.rep-tab-panel{padding-bottom:12px;}
+.kpi-row{display:flex;gap:8px;padding:0 12px 6px;flex-wrap:wrap;}
+.kpi-card{flex:1;min-width:120px;background:var(--surface);border-radius:12px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);text-align:center;}
+.kpi-num{font-size:22px;font-weight:800;color:var(--accent);}
+.kpi-label{font-size:11px;color:var(--sub);margin-top:2px;font-weight:600;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.bar-label{width:110px;flex-shrink:0;font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-track{flex:1;height:16px;background:var(--bg);border-radius:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:8px;background:var(--red);transition:width .3s;}
+.bar-val{width:38px;flex-shrink:0;font-size:12px;font-weight:700;text-align:right;}
+.rank-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.rank-pos{width:22px;flex-shrink:0;font-size:13px;font-weight:800;color:var(--sub);text-align:center;}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rank-sub{font-size:11px;color:var(--sub);}
+.rank-count{font-size:16px;font-weight:800;color:var(--red);flex-shrink:0;}
+.warn-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.export-btn{display:block;width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;}
 .adm-panel{padding:12px;}
 .item-line{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);}
 .item-line span{flex:1;font-size:13px;}
@@ -284,22 +305,36 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
         <div class="pin-err" id="rep-pin-err"></div>
       </div>
       <div id="rep-content">
-        <div id="rep-filters">
-          <select id="rep-fsec" onchange="renderRepList()">
-            <option value="">— Sección —</option>
-            <option>Trituración</option><option>Clasificación</option>
-            <option>Molienda</option><option>Bombeo</option><option>Lixiviación</option>
-          </select>
-          <select id="rep-fturno" onchange="renderRepList()">
-            <option value="">— Turno —</option>
-            <option value="1">T1 Día</option><option value="2">T2 Noche</option>
-          </select>
-          <select id="rep-festado" onchange="renderRepList()">
-            <option value="">— Estado —</option>
-            <option value="ok">Sin malos</option><option value="mal">Con malos</option>
-          </select>
+        <div id="rep-tabs">
+          <button class="rep-tab active" data-tab="list" onclick="repTabSwitch('list')">📋 Listado</button>
+          <button class="rep-tab" data-tab="stats" onclick="repTabSwitch('stats')">📊 Estadísticas</button>
+          <button class="rep-tab" data-tab="ranking" onclick="repTabSwitch('ranking')">🏆 Ranking</button>
+          <button class="rep-tab" data-tab="reinc" onclick="repTabSwitch('reinc')">🔁 Reincidencias</button>
+          <button class="rep-tab" data-tab="export" onclick="repTabSwitch('export')">📤 Exportar</button>
         </div>
-        <div id="rep-list"></div>
+        <div id="rep-tab-list">
+          <div id="rep-filters">
+            <input type="text" id="rep-fbusca" placeholder="🔍 Buscar equipo (ID o nombre)" oninput="renderRepList()" style="margin-bottom:8px">
+            <select id="rep-fsec" onchange="renderRepList()">
+              <option value="">— Sección —</option>
+              <option>Trituración</option><option>Clasificación</option>
+              <option>Molienda</option><option>Bombeo</option><option>Lixiviación</option>
+            </select>
+            <select id="rep-fturno" onchange="renderRepList()">
+              <option value="">— Turno —</option>
+              <option value="1">T1 Día</option><option value="2">T2 Noche</option>
+            </select>
+            <select id="rep-festado" onchange="renderRepList()">
+              <option value="">— Estado —</option>
+              <option value="ok">Sin malos</option><option value="mal">Con malos</option>
+            </select>
+          </div>
+          <div id="rep-list"></div>
+        </div>
+        <div id="rep-tab-stats" class="rep-tab-panel" style="display:none"></div>
+        <div id="rep-tab-ranking" class="rep-tab-panel" style="display:none"></div>
+        <div id="rep-tab-reinc" class="rep-tab-panel" style="display:none"></div>
+        <div id="rep-tab-export" class="rep-tab-panel" style="display:none"></div>
       </div>
     </div>
 
@@ -1079,7 +1114,7 @@ function checkPin(who){
     if(who==='rep'){
       document.getElementById('rep-pin-gate').style.display='none';
       document.getElementById('rep-content').style.display='block';
-      renderRepList();
+      renderRepTabContent();
     } else {
       document.getElementById('adm-pin-gate').style.display='none';
       document.getElementById('adm-content').style.display='block';
@@ -1098,28 +1133,48 @@ function checkPin(who){
 // =====================================================================
 // REPORTS
 // =====================================================================
+let repTab='list';
 function renderReports(){
   if(pinState.rep.unlocked){
     document.getElementById('rep-pin-gate').style.display='none';
     document.getElementById('rep-content').style.display='block';
-    renderRepList();
+    renderRepTabContent();
   } else {
     document.getElementById('rep-pin-gate').style.display='block';
     document.getElementById('rep-content').style.display='none';
   }
 }
+function repTabSwitch(tab){
+  if(window.checkForUpdate)window.checkForUpdate();
+  repTab=tab;
+  document.querySelectorAll('.rep-tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
+  document.getElementById('rep-tab-list').style.display=tab==='list'?'block':'none';
+  ['stats','ranking','reinc','export'].forEach(t=>{
+    document.getElementById('rep-tab-'+t).style.display=t===tab?'block':'none';
+  });
+  renderRepTabContent();
+}
+function renderRepTabContent(){
+  if(repTab==='list')renderRepList();
+  else if(repTab==='stats')renderRepStats();
+  else if(repTab==='ranking')renderRepRanking();
+  else if(repTab==='reinc')renderRepReinc();
+  else if(repTab==='export')renderRepExport();
+}
 function renderRepList(){
+  const busca=(document.getElementById('rep-fbusca').value||'').trim().toLowerCase();
   const sec=document.getElementById('rep-fsec').value;
   const turno=document.getElementById('rep-fturno').value;
   const estado=document.getElementById('rep-festado').value;
   let data=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
+  if(busca)data=data.filter(i=>i.equipoId.toLowerCase().includes(busca)||i.equipoNombre.toLowerCase().includes(busca));
   if(sec)data=data.filter(i=>i.seccion===sec);
   if(turno)data=data.filter(i=>String(i.turno)===turno);
   if(estado==='ok')data=data.filter(i=>!i.items.some(it=>it.estado==='m'));
   if(estado==='mal')data=data.filter(i=>i.items.some(it=>it.estado==='m'));
   const el=document.getElementById('rep-list');
   if(!data.length){
-    el.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin inspecciones${sec||turno||estado?' con esos filtros':' registradas aún'}.</div>`;
+    el.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin inspecciones${sec||turno||estado||busca?' con esos filtros':' registradas aún'}.</div>`;
     return;
   }
   el.innerHTML=data.map((ins,i)=>{
@@ -1157,6 +1212,197 @@ function renderRepList(){
       <button onclick="event.stopPropagation();openForm('${ins.equipoId}','reinspeccion')" style="margin-top:10px;width:100%;padding:9px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer">🔄 Reinspeccionar este equipo</button>
     </div>`;
   }).join('');
+}
+
+// --- ir desde Ranking/Reincidencias al listado filtrado por ese equipo ---
+function repGoToEquipo(eqId){
+  repTabSwitch('list');
+  const inp=document.getElementById('rep-fbusca');
+  if(inp){inp.value=eqId;renderRepList();}
+}
+
+// --- ESTADÍSTICAS ---
+function renderRepStats(){
+  const el=document.getElementById('rep-tab-stats');
+  const all=inspecciones;
+  const totalIns=all.length;
+  let totalB=0,totalM=0,totalR=0;
+  all.forEach(ins=>ins.items.forEach(it=>{
+    if(it.estado==='b')totalB++;else if(it.estado==='m')totalM++;else if(it.estado==='r')totalR++;
+  }));
+  const totalItems=totalB+totalM+totalR;
+  const pctMalos=totalItems?Math.round(totalM/totalItems*100):0;
+  const sched=getTodayScheduled();
+  const doneCount=sched.filter(eq=>isDoneToday(eq[0])).length;
+  const pctHoy=sched.length?Math.round(doneCount/sched.length*100):100;
+  const turnos=[1,2].map(t=>{
+    const insT=all.filter(i=>Number(i.turno)===t);
+    let b=0,m=0,r=0;
+    insT.forEach(ins=>ins.items.forEach(it=>{if(it.estado==='b')b++;else if(it.estado==='m')m++;else if(it.estado==='r')r++;}));
+    const tot=b+m+r;
+    return{turno:t,pct:tot?Math.round(m/tot*100):0,total:insT.length};
+  });
+  const secMap={};
+  all.forEach(ins=>{
+    const malos=ins.items.filter(it=>it.estado==='m').length;
+    if(!malos)return;
+    secMap[ins.seccion]=(secMap[ins.seccion]||0)+malos;
+  });
+  const secArr=Object.entries(secMap).sort((a,b)=>b[1]-a[1]);
+  const maxSec=secArr.length?secArr[0][1]:1;
+  const umbral=Math.max(config.cycleDays*2,14);
+  const sinReciente=equipos.map(eq=>{
+    const propias=all.filter(i=>i.equipoId===eq[0]);
+    if(!propias.length)return{eq,dias:null};
+    const ultima=Math.max(...propias.map(i=>i.savedAt));
+    const dias=Math.floor((Date.now()-ultima)/86400000);
+    return{eq,dias};
+  }).filter(x=>x.dias===null||x.dias>=umbral).sort((a,b)=>(b.dias??999999)-(a.dias??999999));
+  el.innerHTML=`
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-num">${totalIns}</div><div class="kpi-label">Inspecciones totales</div></div>
+      <div class="kpi-card"><div class="kpi-num">${pctHoy}%</div><div class="kpi-label">Cumplimiento hoy (${doneCount}/${sched.length})</div></div>
+      <div class="kpi-card"><div class="kpi-num">${pctMalos}%</div><div class="kpi-label">Ítems en mal estado (histórico)</div></div>
+    </div>
+    <div class="section-head">Comparativo por turno (% ítems malos)</div>
+    <div class="card">
+      ${turnos.map(t=>`<div class="bar-row">
+          <div class="bar-label">T${t.turno} · ${t.turno===1?'Día':'Noche'}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${t.pct}%"></div></div>
+          <div class="bar-val">${t.pct}%</div>
+        </div>`).join('')}
+      <div style="font-size:11px;color:var(--sub);margin-top:2px">Basado en ${turnos.reduce((a,t)=>a+t.total,0)} inspecciones registradas</div>
+    </div>
+    <div class="section-head">Secciones con más ítems malos</div>
+    <div class="card">
+      ${secArr.length?secArr.map(([sec,cnt])=>`<div class="bar-row">
+          <div class="bar-label">${sec}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(cnt/maxSec*100)}%"></div></div>
+          <div class="bar-val">${cnt}</div>
+        </div>`).join(''):'<div style="text-align:center;color:var(--sub);font-size:12px;padding:10px">Sin datos aún.</div>'}
+    </div>
+    <div class="section-head">⚠ Equipos sin inspección reciente (${umbral}+ días)</div>
+    <div class="card">
+      ${sinReciente.length?sinReciente.map(x=>`<div class="warn-row">
+          <span><strong>${x.eq[0]}</strong> · ${x.eq[1]}</span>
+          <span style="color:var(--red);font-weight:700">${x.dias===null?'Nunca':x.dias+' días'}</span>
+        </div>`).join(''):'<div style="text-align:center;color:var(--sub);font-size:12px;padding:10px">Todos los equipos tienen inspecciones recientes.</div>'}
+    </div>`;
+}
+
+// --- RANKING DE EQUIPOS ---
+function renderRepRanking(){
+  const el=document.getElementById('rep-tab-ranking');
+  const stats=equipos.map(eq=>{
+    const propias=inspecciones.filter(i=>i.equipoId===eq[0]);
+    let b=0,m=0,r=0;
+    propias.forEach(ins=>ins.items.forEach(it=>{if(it.estado==='b')b++;else if(it.estado==='m')m++;else if(it.estado==='r')r++;}));
+    const total=b+m+r;
+    return{eq,malos:m,inspecciones:propias.length,pct:total?Math.round(m/total*100):0};
+  }).filter(s=>s.inspecciones>0).sort((a,b)=>b.malos-a.malos);
+  if(!stats.length){
+    el.innerHTML='<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Aún no hay inspecciones registradas.</div>';
+    return;
+  }
+  el.innerHTML='<div class="card">'+stats.map((s,i)=>`
+    <div class="rank-row" style="cursor:pointer" onclick="repGoToEquipo('${s.eq[0]}')">
+      <div class="rank-pos">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${s.eq[0]} · ${s.eq[1]}</div>
+        <div class="rank-sub">${s.inspecciones} inspección${s.inspecciones!==1?'es':''} · ${s.pct}% de ítems malos</div>
+      </div>
+      <div class="rank-count">${s.malos}</div>
+    </div>`).join('')+'</div>';
+}
+
+// --- REINCIDENCIAS ---
+function renderRepReinc(){
+  const el=document.getElementById('rep-tab-reinc');
+  const map={};
+  inspecciones.forEach(ins=>{
+    ins.items.forEach(it=>{
+      if(it.estado!=='m')return;
+      const key=ins.equipoId+'||'+it.nombre;
+      if(!map[key])map[key]={equipoId:ins.equipoId,nombre:it.nombre,count:0,lastFecha:ins.fecha,lastSavedAt:ins.savedAt};
+      map[key].count++;
+      if(ins.savedAt>map[key].lastSavedAt){map[key].lastFecha=ins.fecha;map[key].lastSavedAt=ins.savedAt;}
+    });
+  });
+  const list=Object.values(map).filter(x=>x.count>=2).sort((a,b)=>b.count-a.count);
+  if(!list.length){
+    el.innerHTML='<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin reincidencias detectadas (ítems marcados como "malo" 2 o más veces en el mismo equipo).</div>';
+    return;
+  }
+  el.innerHTML='<div class="card">'+list.map((x,i)=>{
+    const eq=equipos.find(e=>e[0]===x.equipoId);
+    return`<div class="rank-row" style="cursor:pointer" onclick="repGoToEquipo('${x.equipoId}')">
+      <div class="rank-pos">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${x.equipoId}${eq?' · '+eq[1]:''}</div>
+        <div class="rank-sub">${x.nombre} · última vez: ${x.lastFecha}</div>
+      </div>
+      <div class="rank-count">×${x.count}</div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// --- EXPORTAR CSV ---
+function csvEscape(v){
+  const s=(v===undefined||v===null)?'':String(v);
+  return '"'+s.replace(/"/g,'""')+'"';
+}
+function downloadCSV(filename,rows){
+  const csv=rows.map(r=>r.map(csvEscape).join(',')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function insToRow(ins){
+  const b=ins.items.filter(it=>it.estado==='b').length;
+  const m=ins.items.filter(it=>it.estado==='m').length;
+  const r=ins.items.filter(it=>it.estado==='r').length;
+  const malos=ins.items.filter(it=>it.estado==='m').map(it=>it.nombre).join('; ');
+  return[ins.fecha,'T'+ins.turno,ins.equipoId,ins.equipoNombre,ins.seccion,ins.area,ins.tipo,ins.mecanico,b,r,m,malos,ins.observaciones||''];
+}
+function exportHistorialCSV(){
+  const header=['Fecha','Turno','Equipo ID','Equipo','Sección','Área','Tipo','Mecánico','Buenos','Regulares','Malos','Ítems en mal estado','Observaciones'];
+  const rows=[header,...[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt).map(insToRow)];
+  downloadCSV('historial_inspecciones_'+todayStr()+'.csv',rows);
+  toast('📥 CSV descargado');
+}
+function exportHoyCSV(){
+  const ts=todayStr();
+  const header=['Fecha','Turno','Equipo ID','Equipo','Sección','Área','Tipo','Mecánico','Buenos','Regulares','Malos','Ítems en mal estado','Observaciones'];
+  const delHoy=inspecciones.filter(i=>i.fecha===ts).sort((a,b)=>b.savedAt-a.savedAt);
+  if(!delHoy.length){toast('Sin inspecciones hoy',false);return;}
+  downloadCSV('reporte_hoy_'+ts+'.csv',[header,...delHoy.map(insToRow)]);
+  toast('📥 CSV descargado');
+}
+function exportRankingCSV(){
+  const header=['Equipo ID','Equipo','Sección','Inspecciones','Ítems Malos','% Malos'];
+  const rows=[header];
+  equipos.forEach(eq=>{
+    const propias=inspecciones.filter(i=>i.equipoId===eq[0]);
+    if(!propias.length)return;
+    let b=0,m=0,r=0;
+    propias.forEach(ins=>ins.items.forEach(it=>{if(it.estado==='b')b++;else if(it.estado==='m')m++;else if(it.estado==='r')r++;}));
+    const total=b+m+r;
+    rows.push([eq[0],eq[1],eq[2],propias.length,m,total?Math.round(m/total*100)+'%':'0%']);
+  });
+  downloadCSV('ranking_equipos_'+todayStr()+'.csv',rows);
+  toast('📥 CSV descargado');
+}
+function renderRepExport(){
+  const el=document.getElementById('rep-tab-export');
+  el.innerHTML=`<div class="card">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:10px">Los archivos se descargan en formato CSV, compatibles con Excel y Google Sheets.</div>
+      <button class="export-btn" onclick="exportHoyCSV()">📥 Reporte de hoy</button>
+      <button class="export-btn" onclick="exportHistorialCSV()">📥 Historial completo</button>
+      <button class="export-btn" onclick="exportRankingCSV()">📥 Ranking de equipos</button>
+    </div>`;
 }
 
 // =====================================================================
@@ -1432,7 +1678,7 @@ async function init(){
         renderHome();
         const v=document.querySelector('.view.active');
         if(v&&v.id==='view-roll')renderRoll();
-        if(v&&v.id==='view-reports')renderRepList();
+        if(v&&v.id==='view-reports')renderRepTabContent();
         toast('✅ Actualizado');
       }catch(e){}
     }
