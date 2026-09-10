@@ -539,9 +539,18 @@ async function syncPending(){
 async function fetchRemoteInspecciones(){
   if(!navigator.onLine)return;
   try{
-    const r=await fetch(SB_URL+'/rest/v1/inspecciones?select=*&order=saved_at.desc&limit=500',{headers:SB_H});
-    if(!r.ok)return;
-    const rows=await r.json();
+    // Trae TODAS las inspecciones paginando (escalable: no se limita a un tope fijo)
+    let rows=[];
+    const pageSize=1000;
+    let offset=0;
+    for(let page=0;page<50;page++){ // tope de seguridad: 50 páginas = 50,000 registros
+      const r=await fetch(SB_URL+'/rest/v1/inspecciones?select=*&order=saved_at.desc&offset='+offset+'&limit='+pageSize,{headers:SB_H});
+      if(!r.ok)return;
+      const chunk=await r.json();
+      rows=rows.concat(chunk);
+      if(chunk.length<pageSize)break; // ya no hay más páginas
+      offset+=pageSize;
+    }
     const pendingDelIds=getPendingDeletes();
     for(const row of rows){
       // No reimportar inspecciones que borramos offline y aún no hemos confirmado en Supabase
@@ -556,6 +565,15 @@ async function fetchRemoteInspecciones(){
       } else if(!inspecciones[idx].pending && ins.savedAt>inspecciones[idx].savedAt){
         // actualiza si la versión remota es más nueva (y no tenemos una local pendiente de subir)
         inspecciones[idx]=ins;await dbPut('inspecciones',ins);
+      }
+    }
+    // Quitar localmente las que ya no existen en Supabase (borradas desde otro dispositivo)
+    const remoteIds=new Set(rows.map(r=>r.id));
+    for(let i=inspecciones.length-1;i>=0;i--){
+      const ins=inspecciones[i];
+      if(!ins.pending && !remoteIds.has(ins.id) && !pendingDelIds.includes(ins.id)){
+        inspecciones.splice(i,1);
+        await dbDel('inspecciones',ins.id);
       }
     }
   }catch(e){console.warn('fetchRemoteInspecciones',e);}

@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v11 (fix saved_at bigint)
-const CACHE = 'gamas-mrt-v11';
+// Gamas MRT – Service Worker v13 (fix sync delete + paginación escalable)
+const CACHE = 'gamas-mrt-v13';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
