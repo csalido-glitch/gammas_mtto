@@ -455,32 +455,12 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     toast('¡App instalada! Búscala en tu pantalla de inicio 🎉');
   });
 
-  // Service Worker — archivo sw.js en la raíz del repo
+  // Sin Service Worker — Ctrl+Shift+R funciona normal
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
-      // Forzar actualización inmediata si hay un SW nuevo esperando
-      reg.addEventListener('updatefound',()=>{
-        const newSW=reg.installing;
-        newSW.addEventListener('statechange',()=>{
-          if(newSW.state==='installed'&&navigator.serviceWorker.controller){
-            // Hay nueva versión lista — activar y recargar
-            newSW.postMessage({type:'SKIP_WAITING'});
-          }
-        });
-      });
-      // Cuando el nuevo SW toma control, recargar la página para servir código fresco
-      let reloading=false;
-      navigator.serviceWorker.addEventListener('controllerchange',()=>{
-        if(reloading)return; reloading=true;
-        window.location.reload();
-      });
-      // También escuchar mensaje RELOAD que manda el SW al activarse
-      navigator.serviceWorker.addEventListener('message',e=>{
-        if(e.data&&e.data.type==='RELOAD'&&!reloading){reloading=true;window.location.reload();}
-      });
-      // Revisar actualizaciones al entrar en la app
-      reg.update().catch(()=>{});
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
     }).catch(()=>{});
+    caches.keys().then(keys=>keys.forEach(k=>caches.delete(k))).catch(()=>{});
   }
 })();
 
