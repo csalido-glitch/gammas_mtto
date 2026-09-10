@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v10 (network-first todo)
-const CACHE = 'gamas-mrt-v10';
+// Gamas MRT – Service Worker v11 (fix saved_at bigint)
+const CACHE = 'gamas-mrt-v11';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

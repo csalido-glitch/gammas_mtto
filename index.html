@@ -490,7 +490,7 @@ async function sbInsert(ins){
   const row={id:ins.id,equipo_id:ins.equipoId,equipo_nombre:ins.equipoNombre,
     seccion:ins.seccion,area:ins.area,tipo:ins.tipo,turno:ins.turno,
     mecanico:ins.mecanico,fecha:ins.fecha,items:ins.items,
-    observaciones:ins.observaciones,saved_at:new Date(ins.savedAt).toISOString()};
+    observaciones:ins.observaciones,saved_at:ins.savedAt};
   try{
     const r=await fetch(SB_URL+'/rest/v1/inspecciones?on_conflict=id',{
       method:'POST',headers:{...SB_H,'Prefer':'resolution=ignore-duplicates'},body:JSON.stringify(row)});
