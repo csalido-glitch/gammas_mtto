@@ -1,0 +1,1502 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#2471A3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gamas MRT">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%232471A3'/%3E%3Ctext y='.9em' font-size='80' x='10'%3E🔧%3C/text%3E%3C/svg%3E">
+<link rel="manifest" id="pwa-manifest">
+<title>Gamas Mtto – MRT</title>
+<style>
+:root{
+  --bg:#f4f5f7;--surface:#fff;--border:#e0e3e8;--text:#1a1d23;
+  --sub:#6b7280;--accent:#2471A3;--green:#16a34a;--red:#dc2626;
+  --amber:#d97706;--purple:#7c3aed;
+  --trit:#C0392B;--clas:#E67E22;--mol:#27AE60;--bom:#2471A3;--lix:#0E7C7B;
+  --nav-h:58px;--header-h:48px;--t1:#2563eb;--t2:#7c3aed;
+}
+/* Modo oscuro: sistema */
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#111318;--surface:#1e2028;--border:#2d3140;--text:#e8eaf0;--sub:#9ca3af;}
+}
+/* Modo oscuro: forzado */
+[data-theme="dark"]{--bg:#111318;--surface:#1e2028;--border:#2d3140;--text:#e8eaf0;--sub:#9ca3af;}
+/* Modo claro: forzado */
+[data-theme="light"]{--bg:#f4f5f7;--surface:#fff;--border:#e0e3e8;--text:#1a1d23;--sub:#6b7280;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+#app{display:flex;flex-direction:column;height:100%;}
+#header{height:var(--header-h);background:var(--accent);color:#fff;display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0;z-index:30;}
+#header h1{font-size:15px;font-weight:700;letter-spacing:.3px;flex:1;}
+#turno-badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.2);}
+#offline-banner{display:none;background:#dc2626;color:#fff;text-align:center;font-size:12px;font-weight:700;padding:5px;flex-shrink:0;}
+#offline-banner.show{display:block;}
+#views{flex:1;overflow:hidden;position:relative;}
+.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;padding-bottom:calc(var(--nav-h)+8px);}
+.view.active{display:block;}
+#nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;flex-shrink:0;z-index:30;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;color:var(--sub);cursor:pointer;font-size:10px;font-weight:600;padding:6px 0;transition:color .15s;}
+.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.nav-btn.active{color:var(--accent);}
+/* COMMON */
+.section-head{padding:10px 14px 4px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sub);letter-spacing:.6px;}
+.card{background:var(--surface);border-radius:12px;padding:12px 14px;margin:6px 12px;box-shadow:0 1px 3px rgba(0,0,0,.07);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:opacity .15s;}
+.btn:active{opacity:.75;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-ghost{background:var(--border);color:var(--text);}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:8px;}
+.tag{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.3px;}
+.tag-prog{background:#dbeafe;color:#1d4ed8;}.tag-comp{background:#dcfce7;color:#15803d;}
+.tag-venc{background:#fee2e2;color:#b91c1c;}.tag-extra{background:#ede9fe;color:#6d28d9;}
+.tag-t1{background:#dbeafe;color:#1e40af;}.tag-t2{background:#ede9fe;color:#5b21b6;}
+input[type=text],input[type=number],input[type=date],input[type=password],select,textarea{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:13px;background:var(--bg);color:var(--text);outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:72px;}
+label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-bottom:3px;}
+.field{margin-bottom:12px;}
+/* HOME */
+#mec-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+#mec-name{font-size:14px;font-weight:700;flex:1;}
+#mec-edit-btn{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;}
+.eq-card{border-left:4px solid var(--border);}
+.eq-card.done{opacity:.45;}
+.eq-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.eq-id{font-size:11px;font-weight:700;font-family:monospace;background:var(--bg);padding:2px 6px;border-radius:5px;}
+.eq-nombre{font-weight:700;font-size:13px;flex:1;}
+.eq-area{font-size:11px;color:var(--sub);}
+#btn-extra{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 24px);margin:8px 12px;padding:12px;border-radius:12px;border:2px dashed var(--border);background:none;color:var(--sub);font-size:13px;font-weight:700;cursor:pointer;}
+/* FORM */
+#form-topbar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+#form-back{background:none;border:none;cursor:pointer;color:var(--accent);font-size:20px;line-height:1;padding:2px 4px;}
+#form-title{font-size:14px;font-weight:700;flex:1;}
+#form-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+#form-color-bar{height:4px;width:100%;}
+.item-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);}
+.item-name{flex:1;font-size:13px;}
+.item-btns{display:flex;gap:4px;}
+.item-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);background:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.item-btn.sel-b{background:#dcfce7;border-color:var(--green);}
+.item-btn.sel-m{background:#fee2e2;border-color:var(--red);}
+.item-btn.sel-r{background:#fef3c7;border-color:var(--amber);}
+#form-obs-wrap{padding:12px 14px;}
+#form-save{margin:4px 12px 16px;width:calc(100% - 24px);}
+/* ROLL */
+#roll-filters{display:flex;gap:8px;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+#roll-filters select{flex:1;min-width:100px;}
+.roll-wrap{overflow:auto;max-height:calc(100vh - var(--header-h) - var(--nav-h) - 90px);}
+.roll-table{border-collapse:collapse;font-size:11px;}
+.roll-table th,.roll-table td{white-space:nowrap;border:1px solid var(--border);height:24px;}
+.col-n{position:sticky;left:0;z-index:6;background:var(--surface);width:28px;min-width:28px;text-align:center;}
+.col-id{position:sticky;left:28px;z-index:6;background:var(--surface);width:68px;min-width:68px;font-family:monospace;}
+.col-nom{position:sticky;left:96px;z-index:6;background:var(--surface);width:160px;min-width:160px;padding:0 6px;}
+.col-area{position:sticky;left:256px;z-index:6;background:var(--surface);width:110px;min-width:110px;padding:0 4px;box-shadow:3px 0 6px -2px rgba(0,0,0,.12);}
+.roll-table thead tr:nth-child(1) th{position:sticky;top:0;z-index:12;background:var(--surface);}
+.roll-table thead tr:nth-child(2) th{position:sticky;top:24px;z-index:12;background:var(--surface);}
+.roll-table thead th.col-n,.roll-table thead th.col-id,
+.roll-table thead th.col-nom,.roll-table thead th.col-area{z-index:22!important;}
+.roll-table tbody .col-n{color:var(--sub);font-size:10px;}
+.roll-table tbody .col-id{font-weight:700;padding:0 4px;font-size:10px;}
+.day-head{text-align:center;padding:0 3px;font-weight:700;min-width:28px;}
+.month-head{text-align:center;font-weight:700;font-size:11px;background:var(--accent);color:#fff;padding:0 6px;}
+.day-cell{text-align:center;cursor:default;}
+.day-cell.today-col{background:rgba(36,113,163,.08)!important;}
+.pip{display:inline-block;width:18px;height:14px;border-radius:4px;font-size:9px;font-weight:700;line-height:14px;text-align:center;color:#fff;}
+.pip-trit{background:var(--trit);}.pip-clas{background:var(--clas);}
+.pip-mol{background:var(--mol);}.pip-bom{background:var(--bom);}.pip-lix{background:var(--lix);}
+.area-sub th{background:var(--bg);font-weight:700;font-size:10px;color:var(--sub);text-transform:uppercase;}
+/* REPORTS */
+#rep-pin-gate{padding:24px 20px;max-width:280px;margin:40px auto;text-align:center;}
+#rep-content{display:none;}
+#rep-filters{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);}
+#rep-filters select{flex:1;min-width:100px;}
+#rep-list{padding:4px 0;}
+.rep-card{border-left:4px solid var(--border);cursor:pointer;}
+.rep-card:active{opacity:.85;}
+.rep-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.rep-id{font-size:10px;font-weight:700;font-family:monospace;background:var(--bg);padding:2px 5px;border-radius:4px;}
+.rep-nombre{font-weight:700;font-size:13px;flex:1;}
+.rep-meta{font-size:11px;color:var(--sub);margin-bottom:8px;}
+.rep-counts{display:flex;gap:6px;font-size:11px;font-weight:700;}
+.rep-chevron{font-size:14px;color:var(--sub);transition:transform .2s;margin-left:4px;}
+.rep-card.expanded .rep-chevron{transform:rotate(180deg);}
+.rep-items-detail{display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:8px;}
+.rep-card.expanded .rep-items-detail{display:block;}
+.item-detail-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.item-detail-row:last-child{border-bottom:none;}
+.item-detail-name{flex:1;color:var(--text);}
+.item-estado-b{font-weight:700;color:var(--green);min-width:22px;text-align:center;}
+.item-estado-r{font-weight:700;color:var(--amber);min-width:22px;text-align:center;}
+.item-estado-m{font-weight:700;color:var(--red);min-width:22px;text-align:center;}
+.cnt-b{color:var(--green);}.cnt-m{color:var(--red);}.cnt-r{color:var(--amber);}
+.malos-box{background:#fee2e2;border-radius:8px;padding:7px 10px;margin-top:8px;font-size:12px;color:#7f1d1d;}
+.malos-box strong{color:#b91c1c;display:block;margin-bottom:3px;}
+.malos-box div{color:#7f1d1d;}
+.obs-box{background:var(--bg);border-radius:8px;padding:7px 10px;margin-top:6px;font-size:12px;font-style:italic;color:var(--text);}
+/* ADMIN */
+#adm-pin-gate{padding:24px 20px;max-width:280px;margin:40px auto;text-align:center;}
+#adm-content{display:none;}
+#adm-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);padding:0 8px;}
+.adm-tab{padding:10px 14px;font-size:12px;font-weight:700;color:var(--sub);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.adm-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.adm-panel{padding:12px;}
+.item-line{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);}
+.item-line span{flex:1;font-size:13px;}
+.del-btn{width:28px;height:28px;border-radius:7px;border:none;background:#fee2e2;color:var(--red);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.add-row{display:flex;gap:6px;margin-top:8px;}
+.add-row input{flex:1;}
+.eq-line{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);}
+.eq-line .eq-lid{font-size:11px;font-family:monospace;font-weight:700;min-width:56px;}
+.eq-line .eq-lnom{flex:1;font-size:12px;}
+/* PIN PAD */
+.pin-title{font-size:16px;font-weight:700;margin-bottom:8px;}
+.pin-sub{font-size:12px;color:var(--sub);margin-bottom:20px;}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px;}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:var(--bg);transition:background .1s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pin-key{padding:14px;border-radius:10px;background:var(--surface);border:1.5px solid var(--border);font-size:18px;font-weight:700;cursor:pointer;}
+.pin-key:active{background:var(--border);}
+.pin-err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;}
+/* SHEET */
+#sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:none;align-items:flex-end;}
+#sheet-overlay.open{display:flex;}
+#sheet{background:var(--surface);border-radius:16px 16px 0 0;width:100%;max-height:75vh;display:flex;flex-direction:column;}
+#sheet-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);}
+#sheet-head h3{flex:1;font-size:14px;font-weight:700;}
+#sheet-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--sub);}
+#sheet-search{padding:8px 14px;}
+#sheet-list{overflow-y:auto;flex:1;}
+.sheet-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.sheet-item:active{background:var(--bg);}
+.s-id{font-size:11px;font-family:monospace;font-weight:700;min-width:60px;}
+.s-nom{flex:1;font-size:13px;}
+.s-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+/* MODAL */
+#mec-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;align-items:center;justify-content:center;padding:20px;}
+#mec-modal.open{display:flex;}
+#mec-box{background:var(--surface);border-radius:14px;padding:20px;width:100%;max-width:320px;}
+#mec-box h3{font-size:15px;font-weight:700;margin-bottom:14px;}
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--nav-h)+16px);left:50%;transform:translateX(-50%);background:#1a1d23;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;}
+/* SYNC indicator */
+#sync-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;}
+#sync-dot.offline{background:#fca5a5;}
+#sync-dot.syncing{background:#fbbf24;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+/* Pull to refresh */
+#ptr-indicator{position:fixed;top:calc(var(--header-h) + 4px);left:50%;transform:translateX(-50%) translateY(-60px);z-index:50;background:var(--surface);border:1.5px solid var(--border);border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:transform .2s,opacity .2s;opacity:0;pointer-events:none;}
+#ptr-indicator.pulling{opacity:1;transform:translateX(-50%) translateY(0);}
+#ptr-indicator.loading{opacity:1;transform:translateX(-50%) translateY(0);animation:ptr-spin .7s linear infinite;}
+@keyframes ptr-spin{to{transform:translateX(-50%) translateY(0) rotate(360deg);}}
+/* Install banner */
+#install-banner{display:none;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px;flex-shrink:0;align-items:center;gap:10px;}
+#install-banner.show{display:flex;}
+#install-banner p{flex:1;font-size:12px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v21</span></h1>
+    <div id="sync-dot" title="En línea"></div>
+    <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
+    <span id="turno-badge">T1 · Día</span>
+  </div>
+  <div id="offline-banner">📵 Sin conexión — los datos se guardan en el dispositivo</div>
+
+  <div id="views">
+    <!-- HOY -->
+    <div class="view active" id="view-home">
+      <div id="mec-bar">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span id="mec-name">Mecánico</span>
+        <button id="mec-edit-btn" onclick="openMecModal()">✏️ Editar</button>
+      </div>
+      <div id="home-body"></div>
+      <button id="btn-extra" onclick="openSheet()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Revisión adicional / no programada
+      </button>
+    </div>
+
+    <!-- FORM -->
+    <div class="view" id="view-form">
+      <div id="form-topbar">
+        <button id="form-back" onclick="closeForm()">←</button>
+        <span id="form-title">Inspección</span>
+        <span id="form-tipo-tag" class="tag"></span>
+      </div>
+      <div id="form-color-bar"></div>
+      <div id="form-meta"></div>
+      <div id="form-items"></div>
+      <div id="form-obs-wrap">
+        <label>Observaciones</label>
+        <textarea id="form-obs" placeholder="Notas, hallazgos, acciones tomadas…"></textarea>
+      </div>
+      <button class="btn btn-green" id="form-save" onclick="saveForm()">✔ Guardar y cerrar</button>
+    </div>
+
+    <!-- ROLL -->
+    <div class="view" id="view-roll">
+      <div id="roll-filters">
+        <select id="roll-sec" onchange="renderRoll()">
+          <option value="">— Sección —</option>
+          <option>Trituración</option><option>Clasificación</option>
+          <option>Molienda</option><option>Bombeo</option><option>Lixiviación</option>
+        </select>
+        <select id="roll-area" onchange="renderRoll()"><option value="">— Área —</option></select>
+      </div>
+      <div class="roll-wrap" id="roll-wrap"></div>
+    </div>
+
+    <!-- REPORTES -->
+    <div class="view" id="view-reports">
+      <div id="rep-pin-gate">
+        <div class="pin-title">🔒 Reportes</div>
+        <div class="pin-sub">Ingresa el PIN</div>
+        <div class="pin-dots" id="rpd-wrap">
+          <div class="pin-dot" id="rpd0"></div><div class="pin-dot" id="rpd1"></div>
+          <div class="pin-dot" id="rpd2"></div><div class="pin-dot" id="rpd3"></div>
+        </div>
+        <div class="pin-pad">
+          <button class="pin-key" onclick="pinKey('rep','1')">1</button>
+          <button class="pin-key" onclick="pinKey('rep','2')">2</button>
+          <button class="pin-key" onclick="pinKey('rep','3')">3</button>
+          <button class="pin-key" onclick="pinKey('rep','4')">4</button>
+          <button class="pin-key" onclick="pinKey('rep','5')">5</button>
+          <button class="pin-key" onclick="pinKey('rep','6')">6</button>
+          <button class="pin-key" onclick="pinKey('rep','7')">7</button>
+          <button class="pin-key" onclick="pinKey('rep','8')">8</button>
+          <button class="pin-key" onclick="pinKey('rep','9')">9</button>
+          <button class="pin-key" onclick="pinKey('rep','⌫')" style="font-size:14px">⌫</button>
+          <button class="pin-key" onclick="pinKey('rep','0')">0</button>
+          <button class="pin-key" onclick="pinKey('rep','OK')" style="background:var(--accent);color:#fff">OK</button>
+        </div>
+        <div class="pin-err" id="rep-pin-err"></div>
+      </div>
+      <div id="rep-content">
+        <div id="rep-filters">
+          <select id="rep-fsec" onchange="renderRepList()">
+            <option value="">— Sección —</option>
+            <option>Trituración</option><option>Clasificación</option>
+            <option>Molienda</option><option>Bombeo</option><option>Lixiviación</option>
+          </select>
+          <select id="rep-fturno" onchange="renderRepList()">
+            <option value="">— Turno —</option>
+            <option value="1">T1 Día</option><option value="2">T2 Noche</option>
+          </select>
+          <select id="rep-festado" onchange="renderRepList()">
+            <option value="">— Estado —</option>
+            <option value="ok">Sin malos</option><option value="mal">Con malos</option>
+          </select>
+        </div>
+        <div id="rep-list"></div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="view" id="view-admin">
+      <div id="adm-pin-gate">
+        <div class="pin-title">⚙️ Admin</div>
+        <div class="pin-sub">PIN de administrador</div>
+        <div class="pin-dots">
+          <div class="pin-dot" id="apd0"></div><div class="pin-dot" id="apd1"></div>
+          <div class="pin-dot" id="apd2"></div><div class="pin-dot" id="apd3"></div>
+        </div>
+        <div class="pin-pad">
+          <button class="pin-key" onclick="pinKey('adm','1')">1</button>
+          <button class="pin-key" onclick="pinKey('adm','2')">2</button>
+          <button class="pin-key" onclick="pinKey('adm','3')">3</button>
+          <button class="pin-key" onclick="pinKey('adm','4')">4</button>
+          <button class="pin-key" onclick="pinKey('adm','5')">5</button>
+          <button class="pin-key" onclick="pinKey('adm','6')">6</button>
+          <button class="pin-key" onclick="pinKey('adm','7')">7</button>
+          <button class="pin-key" onclick="pinKey('adm','8')">8</button>
+          <button class="pin-key" onclick="pinKey('adm','9')">9</button>
+          <button class="pin-key" onclick="pinKey('adm','⌫')" style="font-size:14px">⌫</button>
+          <button class="pin-key" onclick="pinKey('adm','0')">0</button>
+          <button class="pin-key" onclick="pinKey('adm','OK')" style="background:var(--accent);color:#fff">OK</button>
+        </div>
+        <div class="pin-err" id="adm-pin-err"></div>
+      </div>
+      <div id="adm-content">
+        <div id="adm-tabs">
+          <button class="adm-tab active" data-tab="config" onclick="admTab('config')">Configuración</button>
+          <button class="adm-tab" data-tab="mec" onclick="admTab('mec')">Mecánicos</button>
+          <button class="adm-tab" data-tab="eq" onclick="admTab('eq')">Equipos</button>
+          <button class="adm-tab" data-tab="items" onclick="admTab('items')">Ítems</button>
+          <button class="adm-tab" data-tab="reinsp" onclick="admTab('reinsp')">Reinspección</button>
+          <button class="adm-tab" data-tab="historial" onclick="admTab('historial')">🗑 Historial</button>
+        </div>
+        <div id="adm-panel" class="adm-panel"></div>
+      </div>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button class="nav-btn active" data-view="home" onclick="showView('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Hoy
+    </button>
+    <button class="nav-btn" data-view="roll" onclick="showView('roll')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Roll
+    </button>
+    <button class="nav-btn" data-view="reports" onclick="showView('reports')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Reportes
+    </button>
+    <button class="nav-btn" data-view="admin" onclick="showView('admin')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Admin
+    </button>
+  </nav>
+
+  <!-- Install banner -->
+  <div id="install-banner">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v13m-4-4l4 4 4-4M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/></svg>
+    <p><strong>Instalar app</strong> — úsala sin internet</p>
+    <button class="btn btn-primary btn-sm" id="install-btn" onclick="installApp()">Instalar</button>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('install-banner').classList.remove('show')">✕</button>
+  </div>
+</div>
+
+<!-- SHEET -->
+<div id="sheet-overlay" onclick="closeSheet(event)">
+  <div id="sheet">
+    <div id="sheet-head">
+      <h3>Seleccionar equipo</h3>
+      <button id="sheet-close" onclick="closeSheet()">✕</button>
+    </div>
+    <div id="sheet-search"><input type="text" id="sheet-q" placeholder="Buscar…" oninput="filterSheet()"></div>
+    <div id="sheet-list"></div>
+  </div>
+</div>
+
+<!-- MECHANIC MODAL -->
+<div id="mec-modal" onclick="closeMecModal(event)">
+  <div id="mec-box">
+    <h3>Nombre del mecánico</h3>
+    <div class="field"><label>🌅 Turno 1 (Día)</label>
+      <input type="text" id="mec-t1-input" placeholder="Nombre mecánico T1"></div>
+    <div class="field"><label>🌙 Turno 2 (Noche)</label>
+      <input type="text" id="mec-t2-input" placeholder="Nombre mecánico T2"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="closeMecModal()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" style="flex:1" onclick="saveMecNames()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="ptr-indicator">↓</div>
+<div id="toast"></div>
+
+<!-- MODAL CONFIRMACIÓN BORRAR -->
+<div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:16px;padding:22px 20px;width:calc(100% - 40px);max-width:320px;margin:0 auto;">
+    <div style="font-size:15px;font-weight:700;margin-bottom:8px;color:var(--text)">🗑 ¿Borrar inspección?</div>
+    <div id="confirm-msg" style="font-size:13px;color:var(--sub);margin-bottom:18px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="confirmCancel()">Cancelar</button>
+      <button class="btn" style="flex:1;background:var(--red);color:#fff" onclick="confirmOk()">Sí, borrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// PWA SETUP
+// =====================================================================
+(function setupPWA(){
+  // Manifest
+  const manifest = {
+    name:'Gamas Mtto – Minera Río Tinto',short_name:'Gamas MRT',
+    start_url:'.',display:'standalone',
+    background_color:'#f4f5f7',theme_color:'#2471A3',
+    description:'Sistema de inspección de equipos',
+    icons:[{src:'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'20\' fill=\'%232471A3\'/%3E%3Ctext y=\'.9em\' font-size=\'80\' x=\'10\'%3E🔧%3C/text%3E%3C/svg%3E',sizes:'192x192',type:'image/svg+xml'}]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
+
+  // Offline detection
+  function updateOnline(){
+    const online=navigator.onLine;
+    document.getElementById('offline-banner').classList.toggle('show',!online);
+    const dot=document.getElementById('sync-dot');
+    dot.classList.toggle('offline',!online);
+    dot.title=online?'En línea':'Sin conexión – datos guardados localmente';
+  }
+  window.addEventListener('online',()=>{
+    updateOnline();
+    syncPending();
+    Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]).then(()=>renderHome());
+  });
+  window.addEventListener('offline',updateOnline);
+  updateOnline();
+
+  // Install prompt
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault(); deferredPrompt=e;
+    document.getElementById('install-banner').classList.add('show');
+  });
+  window.installApp=function(){
+    if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;
+      document.getElementById('install-banner').classList.remove('show');}
+  };
+  window.addEventListener('appinstalled',()=>{
+    document.getElementById('install-banner').classList.remove('show');
+    toast('¡App instalada! Búscala en tu pantalla de inicio 🎉');
+  });
+
+  // Service Worker — archivo sw.js en la raíz del repo
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
+      // Forzar actualización inmediata si hay un SW nuevo esperando
+      reg.addEventListener('updatefound',()=>{
+        const newSW=reg.installing;
+        newSW.addEventListener('statechange',()=>{
+          if(newSW.state==='installed'&&navigator.serviceWorker.controller){
+            // Hay nueva versión lista — activar y recargar
+            newSW.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+      // Cuando el nuevo SW toma control, recargar la página para servir código fresco
+      let reloading=false;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{
+        if(reloading)return; reloading=true;
+        window.location.reload();
+      });
+      // También escuchar mensaje RELOAD que manda el SW al activarse
+      navigator.serviceWorker.addEventListener('message',e=>{
+        if(e.data&&e.data.type==='RELOAD'&&!reloading){reloading=true;window.location.reload();}
+      });
+      // Revisar actualizaciones al entrar en la app
+      reg.update().catch(()=>{});
+    }).catch(()=>{});
+  }
+})();
+
+// =====================================================================
+// SUPABASE — sync central
+// =====================================================================
+const SB_URL='https://ewgcufflruljsemexded.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3Z2N1ZmZscnVsanNlbWV4ZGVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5OTkwNDgsImV4cCI6MjEwNDU3NTA0OH0.K3agZNVCCYbp6qDNLQjZKvCv_jTbVDvdSAAdtSErKBM';
+const SB_H={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+// --- INSPECCIONES ---
+async function sbInsert(ins){
+  const row={id:ins.id,equipo_id:ins.equipoId,equipo_nombre:ins.equipoNombre,
+    seccion:ins.seccion,area:ins.area,tipo:ins.tipo,turno:ins.turno,
+    mecanico:ins.mecanico,fecha:ins.fecha,items:ins.items,
+    observaciones:ins.observaciones,saved_at:new Date(ins.savedAt).toISOString()};
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/inspecciones?on_conflict=id',{
+      method:'POST',headers:{...SB_H,'Prefer':'resolution=ignore-duplicates'},body:JSON.stringify(row)});
+    return r.ok;
+  }catch(e){return false;}
+}
+
+// IDs borrados offline que aún no se han eliminado en Supabase
+function getPendingDeletes(){try{return JSON.parse(localStorage.getItem('_pendingDeletes')||'[]');}catch{return[];}}
+function setPendingDeletes(ids){try{localStorage.setItem('_pendingDeletes',JSON.stringify(ids));}catch{}}
+function addPendingDelete(id){const ids=getPendingDeletes();if(!ids.includes(id)){ids.push(id);setPendingDeletes(ids);}}
+
+async function syncPending(){
+  if(!navigator.onLine)return;
+  // 1. Enviar a Supabase los deletes que quedaron pendientes offline
+  const delIds=getPendingDeletes();
+  if(delIds.length){
+    const remaining=[];
+    for(const id of delIds){
+      try{
+        const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+encodeURIComponent(id),
+          {method:'DELETE',headers:{...SB_H,'Prefer':'return=minimal'}});
+        if(!r.ok)remaining.push(id);
+      }catch{remaining.push(id);}
+    }
+    setPendingDeletes(remaining);
+  }
+  // 2. Subir inspecciones pendientes
+  const all=await dbGetAll('inspecciones');
+  const pending=all.filter(i=>i.pending);
+  if(!pending.length)return;
+  let synced=0;
+  for(const ins of pending){
+    const ok=await sbInsert(ins);
+    if(ok){
+      ins.pending=false;
+      await dbPut('inspecciones',ins);
+      const memIdx=inspecciones.findIndex(i=>i.id===ins.id);
+      if(memIdx!==-1) inspecciones[memIdx].pending=false;
+      synced++;
+    }
+  }
+  if(synced>0)toast(`☁ ${synced} inspección${synced>1?'es':''} sincronizada${synced>1?'s':''}`);
+}
+
+async function fetchRemoteInspecciones(){
+  if(!navigator.onLine)return;
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/inspecciones?select=*&order=saved_at.desc&limit=500',{headers:SB_H});
+    if(!r.ok)return;
+    const rows=await r.json();
+    const pendingDelIds=getPendingDeletes();
+    for(const row of rows){
+      // No reimportar inspecciones que borramos offline y aún no hemos confirmado en Supabase
+      if(pendingDelIds.includes(row.id))continue;
+      const ins={id:row.id,equipoId:row.equipo_id,equipoNombre:row.equipo_nombre,
+        seccion:row.seccion,area:row.area,tipo:row.tipo,turno:row.turno,
+        mecanico:row.mecanico,fecha:row.fecha,items:row.items,
+        observaciones:row.observaciones,savedAt:new Date(row.saved_at).getTime()||0,pending:false};
+      const idx=inspecciones.findIndex(i=>i.id===ins.id);
+      if(idx===-1){
+        inspecciones.push(ins);await dbPut('inspecciones',ins);
+      } else if(!inspecciones[idx].pending && ins.savedAt>inspecciones[idx].savedAt){
+        // actualiza si la versión remota es más nueva (y no tenemos una local pendiente de subir)
+        inspecciones[idx]=ins;await dbPut('inspecciones',ins);
+      }
+    }
+  }catch(e){console.warn('fetchRemoteInspecciones',e);}
+}
+
+// --- CONFIG CENTRAL ---
+async function sbPushConfig(cfg){
+  const row={key:'global',value:cfg,updated_at:new Date().toISOString()};
+  try{
+    // Intenta PATCH primero (actualizar fila existente)
+    const rPatch=await fetch(SB_URL+'/rest/v1/app_config?key=eq.global',{
+      method:'PATCH',headers:{...SB_H,'Prefer':'return=minimal'},body:JSON.stringify({value:cfg,updated_at:new Date().toISOString()})});
+    if(rPatch.ok)return true;
+    // Si no existe la fila, INSERT
+    const rIns=await fetch(SB_URL+'/rest/v1/app_config',{
+      method:'POST',headers:{...SB_H,'Prefer':'return=minimal'},body:JSON.stringify(row)});
+    const body=await rIns.text();
+    return rIns.ok;
+  }catch(e){console.error('sbPushConfig',e);return false;}
+}
+
+async function fetchRemoteConfig(){
+  if(!navigator.onLine)return;
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/app_config?key=eq.global&select=value',{headers:SB_H});
+    if(!r.ok)return;
+    const rows=await r.json();
+    if(rows&&rows.length){
+      const remote=rows[0].value;
+      // Detectar cambio de versión → recargar para jalar código fresco
+      const localV=localStorage.getItem('gamas-deploy-v')||'';
+      const remoteV=remote._deployV||'';
+      if(remoteV && remoteV!==localV){
+        localStorage.setItem('gamas-deploy-v',remoteV);
+        if(localV){setTimeout(()=>window.location.reload(),300);return;}
+      }
+      // La config de Admin en Supabase manda sobre todo lo local
+      config=Object.assign(config,remote);
+      await persist('config',config);
+    }
+  }catch(e){console.warn('fetchRemoteConfig',e);}
+}
+
+// =====================================================================
+// INDEXEDDB
+// =====================================================================
+const DB_NAME='gamas-mrt-db', DB_VER=1;
+let db=null;
+
+function initDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,DB_VER);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('inspecciones'))
+        d.createObjectStore('inspecciones',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('kv'))
+        d.createObjectStore('kv',{keyPath:'k'});
+    };
+    r.onsuccess=e=>{db=e.target.result;res(db);};
+    r.onerror=e=>rej(e);
+  });
+}
+function dbPut(store,obj){
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(store,'readwrite');
+    tx.objectStore(store).put(obj);
+    tx.oncomplete=res; tx.onerror=rej;
+  });
+}
+function dbGetAll(store){
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(store,'readonly');
+    const r=tx.objectStore(store).getAll();
+    r.onsuccess=()=>res(r.result); r.onerror=rej;
+  });
+}
+function dbGet(store,key){
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(store,'readonly');
+    const r=tx.objectStore(store).get(key);
+    r.onsuccess=()=>res(r.result); r.onerror=rej;
+  });
+}
+function dbDel(store,key){
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(store,'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete=res; tx.onerror=rej;
+  });
+}
+
+// =====================================================================
+// DATA
+// =====================================================================
+const PUMP_ITEMS=[
+  'Nivel de aceite de rodamientos','Temperatura de rodamientos',
+  'Vibración anormal','Fugas por sellos mecánicos',
+  'Presión de descarga','Amperaje del motor',
+  'Estado del acoplamiento','Temperatura del motor',
+  'Ruido anormal','Estado de tubería de impulsión',
+  'Fugas en bridas y conexiones','Estado de válvulas',
+  'Limpieza general del área',
+];
+const LIX_ITEMS=[
+  'Nivel de solución en tanque','Estado del agitador (aspas)',
+  'Temperatura de solución','pH de solución',
+  'Fugas en sellos del agitador','Vibración del agitador',
+  'Temperatura de rodamientos del agitador','Amperaje del motor del agitador',
+  'Fugas en paredes del tanque','Estado de tubería de alimentación',
+  'Estado de tubería de descarga','Válvulas de control',
+  'Instrumentación y sensores','Limpieza del área',
+  'Estado estructural del tanque',
+];
+const CATALOG_BASE={
+  'AG-01':['Estado de barras del grizzly','Vibración del alimentador','Tensión de cadenas/correas','Estado de raspadores','Nivel de aceite de reductores','Temperatura de rodamientos','Amperaje del motor','Fugas de lubricante','Estado de tolva de alimentación','Ajuste de pernos estructurales','Estado de faldones de hule','Limpieza del área','Ruido anormal','Estado del chute de descarga','Tensión de resortes/suspensión'],
+  'QP-01':['Estado de mandíbulas (platos)','Ajuste de la apertura de salida','Estado del volante','Nivel de aceite del sistema de lubricación','Temperatura de rodamientos principales','Vibración anormal','Estado de correas y poleas','Tensión de correas','Amperaje del motor','Temperatura del motor','Fugas de aceite','Estado de cuñas de ajuste','Estado de barras de toggle','Estado del chute de alimentación','Estado del chute de descarga','Ajuste de pernos de la carcasa','Limpieza del área','Estado de guardas de seguridad','Ruido anormal'],
+  'QC-01':['Estado del manto y cóncavo','Nivel de aceite del sistema hidráulico','Presión del sistema hidráulico','Temperatura de aceite hidráulico','Vibración anormal','Temperatura de rodamientos','Amperaje del motor','Estado de correas y poleas','Tensión de correas','Fugas de aceite','Estado del chute de alimentación','Estado del chute de descarga','Ajuste del CSS','Limpieza del área','Ruido anormal','Estado de guardas de seguridad'],
+  'QV-01':['Estado del rotor','Estado de las carcasas de impacto','Vibración anormal','Temperatura de rodamientos','Amperaje del motor','Estado de correas y poleas','Tensión de correas','Nivel de aceite de rodamientos','Fugas de lubricante','Estado del chute de alimentación','Estado del chute de descarga','Limpieza del área','Ruido anormal'],
+  'SC-01':['Estado del rotor/impeller','Vibración anormal','Temperatura de rodamientos','Amperaje del motor','Estado de correas','Fugas de lubricante','Limpieza del área','Ruido anormal'],
+  'CT-01':['Tensión de mallas de cribado','Estado de mallas (desgaste/rotura)','Vibración de operación (normal)','Estado de resortes de suspensión','Amperaje del motor vibrador','Estado de los vibradores','Nivel de aceite de vibradores','Temperatura de rodamientos','Ajuste de pernos estructurales','Estado de faldones de hule','Estado de chutes de alimentación','Estado de chutes de descarga','Fugas de lubricante','Limpieza del área','Ruido anormal'],
+  'QN-01':['Estado del manto y cóncavos','Nivel de aceite del sistema de lubricación','Presión de aceite de lubricación','Temperatura de aceite de lubricación','Presión del sistema hidráulico','Temperatura del sistema hidráulico','Vibración anormal','Temperatura de rodamientos principales','Amperaje del motor principal','Estado del contrapeso','Estado del eje excéntrico','Estado de correas y poleas','Tensión de correas','Fugas de aceite','Estado del chute de alimentación','Estado del chute de descarga','Ajuste de CSS','Limpieza del área'],
+  'ML-01':['Nivel de aceite de rodamientos principales','Temperatura de rodamientos del trunnion','Presión de aceite de lubricación','Vibración anormal','Amperaje del motor principal','Estado del acoplamiento motor-reductor','Estado de los lifters (levantadores)','Fugas por sellos de los trunnion','Ruido interno (carga de bolas)','Temperatura del reductor','Nivel de aceite del reductor','Limpieza del área','Estado de la tubería de pulpa'],
+  'TQ-24':['Nivel de solución','Estado estructural del tanque','Fugas en paredes o fondo','Estado de tubería de entrada','Estado de tubería de salida','Válvulas de control','Instrumentación','Estado del recubrimiento interior','Limpieza del área','Ajuste de pernos de bridas','Estado de escaleras y plataformas','Iluminación del área'],
+};
+const EQUIPOS_DEFAULT=[
+  ['AG-01','ALIMENTADOR GRIZZLY','Trituración','t-trit','PLANTA TRITURACIÓN'],
+  ['QP-01','QUEBRADORA PRIMARIA','Trituración','t-trit','PLANTA TRITURACIÓN'],
+  ['QC-01','QUEBRADORA CHINA','Trituración','t-trit','PLANTA TRITURACIÓN'],
+  ['QV-01','QUEBRADORA VSI','Trituración','t-trit','PLANTA TRITURACIÓN'],
+  ['SC-01','VSI SUPER CHIPPER','Trituración','t-trit','PLANTA TRITURACIÓN'],
+  ['QN-01','QUEBRADORA DE CONO','Trituración','t-trit','PLANTA TRITURACIÓN'],
+  ['CT-01','CRIBA TEREX','Clasificación','t-clas','PLANTA TRITURACIÓN'],
+  ['ML-01','MOLINO 1','Molienda','t-mol','MOLINO #1'],
+  ['ML-02','MOLINO 2','Molienda','t-mol','MOLINO #2'],
+  ['ML-03','MOLINO 3','Molienda','t-mol','MOLINO #3'],
+  ['BW-M1A','WARMAN 8×6 – MOLINO #1 (A)','Bombeo','t-bom','MOLINO #1'],
+  ['BW-M1B','WARMAN 8×6 – MOLINO #1 (B)','Bombeo','t-bom','MOLINO #1'],
+  ['BW-M2A','WARMAN 8×6 – MOLINO #2 (A)','Bombeo','t-bom','MOLINO #2'],
+  ['BW-M2B','WARMAN 8×6 – MOLINO #2 (B)','Bombeo','t-bom','MOLINO #2'],
+  ['BW-M3A','WARMAN 8×6 – MOLINO #3 (A)','Bombeo','t-bom','MOLINO #3'],
+  ['BW-M3B','WARMAN 8×6 – MOLINO #3 (B)','Bombeo','t-bom','MOLINO #3'],
+  ['BW-T4A','WARMAN 8×6 – TANQUE 24 (A)','Bombeo','t-bom','TANQUE 24'],
+  ['BW-T4B','WARMAN 8×6 – TANQUE 24 (B)','Bombeo','t-bom','TANQUE 24'],
+  ['BW-L1A','WARMAN 4×3 – TQ. L.C.C. #1 (A)','Bombeo','t-bom','TANQUE L.C.C. #1'],
+  ['BW-L1B','WARMAN 4×3 – TQ. L.C.C. #1 (B)','Bombeo','t-bom','TANQUE L.C.C. #1'],
+  ['BW-L2A','WARMAN 4×3 – TQ. L.C.C. #2 (A)','Bombeo','t-bom','TANQUE L.C.C. #2'],
+  ['BW-L2B','WARMAN 4×3 – TQ. L.C.C. #2 (B)','Bombeo','t-bom','TANQUE L.C.C. #2'],
+  ['BW-L3A','WARMAN 4×3 – TQ. L.C.C. #3 (A)','Bombeo','t-bom','TANQUE L.C.C. #3'],
+  ['BW-L3B','WARMAN 4×3 – TQ. L.C.C. #3 (B)','Bombeo','t-bom','TANQUE L.C.C. #3'],
+  ['BW-L4A','WARMAN 8×6 – TQ. L.C.C. #4 (A)','Bombeo','t-bom','TANQUE L.C.C. #4'],
+  ['BW-L4B','WARMAN 8×6 – TQ. L.C.C. #4 (B)','Bombeo','t-bom','TANQUE L.C.C. #4'],
+  ['BW-SRA','WARMAN 6×4 SOL. RICA (A)','Bombeo','t-bom','L.C.C. SOLUCIÓN RICA'],
+  ['BW-SRB','WARMAN 6×4 SOL. RICA (B)','Bombeo','t-bom','L.C.C. SOLUCIÓN RICA'],
+  ['BW-COA','WARMAN COLAS (A)','Bombeo','t-bom','LIXIVIACIÓN'],
+  ['BW-COB','WARMAN COLAS (B)','Bombeo','t-bom','LIXIVIACIÓN'],
+  ['BW-SEA','WARMAN SOL. ESTÉRIL (A)','Bombeo','t-bom','LIXIVIACIÓN'],
+  ['BW-SEB','WARMAN SOL. ESTÉRIL (B)','Bombeo','t-bom','LIXIVIACIÓN'],
+  ['BW-ECA','WARMAN DESCARGA E-CAT (A)','Bombeo','t-bom','LIXIVIACIÓN'],
+  ['BW-ECB','WARMAN DESCARGA E-CAT (B)','Bombeo','t-bom','LIXIVIACIÓN'],
+  ['BW-PAA','WARMAN TAZONES P. AHULADA (A)','Bombeo','t-bom','PILETA AHULADA'],
+  ['BW-PAB','WARMAN TAZONES P. AHULADA (B)','Bombeo','t-bom','PILETA AHULADA'],
+  ['LX-01','TANQUE LIXIVIACIÓN #1','Lixiviación','t-lix','LIXIVIACIÓN'],
+  ['LX-02','TANQUE LIXIVIACIÓN #2','Lixiviación','t-lix','LIXIVIACIÓN'],
+  ['LX-03','TANQUE LIXIVIACIÓN #3','Lixiviación','t-lix','LIXIVIACIÓN'],
+  ['LX-04','TANQUE LIXIVIACIÓN #4','Lixiviación','t-lix','LIXIVIACIÓN'],
+  ['LX-05','TANQUE LIXIVIACIÓN #5','Lixiviación','t-lix','LIXIVIACIÓN'],
+  ['LX-06','TANQUE LIXIVIACIÓN #6','Lixiviación','t-lix','LIXIVIACIÓN'],
+  ['TQ-24','TANQUE 24','Lixiviación','t-lix','TANQUE 24'],
+];
+
+// =====================================================================
+// STATE (loaded from IndexedDB on init)
+// =====================================================================
+let config={startDate:'2026-09-13',cycleDays:25,adminPin:'8520',reportPin:'1234',turno1Start:7,turno2Start:19};
+let equipos=EQUIPOS_DEFAULT.map(e=>[...e]);
+let catalog={};
+for(const k in CATALOG_BASE) catalog[k]=[...CATALOG_BASE[k]];
+let inspecciones=[];
+let mechNombres={1:'Mecánico Turno 1',2:'Mecánico Turno 2'};
+let repPinBuf='',repUnlocked=false;
+let admPinBuf='',admUnlocked=false;
+let curAdmTab='config',admSelectedEq=null;
+let currentEq=null,currentTipo='programada';
+let formItemStates={};
+const TODAY=new Date(); // fecha real del dispositivo
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function getTurno(){const h=new Date().getHours();return(h>=config.turno1Start&&h<config.turno2Start)?1:2;}
+function getMecNombre(){return mechNombres[getTurno()]||'Mecánico';}
+function getStartDate(){return new Date(config.startDate+'T00:00:00');}
+function dateStr(d){return d.toISOString().slice(0,10);}
+function todayStr(){return dateStr(TODAY);}
+function fmtDate(d){return d.toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short'});}
+function getCatalogItems(eqId){
+  if(eqId.startsWith('BW-'))return PUMP_ITEMS;
+  if(eqId.startsWith('LX-'))return LIX_ITEMS;
+  if(eqId==='ML-02'||eqId==='ML-03')return catalog['ML-01']||CATALOG_BASE['ML-01']||[];
+  return catalog[eqId]||[];
+}
+function isScheduled(eqIdx,date){
+  const sd=getStartDate();
+  const first=new Date(sd);first.setDate(first.getDate()+eqIdx);first.setHours(0,0,0,0);
+  const dt=new Date(date);dt.setHours(0,0,0,0);
+  const diff=Math.round((dt-first)/86400000);
+  return diff>=0&&diff%config.cycleDays===0;
+}
+function getTodayScheduled(){return equipos.filter((_,i)=>isScheduled(i,TODAY));}
+function isDoneToday(eqId){
+  const ts=todayStr();
+  return inspecciones.some(ins=>ins.equipoId===eqId&&ins.fecha===ts&&ins.tipo!=='reinspeccion');
+}
+function tipoColor(tc){
+  return{'t-trit':'var(--trit)','t-clas':'var(--clas)','t-mol':'var(--mol)','t-bom':'var(--bom)','t-lix':'var(--lix)'}[tc]||'var(--accent)';
+}
+function makeid(){return Math.random().toString(36).slice(2,10);}
+function toast(msg,ok=true){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.style.background=ok?'#16a34a':'#dc2626';
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400);
+}
+async function persist(key,val){try{await dbPut('kv',{k:key,v:val});}catch(e){console.warn('DB write failed',e);}}
+
+// =====================================================================
+// NAVIGATION
+// =====================================================================
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
+  document.getElementById('view-'+v).scrollTop=0;
+  try{sessionStorage.setItem('activeView',v);}catch(_){}
+  if(v==='home')renderHome();
+  if(v==='roll')renderRoll();
+  if(v==='reports')renderReports();
+  if(v==='admin')renderAdmin();
+}
+
+// =====================================================================
+// HOME
+// =====================================================================
+function renderHome(){
+  const t=getTurno();
+  document.getElementById('turno-badge').textContent=t===1?'T1 · Día':'T2 · Noche';
+  document.getElementById('turno-badge').style.background=t===1?'rgba(37,99,235,.35)':'rgba(124,58,237,.35)';
+  document.getElementById('mec-name').textContent=getMecNombre();
+  const sched=getTodayScheduled();
+  const body=document.getElementById('home-body');
+  if(!sched.length){
+    const ds=todayStr(),start=getStartDate();
+    const msg=TODAY<start
+      ? `El programa arranca el <strong>13 de septiembre</strong>. A partir de esa fecha aparecerán los equipos aquí.`
+      : 'Sin inspecciones programadas hoy.';
+    body.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">${msg}</div>`;
+    return;
+  }
+  let html=`<div class="section-head">📅 ${fmtDate(TODAY)} — ${sched.length} equipo${sched.length!==1?'s':''} programados</div>`;
+  sched.forEach(eq=>{
+    const done=isDoneToday(eq[0]);
+    const col=tipoColor(eq[3]);
+    html+=`<div class="card eq-card${done?' done':''}" style="border-left:4px solid ${col}">
+      <div class="eq-header">
+        <span class="eq-id">${eq[0]}</span>
+        <span class="eq-nombre">${eq[1]}</span>
+        ${done?'<span style="color:var(--green);font-size:18px">✔</span>':''}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="eq-area">${eq[4]}</span>
+        ${done
+          ?'<span class="tag tag-comp">Completado</span>'
+          :`<button class="btn btn-primary btn-sm" onclick="openForm('${eq[0]}','programada')">Iniciar →</button>`
+        }
+      </div>
+    </div>`;
+  });
+  body.innerHTML=html;
+}
+
+// =====================================================================
+// MECHANIC MODAL
+// =====================================================================
+function openMecModal(){
+  document.getElementById('mec-t1-input').value=mechNombres[1]||'';
+  document.getElementById('mec-t2-input').value=mechNombres[2]||'';
+  document.getElementById('mec-modal').classList.add('open');
+}
+function closeMecModal(e){
+  if(!e||e.target===document.getElementById('mec-modal'))
+    document.getElementById('mec-modal').classList.remove('open');
+}
+async function saveMecNames(){
+  mechNombres[1]=document.getElementById('mec-t1-input').value.trim()||'Mecánico T1';
+  mechNombres[2]=document.getElementById('mec-t2-input').value.trim()||'Mecánico T2';
+  document.getElementById('mec-modal').classList.remove('open');
+  document.getElementById('mec-name').textContent=getMecNombre();
+  await persist('mec',mechNombres);
+  toast('Nombres guardados');
+}
+
+// =====================================================================
+// FORM
+// =====================================================================
+function openForm(eqId,tipo){
+  const eq=equipos.find(e=>e[0]===eqId);if(!eq)return;
+  currentEq=eq;currentTipo=tipo;formItemStates={};
+  const items=getCatalogItems(eqId);
+  const col=tipoColor(eq[3]);
+  document.getElementById('form-title').textContent=eq[1];
+  document.getElementById('form-color-bar').style.background=col;
+  const tag=document.getElementById('form-tipo-tag');
+  if(tipo==='extra'){tag.textContent='EXTRA';tag.className='tag tag-extra';}
+  else if(tipo==='reinspeccion'){tag.textContent='REINSP.';tag.className='tag tag-venc';}
+  else{tag.textContent='PROG.';tag.className='tag tag-prog';}
+  const t=getTurno();
+  document.getElementById('form-meta').innerHTML=`
+    <span class="tag ${t===1?'tag-t1':'tag-t2'}">T${t} ${t===1?'Día':'Noche'}</span>
+    <span class="eq-id">${eq[0]}</span>
+    <span style="font-size:11px;color:var(--sub)">${fmtDate(TODAY)}</span>
+    <span style="font-size:11px;color:var(--sub)">${getMecNombre()}</span>
+    <span style="font-size:11px;color:var(--sub)">${eq[4]}</span>`;
+  document.getElementById('form-items').innerHTML=items.map((item,idx)=>`
+    <div class="item-row">
+      <span class="item-name">${idx+1}. ${item}</span>
+      <div class="item-btns">
+        <button class="item-btn" id="ib-b-${idx}" onclick="setItem(${idx},'b')">✔</button>
+        <button class="item-btn" id="ib-r-${idx}" onclick="setItem(${idx},'r')">~</button>
+        <button class="item-btn" id="ib-m-${idx}" onclick="setItem(${idx},'m')">✘</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('form-obs').value='';
+  showView('form');
+}
+function setItem(idx,estado){
+  const prev=formItemStates[idx];
+  if(prev===estado)delete formItemStates[idx]; else formItemStates[idx]=estado;
+  const s=formItemStates[idx];
+  ['b','r','m'].forEach(x=>{
+    const btn=document.getElementById(`ib-${x}-${idx}`);
+    if(btn)btn.className='item-btn'+(s===x?' sel-'+x:'');
+  });
+}
+async function saveForm(){
+  const items=getCatalogItems(currentEq[0]);
+  const ins={
+    id:makeid(),equipoId:currentEq[0],equipoNombre:currentEq[1],
+    seccion:currentEq[2],area:currentEq[4],tipo:currentTipo,
+    turno:getTurno(),mecanico:getMecNombre(),fecha:todayStr(),
+    items:items.map((nombre,idx)=>({nombre,estado:formItemStates[idx]||null})),
+    observaciones:document.getElementById('form-obs').value.trim(),
+    savedAt:Date.now(),
+  };
+  ins.pending=true; // siempre pending hasta que Supabase confirme
+  inspecciones.push(ins);
+  try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
+  if(navigator.onLine){
+    sbInsert(ins).then(ok=>{
+      if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
+      else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
+    }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
+  }else{
+    toast('✔ Inspección guardada offline — se subirá al reconectar');
+  }
+  closeForm();
+}
+function closeForm(){showView('home');}
+
+// =====================================================================
+// SHEET
+// =====================================================================
+function openSheet(){
+  document.getElementById('sheet-q').value='';filterSheet();
+  document.getElementById('sheet-overlay').classList.add('open');
+}
+function closeSheet(e){
+  if(!e||e.target===document.getElementById('sheet-overlay'))
+    document.getElementById('sheet-overlay').classList.remove('open');
+}
+function filterSheet(){
+  const q=document.getElementById('sheet-q').value.toLowerCase();
+  document.getElementById('sheet-list').innerHTML=equipos
+    .filter(eq=>!q||eq[0].toLowerCase().includes(q)||eq[1].toLowerCase().includes(q)||eq[4].toLowerCase().includes(q))
+    .map(eq=>`<div class="sheet-item" onclick="pickSheet('${eq[0]}')">
+      <span class="s-dot" style="background:${tipoColor(eq[3])}"></span>
+      <span class="s-id">${eq[0]}</span>
+      <span class="s-nom">${eq[1]}</span>
+    </div>`).join('');
+}
+function pickSheet(eqId){
+  document.getElementById('sheet-overlay').classList.remove('open');
+  openForm(eqId,'extra');
+}
+
+// =====================================================================
+// ROLL
+// =====================================================================
+function renderRoll(){
+  const secFil=document.getElementById('roll-sec').value;
+  const areaFil=document.getElementById('roll-area').value;
+  const areas=[...new Set(equipos.filter(e=>!secFil||e[2]===secFil).map(e=>e[4]))].sort();
+  const areaEl=document.getElementById('roll-area');
+  const curArea=areaEl.value;
+  areaEl.innerHTML='<option value="">— Área —</option>'+areas.map(a=>`<option${a===curArea?' selected':''}>${a}</option>`).join('');
+  const eqF=equipos.filter(e=>(!secFil||e[2]===secFil)&&(!areaFil||e[4]===areaFil));
+  const rangeStart=new Date(2026,8,1),rangeEnd=new Date(2026,10,30);
+  const days=[];
+  for(let d=new Date(rangeStart);d<=rangeEnd;d.setDate(d.getDate()+1))days.push(new Date(d));
+  const months=[];let cm=-1,cs=0;
+  days.forEach(d=>{if(d.getMonth()!==cm){if(cs)months[months.length-1].span=cs;months.push({label:d.toLocaleDateString('es-MX',{month:'long',year:'numeric'}),span:0});cm=d.getMonth();cs=0;}cs++;});
+  if(months.length)months[months.length-1].span=cs;
+  const todStr=todayStr();
+  const sections=[...new Set(eqF.map(e=>e[2]))];
+  let rows='';
+  sections.forEach(sec=>{
+    const areasInSec=[...new Set(eqF.filter(e=>e[2]===sec).map(e=>e[4]))];
+    areasInSec.forEach(area=>{
+      const eqs=eqF.filter(e=>e[2]===sec&&e[4]===area);
+      rows+=`<tr class="area-sub"><th class="col-n"></th><th class="col-id"></th>
+        <th class="col-nom" style="font-size:10px;padding-left:6px">${area}</th>
+        <th class="col-area">${sec}</th>${days.map(()=>'<th></th>').join('')}</tr>`;
+      eqs.forEach(eq=>{
+        const gi=equipos.indexOf(eq);
+        const col=tipoColor(eq[3]);
+        rows+=`<tr><td class="col-n">${gi+1}</td><td class="col-id" style="color:${col}">${eq[0]}</td>
+          <td class="col-nom">${eq[1]}</td><td class="col-area" style="font-size:10px;color:var(--sub)">${eq[4]}</td>`;
+        days.forEach(d=>{
+          const ds=dateStr(d);const isToday=ds===todStr;
+          const sched=isScheduled(gi,d);
+          const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&ins.fecha===ds);
+          const venc=sched&&d<TODAY&&!done;
+          let cell='';
+          if(sched){
+            const pc=`pip pip-${eq[3].replace('t-','')}`;
+            if(isToday&&!done)
+              cell=`<span class="${pc}" onclick="openForm('${eq[0]}','programada')" style="cursor:pointer" title="Iniciar inspección">●</span>`;
+            else if(done)
+              cell=`<span class="${pc}" style="opacity:.4">✔</span>`;
+            else if(venc)
+              cell=`<span class="${pc}" style="outline:2px solid var(--red);outline-offset:-2px">!</span>`;
+            else
+              cell=`<span class="${pc}">●</span>`;
+          }
+          rows+=`<td class="day-cell${isToday?' today-col':''}">${cell}</td>`;
+        });
+        rows+='</tr>';
+      });
+    });
+  });
+  document.getElementById('roll-wrap').innerHTML=`<table class="roll-table">
+    <thead>
+      <tr>
+        <th class="col-n month-head" rowspan="2">№</th>
+        <th class="col-id month-head" rowspan="2">ID</th>
+        <th class="col-nom month-head" rowspan="2">EQUIPO</th>
+        <th class="col-area month-head" rowspan="2">ÁREA</th>
+        ${months.map(m=>`<th class="month-head" colspan="${m.span}">${m.label.toUpperCase()}</th>`).join('')}
+      </tr>
+      <tr>${days.map(d=>{const it=dateStr(d)===todStr;return`<th class="day-head${it?' today-col':''}" style="${it?'color:var(--accent)':''}">${d.getDate()}</th>`;}).join('')}</tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// =====================================================================
+// PIN SYSTEM (shared for reports + admin)
+// =====================================================================
+const pinState={rep:{buf:'',unlocked:false},adm:{buf:'',unlocked:false}};
+function pinKey(who,k){
+  const s=pinState[who];
+  if(k==='⌫')s.buf=s.buf.slice(0,-1);
+  else if(k==='OK'){checkPin(who);return;}
+  else if(s.buf.length<4)s.buf+=k;
+  const pref=who==='rep'?'rpd':'apd';
+  [0,1,2,3].forEach(i=>{
+    const el=document.getElementById(pref+i);
+    if(el)el.classList.toggle('filled',i<s.buf.length);
+  });
+  if(s.buf.length===4)checkPin(who);
+}
+function checkPin(who){
+  const s=pinState[who];
+  const correctPin=who==='rep'?config.reportPin:config.adminPin;
+  if(s.buf===correctPin){
+    s.unlocked=true;s.buf='';
+    try{sessionStorage.setItem('pin_'+who,'1');}catch(_){}
+    if(who==='rep'){
+      document.getElementById('rep-pin-gate').style.display='none';
+      document.getElementById('rep-content').style.display='block';
+      renderRepList();
+    } else {
+      document.getElementById('adm-pin-gate').style.display='none';
+      document.getElementById('adm-content').style.display='block';
+      renderAdmPanel();
+    }
+  } else {
+    const errId=who==='rep'?'rep-pin-err':'adm-pin-err';
+    document.getElementById(errId).textContent='PIN incorrecto';
+    s.buf='';
+    const pref=who==='rep'?'rpd':'apd';
+    [0,1,2,3].forEach(i=>{const el=document.getElementById(pref+i);if(el)el.classList.remove('filled');});
+    setTimeout(()=>{document.getElementById(errId).textContent='';},1500);
+  }
+}
+
+// =====================================================================
+// REPORTS
+// =====================================================================
+function renderReports(){
+  if(pinState.rep.unlocked){
+    document.getElementById('rep-pin-gate').style.display='none';
+    document.getElementById('rep-content').style.display='block';
+    renderRepList();
+  } else {
+    document.getElementById('rep-pin-gate').style.display='block';
+    document.getElementById('rep-content').style.display='none';
+  }
+}
+function renderRepList(){
+  const sec=document.getElementById('rep-fsec').value;
+  const turno=document.getElementById('rep-fturno').value;
+  const estado=document.getElementById('rep-festado').value;
+  let data=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
+  if(sec)data=data.filter(i=>i.seccion===sec);
+  if(turno)data=data.filter(i=>String(i.turno)===turno);
+  if(estado==='ok')data=data.filter(i=>!i.items.some(it=>it.estado==='m'));
+  if(estado==='mal')data=data.filter(i=>i.items.some(it=>it.estado==='m'));
+  const el=document.getElementById('rep-list');
+  if(!data.length){
+    el.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin inspecciones${sec||turno||estado?' con esos filtros':' registradas aún'}.</div>`;
+    return;
+  }
+  el.innerHTML=data.map((ins,i)=>{
+    const b=ins.items.filter(it=>it.estado==='b').length;
+    const m=ins.items.filter(it=>it.estado==='m').length;
+    const r=ins.items.filter(it=>it.estado==='r').length;
+    const malos=ins.items.filter(it=>it.estado==='m');
+    const eq=equipos.find(e=>e[0]===ins.equipoId);
+    const col=eq?tipoColor(eq[3]):'var(--accent)';
+    const itemsHtml=ins.items.map(it=>{
+      const cls=it.estado==='b'?'item-estado-b':it.estado==='m'?'item-estado-m':'item-estado-r';
+      const ico=it.estado==='b'?'✔':it.estado==='m'?'✘':'~';
+      const bg=it.estado==='b'?'rgba(22,163,74,.07)':it.estado==='m'?'rgba(220,38,38,.07)':'rgba(217,119,6,.07)';
+      return`<div class="item-detail-row" style="background:${bg};border-radius:6px;padding:5px 8px;margin-bottom:2px;border:none">
+        <span class="${cls}">${ico}</span>
+        <span class="item-detail-name">${it.nombre}</span>
+      </div>`;
+    }).join('');
+    return`<div class="card rep-card" style="border-left-color:${col}" onclick="toggleRepCard(this)">
+      <div class="rep-header">
+        <span class="rep-id">${ins.equipoId}</span>
+        <span class="rep-nombre">${ins.equipoNombre}</span>
+        <span class="tag ${ins.tipo==='extra'?'tag-extra':ins.tipo==='reinspeccion'?'tag-venc':'tag-prog'}">${ins.tipo.toUpperCase()}</span>
+        <span class="rep-chevron">▾</span>
+      </div>
+      <div class="rep-meta">${ins.fecha} · T${ins.turno} · ${ins.mecanico} · ${ins.area}</div>
+      <div class="rep-counts">
+        <span class="cnt-b">✔ ${b} Buenos</span>
+        <span class="cnt-r">~ ${r} Regulares</span>
+        <span class="cnt-m">✘ ${m} Malos</span>
+      </div>
+      ${malos.length?`<div class="malos-box"><strong>⚠ Ítems en mal estado:</strong>${malos.map(it=>`<div>• ${it.nombre}</div>`).join('')}</div>`:''}
+      ${ins.observaciones?`<div class="obs-box">💬 ${ins.observaciones}</div>`:''}
+      <div class="rep-items-detail">${itemsHtml}</div>
+      <button onclick="event.stopPropagation();openForm('${ins.equipoId}','reinspeccion')" style="margin-top:10px;width:100%;padding:9px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer">🔄 Reinspeccionar este equipo</button>
+    </div>`;
+  }).join('');
+}
+
+// =====================================================================
+// ADMIN
+// =====================================================================
+function renderAdmin(){
+  if(pinState.adm.unlocked){
+    document.getElementById('adm-pin-gate').style.display='none';
+    document.getElementById('adm-content').style.display='block';
+    renderAdmPanel();
+  } else {
+    document.getElementById('adm-pin-gate').style.display='block';
+    document.getElementById('adm-content').style.display='none';
+  }
+}
+function admTab(tab){
+  curAdmTab=tab;
+  document.querySelectorAll('.adm-tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
+  renderAdmPanel();
+}
+function renderAdmPanel(){
+  const panel=document.getElementById('adm-panel');
+  if(curAdmTab==='config'){
+    panel.innerHTML=`
+      <div class="field"><label>Fecha de arranque</label><input type="date" id="cfg-start" value="${config.startDate}"></div>
+      <div class="field"><label>Ciclo de inspección (días)</label><input type="number" id="cfg-cycle" value="${config.cycleDays}" min="1" max="90"></div>
+      <div class="field"><label>Turno 1 inicia (hora)</label><input type="number" id="cfg-t1" value="${config.turno1Start}" min="0" max="23"></div>
+      <div class="field"><label>Turno 2 inicia (hora)</label><input type="number" id="cfg-t2" value="${config.turno2Start}" min="0" max="23"></div>
+      <div class="field"><label>PIN Administrador</label><input type="password" id="cfg-apin" value="${config.adminPin}" maxlength="6"></div>
+      <div class="field"><label>PIN Reportes</label><input type="password" id="cfg-rpin" value="${config.reportPin}" maxlength="6"></div>
+      <button class="btn btn-primary" onclick="saveConfig()">Guardar configuración</button>
+      <div id="cfg-status" style="margin-top:10px;font-size:13px;font-weight:700;min-height:20px;"></div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:8px">Fuerza que todos los dispositivos recarguen y jalen el código más nuevo de GitHub.</div>
+      <button class="btn btn-ghost" style="width:100%" onclick="forceDeployUpdate()">🚀 Forzar actualización en todos los dispositivos</button>
+      <div id="deploy-status" style="margin-top:8px;font-size:12px;min-height:16px;"></div>`;
+  } else if(curAdmTab==='mec'){
+    panel.innerHTML=`
+      <div class="field"><label>🌅 Turno 1 (Día) — ${config.turno1Start}:00 a ${config.turno2Start}:00</label>
+        <input type="text" id="adm-t1" value="${mechNombres[1]||''}"></div>
+      <div class="field"><label>🌙 Turno 2 (Noche) — ${config.turno2Start}:00 a ${config.turno1Start}:00</label>
+        <input type="text" id="adm-t2" value="${mechNombres[2]||''}"></div>
+      <button class="btn btn-primary" onclick="saveMecAdmin()">Guardar nombres</button>`;
+  } else if(curAdmTab==='eq'){
+    const secOpts=['Trituración','Clasificación','Molienda','Bombeo','Lixiviación'].map(s=>`<option>${s}</option>`).join('');
+    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${equipos.length} equipos</div>`+
+      equipos.map((eq,i)=>`<div class="eq-line">
+        <span class="eq-lid">${eq[0]}</span>
+        <span class="eq-lnom">${eq[1]}</span>
+        <span style="font-size:10px;color:var(--sub);min-width:50px">${eq[2]}</span>
+        <button class="del-btn" onclick="delEquipo(${i})">✕</button>
+      </div>`).join('')+
+      `<div style="margin-top:14px;font-weight:700;font-size:12px;margin-bottom:6px">+ Agregar equipo</div>
+      <div class="field"><label>ID</label><input type="text" id="ne-id" placeholder="BW-XXX"></div>
+      <div class="field"><label>Nombre</label><input type="text" id="ne-nom" placeholder="NOMBRE EQUIPO"></div>
+      <div class="field"><label>Sección</label><select id="ne-sec">${secOpts}</select></div>
+      <div class="field"><label>Área</label><input type="text" id="ne-area" placeholder="ÁREA"></div>
+      <button class="btn btn-green btn-sm" onclick="addEquipo()">+ Agregar</button>`;
+  } else if(curAdmTab==='items'){
+    const eqOpts=equipos.map(e=>`<option value="${e[0]}"${admSelectedEq===e[0]?' selected':''}>${e[0]} – ${e[1]}</option>`).join('');
+    const items=admSelectedEq?getCatalogItems(admSelectedEq):[];
+    const isShared=admSelectedEq&&(admSelectedEq.startsWith('BW-')||admSelectedEq.startsWith('LX-')||admSelectedEq==='ML-02'||admSelectedEq==='ML-03');
+    panel.innerHTML=`<div class="field"><label>Equipo</label>
+      <select onchange="admSelectedEq=this.value;renderAdmPanel()">${eqOpts}</select></div>`+
+      (admSelectedEq?
+        (isShared?`<div style="background:#fef3c7;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px">⚠ Ítems compartidos con su grupo.</div>`:'')
+        +`<div style="font-size:12px;font-weight:700;margin-bottom:4px">${items.length} ítems</div>`
+        +items.map((it,idx)=>`<div class="item-line"><span>${idx+1}. ${it}</span>
+          ${!isShared?`<button class="del-btn" onclick="delItem('${admSelectedEq}',${idx})">✕</button>`:''}</div>`).join('')
+        +(!isShared?`<div class="add-row"><input type="text" id="new-item-inp" placeholder="Nuevo ítem">
+          <button class="btn btn-green btn-sm" onclick="addItem('${admSelectedEq}')">+</button></div>`:'')
+        :'<div style="color:var(--sub);font-size:13px">Selecciona un equipo.</div>');
+  } else if(curAdmTab==='reinsp'){
+    const eqOpts=equipos.map(e=>`<option value="${e[0]}">${e[0]} – ${e[1]}</option>`).join('');
+    const recent=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt).slice(0,15);
+    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:10px">
+      El admin puede forzar una reinspección en cualquier equipo.</div>
+      <div class="field"><label>Equipo</label><select id="reinsp-eq">${eqOpts}</select></div>
+      <button class="btn btn-primary btn-sm" style="margin-bottom:16px" onclick="startReinsp()">Iniciar reinspección →</button>
+      ${recent.length?'<div style="font-size:12px;font-weight:700;margin-bottom:6px">Últimas inspecciones</div>'
+        +recent.map(ins=>`<div class="item-line"><span>${ins.fecha} · <b>${ins.equipoId}</b> · T${ins.turno} · ${ins.tipo}</span></div>`).join('')
+        :'<div style="color:var(--sub);font-size:13px">Sin inspecciones aún.</div>'}`;
+  } else if(curAdmTab==='historial'){
+    const sorted=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
+    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:10px">
+      ${sorted.length} inspección(es) en total. Toca 🗑 para borrar (se elimina de todos los dispositivos).</div>`+
+      (sorted.length?sorted.map(ins=>`
+      <div class="item-line" style="flex-wrap:wrap;gap:4px">
+        <div style="flex:1;min-width:0">
+          <span style="font-weight:700;font-size:12px;font-family:monospace">${ins.equipoId}</span>
+          <span style="font-size:11px;color:var(--sub);margin-left:4px">${ins.equipoNombre}</span><br>
+          <span style="font-size:11px;color:var(--sub)">${ins.fecha} · T${ins.turno} · ${ins.mecanico}</span>
+          ${ins.pending?'<span style="font-size:10px;color:var(--amber);margin-left:4px">⏳ pendiente</span>':''}
+        </div>
+        <button class="del-btn" style="background:#fee2e2;color:var(--red);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700" onclick="deleteInspeccion('${ins.id}')">🗑</button>
+      </div>`).join('')
+      :'<div style="color:var(--sub);font-size:13px;padding:20px 0;text-align:center">Sin inspecciones registradas.</div>');
+  }
+}
+async function forceDeployUpdate(){
+  const v=new Date().toISOString();
+  config._deployV=v;
+  localStorage.setItem('gamas-deploy-v',v);
+  await persist('config',config);
+  const st=document.getElementById('deploy-status');
+  if(st){st.textContent='Enviando señal…';st.style.color='var(--sub)';}
+  if(navigator.onLine){
+    const ok=await sbPushConfig(config);
+    if(st){
+      st.textContent=ok?'✅ Señal enviada — los demás dispositivos recargarán en ~5 seg':'⚠ Error al enviar';
+      st.style.color=ok?'var(--green)':'var(--amber)';
+    }
+  } else {
+    if(st){st.textContent='⚠ Sin conexión';st.style.color='var(--amber)';}
+  }
+}
+
+async function saveConfig(){
+  config.startDate=document.getElementById('cfg-start').value;
+  config.cycleDays=parseInt(document.getElementById('cfg-cycle').value)||25;
+  config.turno1Start=parseInt(document.getElementById('cfg-t1').value)||7;
+  config.turno2Start=parseInt(document.getElementById('cfg-t2').value)||19;
+  config.adminPin=document.getElementById('cfg-apin').value||'8520';
+  config.reportPin=document.getElementById('cfg-rpin').value||'1234';
+  await persist('config',config);
+  const st=document.getElementById('cfg-status');
+  if(st){st.textContent='Guardando…';st.style.color='var(--sub)';}
+  if(navigator.onLine){
+    const ok=await sbPushConfig(config);
+    const msg=ok?'✅ Guardada y sincronizada ☁':'⚠ Guardada local (error nube — ver F12)';
+    const col=ok?'var(--green)':'var(--amber)';
+    if(st){st.textContent=msg;st.style.color=col;}
+    toast(msg,ok);
+  }else{
+    const msg='💾 Guardada offline — sube al reconectar';
+    if(st){st.textContent=msg;st.style.color='var(--amber)';}
+    toast(msg,false);
+  }
+}
+async function saveMecAdmin(){
+  mechNombres[1]=document.getElementById('adm-t1').value.trim()||'Mecánico T1';
+  mechNombres[2]=document.getElementById('adm-t2').value.trim()||'Mecánico T2';
+  await persist('mec',mechNombres);
+  toast('Nombres guardados');
+}
+function delEquipo(i){
+  if(!confirm('¿Eliminar '+equipos[i][1]+'?'))return;
+  equipos.splice(i,1);renderAdmPanel();
+}
+function addEquipo(){
+  const id=document.getElementById('ne-id').value.trim().toUpperCase();
+  const nom=document.getElementById('ne-nom').value.trim().toUpperCase();
+  const sec=document.getElementById('ne-sec').value;
+  const area=document.getElementById('ne-area').value.trim().toUpperCase();
+  if(!id||!nom||!area){toast('Completa todos los campos',false);return;}
+  if(equipos.find(e=>e[0]===id)){toast('ID ya existe',false);return;}
+  const tc=sec==='Trituración'?'t-trit':sec==='Clasificación'?'t-clas':sec==='Molienda'?'t-mol':sec==='Bombeo'?'t-bom':'t-lix';
+  equipos.push([id,nom,sec,tc,area]);
+  toast('Equipo agregado ✔');renderAdmPanel();
+}
+function delItem(eqId,idx){
+  if(!catalog[eqId])catalog[eqId]=[...getCatalogItems(eqId)];
+  catalog[eqId].splice(idx,1);renderAdmPanel();
+}
+function addItem(eqId){
+  const inp=document.getElementById('new-item-inp');
+  const val=inp.value.trim();
+  if(!val){toast('Escribe el nombre del ítem',false);return;}
+  if(!catalog[eqId])catalog[eqId]=[...getCatalogItems(eqId)];
+  catalog[eqId].push(val);inp.value='';
+  toast('Ítem agregado');renderAdmPanel();
+}
+function startReinsp(){
+  const id=document.getElementById('reinsp-eq').value;
+  if(!id)return;
+  openForm(id,'reinspeccion');
+}
+
+// =====================================================================
+// INIT — load from IndexedDB
+// =====================================================================
+async function init(){
+  try{
+    await initDB();
+    // Load inspecciones
+    const saved=await dbGetAll('inspecciones');
+    if(saved&&saved.length)inspecciones=saved;
+    // Load config
+    const cfgRow=await dbGet('kv','config');
+    if(cfgRow&&cfgRow.v)config={...config,...cfgRow.v};
+    // Load mechanic names
+    const mecRow=await dbGet('kv','mec');
+    if(mecRow&&mecRow.v)mechNombres={...mechNombres,...mecRow.v};
+  }catch(e){console.warn('IndexedDB no disponible, usando memoria',e);}
+  // Sincronizar con Supabase al arrancar (si hay conexión)
+  await fetchRemoteConfig();       // jala config central → actualiza fecha, turno, etc.
+  await fetchRemoteInspecciones(); // jala inspecciones de otros dispositivos
+  await syncPending();             // sube lo que quedó pendiente offline
+
+  // Restaurar estado de PINs (sesión del navegador, sobrevive recargas automáticas)
+  try{
+    if(sessionStorage.getItem('pin_rep')==='1') pinState.rep.unlocked=true;
+    if(sessionStorage.getItem('pin_adm')==='1') pinState.adm.unlocked=true;
+  }catch(_){}
+
+  // Restaurar vista activa (para que un auto-reload no mande a "Hoy")
+  let restoreView='home';
+  try{restoreView=sessionStorage.getItem('activeView')||'home';}catch(_){}
+  // No restaurar 'form' porque el formulario necesita contexto que se perdió
+  if(restoreView==='form') restoreView='home';
+  showView(restoreView);
+  // Update turno every minute
+  setInterval(()=>{
+    if(document.querySelector('#view-home.active'))renderHome();
+  },60000);
+  // Sync completo cada 30s: config + inspecciones de otros dispositivos
+  setInterval(async()=>{
+    if(!navigator.onLine)return;
+    const snapCfg=JSON.stringify(config);
+    const snapIns=JSON.stringify(inspecciones.map(i=>i.id+i.savedAt));
+    await syncPending();  // sube pendientes primero
+    await Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]);
+    const changed=JSON.stringify(config)!==snapCfg||JSON.stringify(inspecciones.map(i=>i.id+i.savedAt))!==snapIns;
+    if(changed){
+      renderHome();
+      if(document.querySelector('#view-roll.active'))renderRoll();
+      if(document.querySelector('#view-rep.active'))renderReportes();
+    }
+  },30000);
+}
+// =====================================================================
+// PULL TO REFRESH
+// =====================================================================
+(function initPullToRefresh(){
+  const THRESHOLD=70;
+  let startY=0,pulling=false,blocked=false;
+  const ptr=document.getElementById('ptr-indicator');
+
+  document.addEventListener('touchstart',e=>{
+    // Solo arrancar si el scroll del contenedor activo está en top=0
+    const view=document.querySelector('.view.active');
+    if(!view||view.scrollTop>0){blocked=true;return;}
+    blocked=false;
+    startY=e.touches[0].clientY;
+    pulling=false;
+  },{passive:true});
+
+  document.addEventListener('touchmove',e=>{
+    if(blocked)return;
+    const dy=e.touches[0].clientY-startY;
+    if(dy<10)return;
+    pulling=true;
+    const progress=Math.min(dy/THRESHOLD,1);
+    ptr.textContent=progress>=1?'⟳':'↓';
+    ptr.classList.toggle('pulling',true);
+    ptr.style.opacity=String(progress);
+    ptr.style.transform=`translateX(-50%) translateY(${Math.min(dy*0.4,24)}px)`;
+  },{passive:true});
+
+  document.addEventListener('touchend',async()=>{
+    if(!pulling){ptr.classList.remove('pulling');return;}
+    const dy=parseFloat(ptr.style.transform.match(/translateY\(([^p]+)/)?.[1]||0);
+    pulling=false;
+    if(dy>=THRESHOLD*0.4*0.4||ptr.textContent==='⟳'){
+      // Disparar sync
+      ptr.textContent='⟳';
+      ptr.classList.add('loading');
+      ptr.style.opacity='1';
+      ptr.style.transform='translateX(-50%) translateY(4px)';
+      try{
+        await syncPending();
+        await Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]);
+        renderHome();
+        const v=document.querySelector('.view.active');
+        if(v&&v.id==='view-roll')renderRoll();
+        if(v&&v.id==='view-reports')renderRepList();
+        toast('✅ Actualizado');
+      }catch(e){}
+    }
+    setTimeout(()=>{
+      ptr.classList.remove('pulling','loading');
+      ptr.style.opacity='0';
+      ptr.style.transform='translateX(-50%) translateY(-60px)';
+    },600);
+  });
+})();
+
+// =====================================================================
+// EXPANDIR CARD REPORTE
+// =====================================================================
+function toggleRepCard(el){
+  el.classList.toggle('expanded');
+}
+
+// =====================================================================
+// TEMA CLARO / OSCURO
+// =====================================================================
+function initTheme(){
+  const saved=localStorage.getItem('gamas-theme');
+  const isDark=saved==='dark'||(saved===null&&window.matchMedia('(prefers-color-scheme:dark)').matches);
+  applyTheme(isDark?'dark':'light');
+}
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  const btn=document.getElementById('theme-btn');
+  if(btn)btn.textContent=t==='dark'?'☀️':'🌙';
+  localStorage.setItem('gamas-theme',t);
+}
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme')||'light';
+  applyTheme(cur==='dark'?'light':'dark');
+}
+
+// =====================================================================
+// MODAL CONFIRMACIÓN (reemplaza confirm() que se bloquea en PWA)
+// =====================================================================
+let _confirmCb=null;
+function showConfirm(msg,cb){
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-overlay').style.display='flex';
+  _confirmCb=cb;
+}
+function confirmOk(){
+  document.getElementById('confirm-overlay').style.display='none';
+  if(_confirmCb){_confirmCb();_confirmCb=null;}
+}
+function confirmCancel(){
+  document.getElementById('confirm-overlay').style.display='none';
+  _confirmCb=null;
+}
+
+// =====================================================================
+// BORRAR INSPECCIÓN (solo admin)
+// =====================================================================
+function deleteInspeccion(id){
+  const ins=inspecciones.find(i=>i.id===id);
+  const label=ins?`${ins.equipoId} · ${ins.fecha} · T${ins.turno}`:'esta inspección';
+  showConfirm(`Se borrará "${label}" en todos los dispositivos. ¿Continuar?`, async()=>{
+    // Quitar de memoria
+    const idx=inspecciones.findIndex(i=>i.id===id);
+    if(idx!==-1)inspecciones.splice(idx,1);
+    // Quitar de IndexedDB
+    if(db){
+      try{
+        await new Promise((res,rej)=>{
+          const tx=db.transaction('inspecciones','readwrite');
+          const req=tx.objectStore('inspecciones').delete(id);
+          req.onsuccess=res; req.onerror=rej;
+        });
+      }catch(e){console.warn('deleteInspeccion IDB',e);}
+    }
+    // Quitar de Supabase (o encolar si offline)
+    if(navigator.onLine){
+      try{
+        const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+encodeURIComponent(id),
+          {method:'DELETE',headers:{...SB_H,'Prefer':'return=minimal'}});
+      }catch(e){console.warn('deleteInspeccion SB',e);addPendingDelete(id);}
+    } else {
+      // Sin internet: encolar para borrar en Supabase cuando haya conexión
+      addPendingDelete(id);
+    }
+    toast('🗑 Inspección eliminada');
+    renderAdmPanel();
+    renderHome();
+  });
+}
+
+document.addEventListener('DOMContentLoaded',()=>{initTheme();init();});
+</script>
+</body>
+</html>
