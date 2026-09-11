@@ -554,6 +554,38 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 const SB_URL='https://ewgcufflruljsemexded.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3Z2N1ZmZscnVsanNlbWV4ZGVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5OTkwNDgsImV4cCI6MjEwNDU3NTA0OH0.K3agZNVCCYbp6qDNLQjZKvCv_jTbVDvdSAAdtSErKBM';
 const SB_H={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+const SB_BUCKET='evidencias_gammas';
+function sbPublicUrl(path){return `${SB_URL}/storage/v1/object/public/${SB_BUCKET}/${path}`;}
+async function sbUploadFoto(path,blob){
+  const r=await fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}/${path}`,{
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'image/jpeg','x-upsert':'true'},
+    body:blob
+  });
+  return r.ok;
+}
+// Redimensiona y comprime una foto a JPEG antes de guardarla/subirla
+function compressImage(file,maxSize,quality){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('No se pudo leer el archivo'));
+    reader.onload=e=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('No se pudo cargar la imagen'));
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>h){if(w>maxSize){h=Math.round(h*maxSize/w);w=maxSize;}}
+        else{if(h>maxSize){w=Math.round(w*maxSize/h);h=maxSize;}}
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('No se pudo comprimir')),'image/jpeg',quality);
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 // --- INSPECCIONES ---
 async function sbInsert(ins){
@@ -604,6 +636,40 @@ async function syncPending(){
     }
   }
   if(synced>0)toast(`☁ ${synced} inspección${synced>1?'es':''} sincronizada${synced>1?'s':''}`);
+}
+async function syncFotosPendientes(){
+  if(!navigator.onLine)return;
+  let fotos;
+  try{fotos=await dbGetAll('fotos');}catch(e){return;}
+  const pendientes=fotos.filter(f=>!f.uploaded);
+  if(!pendientes.length)return;
+  let synced=0;
+  for(const f of pendientes){
+    try{
+      const okThumb=await sbUploadFoto(f.id+'_thumb.jpg',f.thumbBlob);
+      const okFull=await sbUploadFoto(f.id+'_full.jpg',f.fullBlob);
+      if(!okThumb||!okFull)continue; // se reintenta en el siguiente ciclo
+      const thumbUrl=sbPublicUrl(f.id+'_thumb.jpg');
+      const fullUrl=sbPublicUrl(f.id+'_full.jpg');
+      // Encontrar la inspección/ítem dueño de esta foto y anexarle las URLs
+      let ins=null,item=null;
+      for(const i of inspecciones){
+        const it=i.items.find(x=>x.fotoId===f.id);
+        if(it){ins=i;item=it;break;}
+      }
+      if(ins&&item){
+        delete item.fotoId;
+        item.fotoUrl=fullUrl;
+        item.fotoThumbUrl=thumbUrl;
+        await dbPut('inspecciones',ins);
+        if(!ins.pending)await sbInsert(ins); // ya estaba sincronizada: actualizar items con la URL
+      }
+      f.uploaded=true;
+      await dbPut('fotos',f);
+      synced++;
+    }catch(e){console.warn('syncFotosPendientes',e);}
+  }
+  if(synced>0&&document.querySelector('#view-reports.active'))renderRepTabContent();
 }
 
 async function fetchRemoteInspecciones(){
@@ -690,7 +756,7 @@ async function fetchRemoteConfig(){
 // =====================================================================
 // INDEXEDDB
 // =====================================================================
-const DB_NAME='gamas-mrt-db', DB_VER=1;
+const DB_NAME='gamas-mrt-db', DB_VER=2;
 let db=null;
 
 function initDB(){
@@ -702,6 +768,8 @@ function initDB(){
         d.createObjectStore('inspecciones',{keyPath:'id'});
       if(!d.objectStoreNames.contains('kv'))
         d.createObjectStore('kv',{keyPath:'k'});
+      if(!d.objectStoreNames.contains('fotos'))
+        d.createObjectStore('fotos',{keyPath:'id'});
     };
     r.onsuccess=e=>{db=e.target.result;res(db);};
     r.onerror=e=>rej(e);
@@ -829,6 +897,36 @@ let admPinBuf='',admUnlocked=false;
 let curAdmTab='config',admSelectedEq=null;
 let currentEq=null,currentTipo='programada';
 let formItemStates={};
+let formItemFotos={};
+function capturePhoto(idx){
+  const input=document.createElement('input');
+  input.type='file';input.accept='image/*';input.capture='environment';
+  input.onchange=async()=>{
+    const file=input.files[0];if(!file)return;
+    toast('📷 Procesando foto…');
+    try{
+      const[thumbBlob,fullBlob]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      if(formItemFotos[idx]&&formItemFotos[idx].previewUrl)URL.revokeObjectURL(formItemFotos[idx].previewUrl);
+      formItemFotos[idx]={thumbBlob,fullBlob,previewUrl:URL.createObjectURL(thumbBlob)};
+      renderFormItemPhoto(idx);
+    }catch(e){toast('No se pudo procesar la foto',false);}
+  };
+  input.click();
+}
+function removePhoto(idx){
+  if(formItemFotos[idx]){
+    if(formItemFotos[idx].previewUrl)URL.revokeObjectURL(formItemFotos[idx].previewUrl);
+    delete formItemFotos[idx];
+  }
+  renderFormItemPhoto(idx);
+}
+function renderFormItemPhoto(idx){
+  const el=document.getElementById('foto-preview-'+idx);
+  if(!el)return;
+  const f=formItemFotos[idx];
+  el.innerHTML=f?`<img src="${f.previewUrl}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;margin-left:4px">
+    <button onclick="removePhoto(${idx})" style="border:none;background:none;color:var(--red);font-size:14px;cursor:pointer;padding:0 4px" title="Quitar foto">✕</button>`:'';
+}
 const TODAY=new Date(); // fecha real del dispositivo
 
 // =====================================================================
@@ -1010,7 +1108,7 @@ async function saveMecNames(){
 // =====================================================================
 function openForm(eqId,tipo){
   const eq=equipos.find(e=>e[0]===eqId);if(!eq)return;
-  currentEq=eq;currentTipo=tipo;formItemStates={};
+  currentEq=eq;currentTipo=tipo;formItemStates={};formItemFotos={};
   const items=getCatalogItems(eqId);
   const col=tipoColor(eq[3]);
   document.getElementById('form-title').textContent=eq[1];
@@ -1033,6 +1131,8 @@ function openForm(eqId,tipo){
         <button class="item-btn" id="ib-b-${idx}" onclick="setItem(${idx},'b')">✔</button>
         <button class="item-btn" id="ib-r-${idx}" onclick="setItem(${idx},'r')">~</button>
         <button class="item-btn" id="ib-m-${idx}" onclick="setItem(${idx},'m')">✘</button>
+        <button id="foto-btn-${idx}" onclick="capturePhoto(${idx})" style="display:none;border:none;background:none;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="Agregar foto de evidencia">📷</button>
+        <span id="foto-preview-${idx}" style="display:inline-flex;align-items:center"></span>
       </div>
     </div>`).join('');
   document.getElementById('form-obs').value='';
@@ -1046,29 +1146,45 @@ function setItem(idx,estado){
     const btn=document.getElementById(`ib-${x}-${idx}`);
     if(btn)btn.className='item-btn'+(s===x?' sel-'+x:'');
   });
+  const fotoBtn=document.getElementById('foto-btn-'+idx);
+  if(fotoBtn)fotoBtn.style.display=s==='m'?'inline-block':'none';
+  if(s!=='m'&&formItemFotos[idx])removePhoto(idx);
 }
 async function saveForm(){
   if(window.checkForUpdate)window.checkForUpdate();
   const items=getCatalogItems(currentEq[0]);
+  const itemsData=items.map((nombre,idx)=>({nombre,estado:formItemStates[idx]||null}));
+  // Adjuntar fotos: se guardan en IndexedDB aparte y solo se referencian por fotoId
+  // (nunca se manda el binario a Supabase directamente — eso mantiene la sincronización ligera)
+  const fotosToSave=[];
+  Object.keys(formItemFotos).forEach(idx=>{
+    const f=formItemFotos[idx];
+    const fotoId=makeid();
+    itemsData[idx].fotoId=fotoId;
+    fotosToSave.push({id:fotoId,thumbBlob:f.thumbBlob,fullBlob:f.fullBlob,uploaded:false,createdAt:Date.now()});
+  });
   const ins={
     id:makeid(),equipoId:currentEq[0],equipoNombre:currentEq[1],
     seccion:currentEq[2],area:currentEq[4],tipo:currentTipo,
     turno:getTurno(),mecanico:getMecNombre(),fecha:todayStr(),
-    items:items.map((nombre,idx)=>({nombre,estado:formItemStates[idx]||null})),
+    items:itemsData,
     observaciones:document.getElementById('form-obs').value.trim(),
     savedAt:Date.now(),
   };
   ins.pending=true; // siempre pending hasta que Supabase confirme
   inspecciones.push(ins);
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
+  for(const fr of fotosToSave){try{await dbPut('fotos',fr);}catch(e){console.warn('foto DB save failed',e);}}
   if(navigator.onLine){
     sbInsert(ins).then(ok=>{
       if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
       else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
     }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
+    if(fotosToSave.length)syncFotosPendientes();
   }else{
     toast('✔ Inspección guardada offline — se subirá al reconectar');
   }
+  formItemFotos={};
   closeForm();
 }
 function closeForm(){showView('home');}
@@ -1295,9 +1411,16 @@ function renderRepList(){
       const cls=it.estado==='b'?'item-estado-b':it.estado==='m'?'item-estado-m':'item-estado-r';
       const ico=it.estado==='b'?'✔':it.estado==='m'?'✘':'~';
       const bg=it.estado==='b'?'rgba(22,163,74,.07)':it.estado==='m'?'rgba(220,38,38,.07)':'rgba(217,119,6,.07)';
+      let fotoHtml='';
+      if(it.fotoThumbUrl){
+        fotoHtml=`<img src="${it.fotoThumbUrl}" style="width:26px;height:26px;border-radius:5px;object-fit:cover;margin-left:auto;cursor:pointer" onclick="event.stopPropagation();window.open('${it.fotoUrl}','_blank')">`;
+      }else if(it.fotoId){
+        fotoHtml=`<span style="font-size:10px;color:var(--sub);margin-left:auto">📷 subiendo…</span>`;
+      }
       return`<div class="item-detail-row" style="background:${bg};border-radius:6px;padding:5px 8px;margin-bottom:2px;border:none">
         <span class="${cls}">${ico}</span>
         <span class="item-detail-name">${it.nombre}</span>
+        ${fotoHtml}
       </div>`;
     }).join('');
     return`<div class="card rep-card" style="border-left-color:${col}" onclick="toggleRepCard(this)">
@@ -1752,6 +1875,7 @@ async function init(){
   await fetchRemoteConfig();       // jala config central → actualiza fecha, turno, etc.
   await fetchRemoteInspecciones(); // jala inspecciones de otros dispositivos
   await syncPending();             // sube lo que quedó pendiente offline
+  syncFotosPendientes();           // sube fotos de evidencia pendientes (en paralelo, no bloquea el arranque)
 
   // Restaurar estado de PINs (sesión del navegador, sobrevive recargas automáticas)
   try{
@@ -1776,6 +1900,7 @@ async function init(){
     const snapCfg=JSON.stringify(config);
     const snapIns=JSON.stringify(inspecciones.map(i=>i.id+i.savedAt));
     await syncPending();  // sube pendientes primero
+    await syncFotosPendientes();
     await Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]);
     const changed=JSON.stringify(config)!==snapCfg||JSON.stringify(inspecciones.map(i=>i.id+i.savedAt))!==snapIns;
     if(changed){
@@ -1826,6 +1951,7 @@ async function init(){
       ptr.style.transform='translateX(-50%) translateY(4px)';
       try{
         await syncPending();
+        await syncFotosPendientes();
         await Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]);
         renderHome();
         const v=document.querySelector('.view.active');

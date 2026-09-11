@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v17 (alertas proactivas, rango de fechas, compartir turno, fix Roll)
-const CACHE = 'gamas-mrt-v17';
+// Gamas MRT – Service Worker v18 (fotos de evidencia en ítems 'malo')
+const CACHE = 'gamas-mrt-v18';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
