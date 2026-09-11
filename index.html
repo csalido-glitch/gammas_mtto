@@ -495,6 +495,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]).then(()=>renderHome());
   });
   window.addEventListener('offline',updateOnline);
+  window.updateOnline=updateOnline;
   updateOnline();
 
   // Install prompt
@@ -1996,7 +1997,7 @@ async function init(){
   },60000);
   // Sync completo cada 30s: config + inspecciones de otros dispositivos
   setInterval(async()=>{
-    updateOnline();
+    if(window.updateOnline)window.updateOnline();
     const snapCfg=JSON.stringify(config);
     const snapIns=JSON.stringify(inspecciones.map(i=>i.id+i.savedAt));
     await syncPending();  // sube pendientes primero
