@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v28 (fix: reconectar no disparaba subida de fotos pendientes)
-const CACHE = 'gamas-mrt-v28';
+// Gamas MRT – Service Worker v29 (fix: navigator.onLine no confiable en algunas redes; ahora se prueba la conexión real antes de decidir sincronizar)
+const CACHE = 'gamas-mrt-v29';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

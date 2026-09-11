@@ -481,8 +481,8 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
 
   // Offline detection
-  function updateOnline(){
-    const online=navigator.onLine;
+  async function updateOnline(){
+    const online=await isReallyOnline();
     document.getElementById('offline-banner').classList.toggle('show',!online);
     const dot=document.getElementById('sync-dot');
     dot.classList.toggle('offline',!online);
@@ -555,6 +555,17 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 const SB_URL='https://ewgcufflruljsemexded.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3Z2N1ZmZscnVsanNlbWV4ZGVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5OTkwNDgsImV4cCI6MjEwNDU3NTA0OH0.K3agZNVCCYbp6qDNLQjZKvCv_jTbVDvdSAAdtSErKBM';
 const SB_H={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+// navigator.onLine puede reportar false incorrectamente (rareza conocida de Windows/Chrome con
+// ciertas redes/VPN/proxy) aunque sí haya internet real. Esta función hace una prueba real y rápida.
+async function isReallyOnline(){
+  try{
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),4000);
+    await fetch(SB_URL+'/rest/v1/',{method:'HEAD',headers:SB_H,signal:ctrl.signal});
+    clearTimeout(t);
+    return true;
+  }catch(e){return false;}
+}
 const SB_BUCKET='evidencias_gammas';
 function sbPublicUrl(path){return `${SB_URL}/storage/v1/object/public/${SB_BUCKET}/${path}`;}
 async function sbUploadFoto(path,blob){
@@ -610,7 +621,7 @@ function setPendingDeletes(ids){try{localStorage.setItem('_pendingDeletes',JSON.
 function addPendingDelete(id){const ids=getPendingDeletes();if(!ids.includes(id)){ids.push(id);setPendingDeletes(ids);}}
 
 async function syncPending(){
-  if(!navigator.onLine)return;
+  if(!(await isReallyOnline()))return;
   // 1. Enviar a Supabase los deletes que quedaron pendientes offline
   const delIds=getPendingDeletes();
   if(delIds.length){
@@ -643,7 +654,7 @@ async function syncPending(){
 }
 async function debugFoto(insId,fotoId){
   let out='=== DIAGNÓSTICO FOTO ===\n';
-  out+='online: '+navigator.onLine+'\n';
+  out+='navigator.onLine: '+navigator.onLine+' | conexión real: '+(await isReallyOnline())+'\n';
   const ins=inspecciones.find(i=>i.id===insId);
   const item=ins&&ins.items.find(it=>it.fotoId===fotoId||it.fotoUrl);
   out+='insId: '+insId+' | equipoId: '+(ins&&ins.equipoId)+'\n';
@@ -675,7 +686,7 @@ async function debugFoto(insId,fotoId){
   alert(out);
 }
 async function syncFotosPendientes(){
-  if(!navigator.onLine)return;
+  if(!(await isReallyOnline()))return;
   let fotosIdb=[];
   try{fotosIdb=await dbGetAll('fotos');}catch(e){console.warn('dbGetAll fotos falló',e);}
   const fotosLs=lsGetAllFotos();
@@ -722,7 +733,6 @@ async function syncFotosPendientes(){
 }
 
 async function fetchRemoteInspecciones(){
-  if(!navigator.onLine)return;
   try{
     // Trae TODAS las inspecciones paginando (escalable: no se limita a un tope fijo)
     let rows=[];
@@ -781,7 +791,6 @@ async function sbPushConfig(cfg){
 }
 
 async function fetchRemoteConfig(){
-  if(!navigator.onLine)return;
   try{
     const r=await fetch(SB_URL+'/rest/v1/app_config?key=eq.global&select=value',{headers:SB_H});
     if(!r.ok)return;
@@ -1229,19 +1238,17 @@ async function saveForm(){
     const f=formItemFotos[idx];
     const fotoId=makeid();
     let subida=false;
-    if(navigator.onLine){
-      try{
-        const thumbBlob=await(await fetch(f.thumbData)).blob();
-        const fullBlob=await(await fetch(f.fullData)).blob();
-        const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
-        const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
-        if(okThumb&&okFull){
-          itemsData[idx].fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
-          itemsData[idx].fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
-          subida=true;
-        }
-      }catch(e){console.warn('subida inmediata de foto falló, se guarda en cola',e);}
-    }
+    try{
+      const thumbBlob=await(await fetch(f.thumbData)).blob();
+      const fullBlob=await(await fetch(f.fullData)).blob();
+      const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+      const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+      if(okThumb&&okFull){
+        itemsData[idx].fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+        itemsData[idx].fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+        subida=true;
+      }
+    }catch(e){console.warn('subida inmediata de foto falló, se guarda en cola',e);}
     if(!subida){
       itemsData[idx].fotoId=fotoId;
       fotosToQueue.push({id:fotoId,thumbData:f.thumbData,fullData:f.fullData,uploaded:false,createdAt:Date.now()});
@@ -1272,15 +1279,11 @@ async function saveForm(){
     }
   }
   if(fotoQueueErr)alert('⚠ Una foto no se pudo subir ni guardar localmente para reintentar.\n\nError: '+(fotoQueueErr.name||'')+' — '+(fotoQueueErr.message||fotoQueueErr));
-  if(navigator.onLine){
-    sbInsert(ins).then(ok=>{
-      if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
-      else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
-    }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
-    if(fotosToQueue.length)syncFotosPendientes();
-  }else{
-    toast('✔ Inspección guardada offline — se subirá al reconectar');
-  }
+  sbInsert(ins).then(ok=>{
+    if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
+    else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
+  }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
+  if(fotosToQueue.length)syncFotosPendientes();
   formItemFotos={};
   closeForm();
 }
@@ -1699,11 +1702,11 @@ function renderRepReinc(){
 }
 async function markReincResuelta(idx){
   const x=reincListCache[idx];if(!x)return;
-  if(navigator.onLine)await fetchRemoteConfig();
+  await fetchRemoteConfig();
   config.reincResueltas=config.reincResueltas||{};
   config.reincResueltas[x.key]=Date.now();
   await persist('config',config);
-  if(navigator.onLine)await sbPushConfig(config);
+  await sbPushConfig(config);
   toast('✅ Marcada como resuelta');
   renderRepReinc();
 }
@@ -1880,7 +1883,7 @@ async function forceDeployUpdate(){
   await persist('config',config);
   const st=document.getElementById('deploy-status');
   if(st){st.textContent='Enviando señal…';st.style.color='var(--sub)';}
-  if(navigator.onLine){
+  if(await isReallyOnline()){
     const ok=await sbPushConfig(config);
     if(st){
       st.textContent=ok?'✅ Señal enviada — los demás dispositivos recargarán en ~5 seg':'⚠ Error al enviar';
@@ -1901,7 +1904,7 @@ async function saveConfig(){
   await persist('config',config);
   const st=document.getElementById('cfg-status');
   if(st){st.textContent='Guardando…';st.style.color='var(--sub)';}
-  if(navigator.onLine){
+  if(await isReallyOnline()){
     const ok=await sbPushConfig(config);
     const msg=ok?'✅ Guardada y sincronizada ☁':'⚠ Guardada local (error nube — ver F12)';
     const col=ok?'var(--green)':'var(--amber)';
@@ -1993,7 +1996,7 @@ async function init(){
   },60000);
   // Sync completo cada 30s: config + inspecciones de otros dispositivos
   setInterval(async()=>{
-    if(!navigator.onLine)return;
+    updateOnline();
     const snapCfg=JSON.stringify(config);
     const snapIns=JSON.stringify(inspecciones.map(i=>i.id+i.savedAt));
     await syncPending();  // sube pendientes primero
@@ -2130,16 +2133,11 @@ function deleteInspeccion(id){
         });
       }catch(e){console.warn('deleteInspeccion IDB',e);}
     }
-    // Quitar de Supabase (o encolar si offline)
-    if(navigator.onLine){
-      try{
-        const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+encodeURIComponent(id),
-          {method:'DELETE',headers:{...SB_H,'Prefer':'return=minimal'}});
-      }catch(e){console.warn('deleteInspeccion SB',e);addPendingDelete(id);}
-    } else {
-      // Sin internet: encolar para borrar en Supabase cuando haya conexión
-      addPendingDelete(id);
-    }
+    // Quitar de Supabase (o encolar si falla)
+    try{
+      const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+encodeURIComponent(id),
+        {method:'DELETE',headers:{...SB_H,'Prefer':'return=minimal'}});
+    }catch(e){console.warn('deleteInspeccion SB',e);addPendingDelete(id);}
     toast('🗑 Inspección eliminada');
     renderAdmPanel();
     renderHome();
