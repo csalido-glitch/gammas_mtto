@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v25 (fotos guardadas como texto Base64 en vez de Blob binario, más compatible entre navegadores)
-const CACHE = 'gamas-mrt-v25';
+// Gamas MRT – Service Worker v26 (fotos: subida inmediata si hay internet, sin depender de IndexedDB del dispositivo)
+const CACHE = 'gamas-mrt-v26';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

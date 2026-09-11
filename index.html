@@ -1191,15 +1191,34 @@ async function saveForm(){
   if(window.checkForUpdate)window.checkForUpdate();
   const items=getCatalogItems(currentEq[0]);
   const itemsData=items.map((nombre,idx)=>({nombre,estado:formItemStates[idx]||null}));
-  // Adjuntar fotos: se guardan en IndexedDB aparte y solo se referencian por fotoId
-  // (nunca se manda el binario a Supabase directamente — eso mantiene la sincronización ligera)
-  const fotosToSave=[];
-  Object.keys(formItemFotos).forEach(idx=>{
+  // Fotos: si hay internet, se intenta subir DE INMEDIATO a Storage (sin pasar por IndexedDB) —
+  // así no depende de que el almacenamiento local del dispositivo funcione bien.
+  // Solo si falla la subida o no hay conexión, se guarda en cola local para reintentar después.
+  const fotosToQueue=[];
+  let fotoQueueErr=null;
+  if(Object.keys(formItemFotos).length)toast('📤 Subiendo foto(s)…');
+  for(const idx of Object.keys(formItemFotos)){
     const f=formItemFotos[idx];
     const fotoId=makeid();
-    itemsData[idx].fotoId=fotoId;
-    fotosToSave.push({id:fotoId,thumbData:f.thumbData,fullData:f.fullData,uploaded:false,createdAt:Date.now()});
-  });
+    let subida=false;
+    if(navigator.onLine){
+      try{
+        const thumbBlob=await(await fetch(f.thumbData)).blob();
+        const fullBlob=await(await fetch(f.fullData)).blob();
+        const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+        const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+        if(okThumb&&okFull){
+          itemsData[idx].fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+          itemsData[idx].fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+          subida=true;
+        }
+      }catch(e){console.warn('subida inmediata de foto falló, se guarda en cola',e);}
+    }
+    if(!subida){
+      itemsData[idx].fotoId=fotoId;
+      fotosToQueue.push({id:fotoId,thumbData:f.thumbData,fullData:f.fullData,uploaded:false,createdAt:Date.now()});
+    }
+  }
   const ins={
     id:makeid(),equipoId:currentEq[0],equipoNombre:currentEq[1],
     seccion:currentEq[2],area:currentEq[4],tipo:currentTipo,
@@ -1211,22 +1230,16 @@ async function saveForm(){
   ins.pending=true; // siempre pending hasta que Supabase confirme
   inspecciones.push(ins);
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
-  let fotoSaveErr=null;
-  for(const fr of fotosToSave){
-    try{
-      await dbPut('fotos',fr);
-      // Verificación: releer de inmediato, por si la escritura "tuvo éxito" pero no quedó grabada
-      const check=await dbGet('fotos',fr.id);
-      if(!check)fotoSaveErr=new Error('La escritura no dio error pero el registro no quedó guardado (posible falla del navegador/almacenamiento del dispositivo)');
-    }catch(e){console.warn('foto DB save failed',e);fotoSaveErr=e;}
+  for(const fr of fotosToQueue){
+    try{await dbPut('fotos',fr);}catch(e){console.warn('foto DB save failed',e);fotoQueueErr=e;}
   }
-  if(fotoSaveErr)alert('⚠ FOTO NO GUARDADA LOCALMENTE\n\nError: '+(fotoSaveErr.name||'')+' — '+(fotoSaveErr.message||fotoSaveErr)+'\n\nManda esto a soporte.');
+  if(fotoQueueErr)alert('⚠ Una foto no se pudo subir ni guardar localmente para reintentar.\n\nError: '+(fotoQueueErr.name||'')+' — '+(fotoQueueErr.message||fotoQueueErr));
   if(navigator.onLine){
     sbInsert(ins).then(ok=>{
       if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
       else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
     }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
-    if(fotosToSave.length)syncFotosPendientes();
+    if(fotosToQueue.length)syncFotosPendientes();
   }else{
     toast('✔ Inspección guardada offline — se subirá al reconectar');
   }
