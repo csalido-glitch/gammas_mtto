@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v24 (error de guardado de foto ahora como alert bloqueante + info de cuota de almacenamiento)
-const CACHE = 'gamas-mrt-v24';
+// Gamas MRT – Service Worker v25 (fotos guardadas como texto Base64 en vez de Blob binario, más compatible entre navegadores)
+const CACHE = 'gamas-mrt-v25';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

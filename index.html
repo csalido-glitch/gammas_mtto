@@ -579,7 +579,10 @@ function compressImage(file,maxSize,quality){
         const canvas=document.createElement('canvas');
         canvas.width=w;canvas.height=h;
         canvas.getContext('2d').drawImage(img,0,0,w,h);
-        canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('No se pudo comprimir')),'image/jpeg',quality);
+        try{
+          const dataUrl=canvas.toDataURL('image/jpeg',quality);
+          dataUrl?resolve(dataUrl):reject(new Error('No se pudo comprimir'));
+        }catch(err){reject(err);}
       };
       img.src=e.target.result;
     };
@@ -675,8 +678,10 @@ async function syncFotosPendientes(){
   let synced=0;
   for(const f of pendientes){
     try{
-      const okThumb=await sbUploadFoto(f.id+'_thumb.jpg',f.thumbBlob);
-      const okFull=await sbUploadFoto(f.id+'_full.jpg',f.fullBlob);
+      const thumbBlob=await(await fetch(f.thumbData)).blob();
+      const fullBlob=await(await fetch(f.fullData)).blob();
+      const okThumb=await sbUploadFoto(f.id+'_thumb.jpg',thumbBlob);
+      const okFull=await sbUploadFoto(f.id+'_full.jpg',fullBlob);
       if(!okThumb||!okFull){toast('⚠ Subida de foto falló (Storage) — se reintenta',false);continue;} // se reintenta en el siguiente ciclo
       const thumbUrl=sbPublicUrl(f.id+'_thumb.jpg');
       const fullUrl=sbPublicUrl(f.id+'_full.jpg');
@@ -941,26 +946,22 @@ function capturePhoto(idx){
     const file=input.files[0];if(!file)return;
     toast('📷 Procesando foto…');
     try{
-      const[thumbBlob,fullBlob]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
-      if(formItemFotos[idx]&&formItemFotos[idx].previewUrl)URL.revokeObjectURL(formItemFotos[idx].previewUrl);
-      formItemFotos[idx]={thumbBlob,fullBlob,previewUrl:URL.createObjectURL(thumbBlob)};
+      const[thumbData,fullData]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      formItemFotos[idx]={thumbData,fullData};
       renderFormItemPhoto(idx);
     }catch(e){toast('No se pudo procesar la foto',false);}
   };
   input.click();
 }
 function removePhoto(idx){
-  if(formItemFotos[idx]){
-    if(formItemFotos[idx].previewUrl)URL.revokeObjectURL(formItemFotos[idx].previewUrl);
-    delete formItemFotos[idx];
-  }
+  delete formItemFotos[idx];
   renderFormItemPhoto(idx);
 }
 function renderFormItemPhoto(idx){
   const el=document.getElementById('foto-preview-'+idx);
   if(!el)return;
   const f=formItemFotos[idx];
-  el.innerHTML=f?`<img src="${f.previewUrl}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;margin-left:4px">
+  el.innerHTML=f?`<img src="${f.thumbData}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;margin-left:4px">
     <button onclick="removePhoto(${idx})" style="border:none;background:none;color:var(--red);font-size:14px;cursor:pointer;padding:0 4px" title="Quitar foto">✕</button>`:'';
 }
 const TODAY=new Date(); // fecha real del dispositivo
@@ -1197,7 +1198,7 @@ async function saveForm(){
     const f=formItemFotos[idx];
     const fotoId=makeid();
     itemsData[idx].fotoId=fotoId;
-    fotosToSave.push({id:fotoId,thumbBlob:f.thumbBlob,fullBlob:f.fullBlob,uploaded:false,createdAt:Date.now()});
+    fotosToSave.push({id:fotoId,thumbData:f.thumbData,fullData:f.fullData,uploaded:false,createdAt:Date.now()});
   });
   const ins={
     id:makeid(),equipoId:currentEq[0],equipoNombre:currentEq[1],
@@ -1211,7 +1212,14 @@ async function saveForm(){
   inspecciones.push(ins);
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
   let fotoSaveErr=null;
-  for(const fr of fotosToSave){try{await dbPut('fotos',fr);}catch(e){console.warn('foto DB save failed',e);fotoSaveErr=e;}}
+  for(const fr of fotosToSave){
+    try{
+      await dbPut('fotos',fr);
+      // Verificación: releer de inmediato, por si la escritura "tuvo éxito" pero no quedó grabada
+      const check=await dbGet('fotos',fr.id);
+      if(!check)fotoSaveErr=new Error('La escritura no dio error pero el registro no quedó guardado (posible falla del navegador/almacenamiento del dispositivo)');
+    }catch(e){console.warn('foto DB save failed',e);fotoSaveErr=e;}
+  }
   if(fotoSaveErr)alert('⚠ FOTO NO GUARDADA LOCALMENTE\n\nError: '+(fotoSaveErr.name||'')+' — '+(fotoSaveErr.message||fotoSaveErr)+'\n\nManda esto a soporte.');
   if(navigator.onLine){
     sbInsert(ins).then(ok=>{
