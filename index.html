@@ -575,12 +575,17 @@ async function isReallyOnline(){
 const SB_BUCKET='evidencias_gammas';
 function sbPublicUrl(path){return `${SB_URL}/storage/v1/object/public/${SB_BUCKET}/${path}`;}
 async function sbUploadFoto(path,blob){
-  const r=await fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}/${path}`,{
-    method:'POST',
-    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'image/jpeg','x-upsert':'true'},
-    body:blob
-  });
-  return r.ok;
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),6000);
+  try{
+    const r=await fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}/${path}`,{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'image/jpeg','x-upsert':'true'},
+      body:blob,
+      signal:ctrl.signal
+    });
+    return r.ok;
+  }finally{clearTimeout(t);}
 }
 // Redimensiona y comprime una foto a JPEG antes de guardarla/subirla
 function compressImage(file,maxSize,quality){
@@ -1239,22 +1244,26 @@ async function saveForm(){
   // Solo si falla la subida o no hay conexión, se guarda en cola local para reintentar después.
   const fotosToQueue=[];
   let fotoQueueErr=null;
-  if(Object.keys(formItemFotos).length)toast('📤 Subiendo foto(s)…');
+  const hayFotos=Object.keys(formItemFotos).length>0;
+  if(hayFotos)toast('📤 Subiendo foto(s)…');
+  const intentarSubidaYa=hayFotos&&await isReallyOnline();
   for(const idx of Object.keys(formItemFotos)){
     const f=formItemFotos[idx];
     const fotoId=makeid();
     let subida=false;
-    try{
-      const thumbBlob=await(await fetch(f.thumbData)).blob();
-      const fullBlob=await(await fetch(f.fullData)).blob();
-      const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
-      const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
-      if(okThumb&&okFull){
-        itemsData[idx].fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
-        itemsData[idx].fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
-        subida=true;
-      }
-    }catch(e){console.warn('subida inmediata de foto falló, se guarda en cola',e);}
+    if(intentarSubidaYa){
+      try{
+        const thumbBlob=await(await fetch(f.thumbData)).blob();
+        const fullBlob=await(await fetch(f.fullData)).blob();
+        const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+        const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+        if(okThumb&&okFull){
+          itemsData[idx].fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+          itemsData[idx].fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+          subida=true;
+        }
+      }catch(e){console.warn('subida inmediata de foto falló, se guarda en cola',e);}
+    }
     if(!subida){
       itemsData[idx].fotoId=fotoId;
       fotosToQueue.push({id:fotoId,thumbData:f.thumbData,fullData:f.fullData,uploaded:false,createdAt:Date.now()});

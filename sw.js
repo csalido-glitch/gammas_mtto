@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v32 (fix: reacción instantánea al quedarse sin conexión, sin perder la corrección de falsos negativos)
-const CACHE = 'gamas-mrt-v32';
+// Gamas MRT – Service Worker v33 (fix: guardar con foto sin internet se quedaba "colgado" esperando; ahora falla rápido y encola)
+const CACHE = 'gamas-mrt-v33';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
