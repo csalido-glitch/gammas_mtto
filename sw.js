@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v30 (fix crítico: updateOnline estaba fuera de alcance en el ciclo de 30s y cortaba todo el sync)
-const CACHE = 'gamas-mrt-v30';
+// Gamas MRT – Service Worker v31 (más margen y reintento rápido para la primera comprobación de conexión en frío)
+const CACHE = 'gamas-mrt-v31';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

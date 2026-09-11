@@ -497,6 +497,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   window.addEventListener('offline',updateOnline);
   window.updateOnline=updateOnline;
   updateOnline();
+  setTimeout(updateOnline,5000); // reintento rápido por si el primer intento (conexión en frío) tardó de más
 
   // Install prompt
   let deferredPrompt=null;
@@ -561,7 +562,7 @@ const SB_H={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'B
 async function isReallyOnline(){
   try{
     const ctrl=new AbortController();
-    const t=setTimeout(()=>ctrl.abort(),4000);
+    const t=setTimeout(()=>ctrl.abort(),8000);
     await fetch(SB_URL+'/rest/v1/',{method:'HEAD',headers:SB_H,signal:ctrl.signal});
     clearTimeout(t);
     return true;
