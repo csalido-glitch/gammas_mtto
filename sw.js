@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v21 (fix: foto marcada 'subida' sin enlazar al ítem se perdía)
-const CACHE = 'gamas-mrt-v21';
+// Gamas MRT – Service Worker v22 (badge de foto pendiente tocable: diagnóstico con alert(), sin DevTools)
+const CACHE = 'gamas-mrt-v22';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

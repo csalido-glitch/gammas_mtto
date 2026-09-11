@@ -637,6 +637,24 @@ async function syncPending(){
   }
   if(synced>0)toast(`☁ ${synced} inspección${synced>1?'es':''} sincronizada${synced>1?'s':''}`);
 }
+async function debugFoto(insId,fotoId){
+  let out='=== DIAGNÓSTICO FOTO ===\n';
+  out+='online: '+navigator.onLine+'\n';
+  const ins=inspecciones.find(i=>i.id===insId);
+  const item=ins&&ins.items.find(it=>it.fotoId===fotoId||it.fotoUrl);
+  out+='ítem en memoria: '+JSON.stringify(item)+'\n';
+  try{
+    const fotos=await dbGetAll('fotos');
+    const f=fotos.find(x=>x.id===fotoId);
+    out+='registro en fotos (IndexedDB): '+(f?JSON.stringify({id:f.id,uploaded:f.uploaded}):'NO EXISTE localmente')+'\n';
+  }catch(e){out+='error leyendo fotos: '+e.message+'\n';}
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+insId+'&select=items',{headers:SB_H});
+    const data=await r.json();
+    out+='Supabase ahora mismo: '+JSON.stringify(data);
+  }catch(e){out+='error consultando Supabase: '+e.message;}
+  alert(out);
+}
 async function syncFotosPendientes(){
   if(!navigator.onLine)return;
   let fotos;
@@ -1424,7 +1442,7 @@ function renderRepList(){
       if(it.fotoThumbUrl){
         fotoHtml=`<img src="${it.fotoThumbUrl}" style="width:26px;height:26px;border-radius:5px;object-fit:cover;margin-left:auto;cursor:pointer" onclick="event.stopPropagation();window.open('${it.fotoUrl}','_blank')">`;
       }else if(it.fotoId){
-        fotoHtml=`<span style="font-size:10px;color:var(--sub);margin-left:auto">📷 subiendo…</span>`;
+        fotoHtml=`<span onclick="event.stopPropagation();debugFoto('${ins.id}','${it.fotoId}')" style="font-size:10px;color:var(--sub);margin-left:auto;text-decoration:underline">📷 subiendo…</span>`;
       }
       return`<div class="item-detail-row" style="background:${bg};border-radius:6px;padding:5px 8px;margin-bottom:2px;border:none">
         <span class="${cls}">${ico}</span>
