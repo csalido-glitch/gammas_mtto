@@ -642,6 +642,7 @@ async function debugFoto(insId,fotoId){
   out+='online: '+navigator.onLine+'\n';
   const ins=inspecciones.find(i=>i.id===insId);
   const item=ins&&ins.items.find(it=>it.fotoId===fotoId||it.fotoUrl);
+  out+='insId: '+insId+' | equipoId: '+(ins&&ins.equipoId)+'\n';
   out+='ítem en memoria: '+JSON.stringify(item)+'\n';
   try{
     const fotos=await dbGetAll('fotos');
@@ -649,9 +650,13 @@ async function debugFoto(insId,fotoId){
     out+='registro en fotos (IndexedDB): '+(f?JSON.stringify({id:f.id,uploaded:f.uploaded}):'NO EXISTE localmente')+'\n';
   }catch(e){out+='error leyendo fotos: '+e.message+'\n';}
   try{
-    const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+insId+'&select=items',{headers:SB_H});
+    const r=await fetch(SB_URL+'/rest/v1/inspecciones?equipo_id=eq.'+(ins&&ins.equipoId)+'&select=id,saved_at,items',{headers:SB_H});
     const data=await r.json();
-    out+='Supabase ahora mismo: '+JSON.stringify(data);
+    out+='=== TODAS las inspecciones de '+(ins&&ins.equipoId)+' en Supabase ('+data.length+') ===\n';
+    data.forEach(row=>{
+      const malos=(row.items||[]).filter(it=>it.fotoId||it.fotoUrl);
+      out+='id:'+row.id+' saved_at:'+row.saved_at+' fotos:'+JSON.stringify(malos)+'\n';
+    });
   }catch(e){out+='error consultando Supabase: '+e.message;}
   alert(out);
 }

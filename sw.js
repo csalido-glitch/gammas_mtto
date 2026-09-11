@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v22 (badge de foto pendiente tocable: diagnóstico con alert(), sin DevTools)
-const CACHE = 'gamas-mrt-v22';
+// Gamas MRT – Service Worker v23 (debugFoto ahora lista todas las inspecciones del equipo, detecta duplicados)
+const CACHE = 'gamas-mrt-v23';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
