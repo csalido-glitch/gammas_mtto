@@ -491,6 +491,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   window.addEventListener('online',()=>{
     updateOnline();
     syncPending();
+    syncFotosPendientes();
     Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]).then(()=>renderHome());
   });
   window.addEventListener('offline',updateOnline);
@@ -659,6 +660,10 @@ async function debugFoto(insId,fotoId){
     out+='registro en fotos (IndexedDB): '+(f?JSON.stringify({id:f.id,uploaded:f.uploaded}):'NO EXISTE localmente')+'\n';
   }catch(e){out+='error leyendo fotos: '+e.message+'\n';}
   try{
+    const lf=lsGetAllFotos().find(x=>x.id===fotoId);
+    out+='registro en localStorage (respaldo): '+(lf?JSON.stringify({id:lf.id,uploaded:lf.uploaded}):'NO EXISTE')+'\n';
+  }catch(e){out+='error leyendo localStorage: '+e.message+'\n';}
+  try{
     const r=await fetch(SB_URL+'/rest/v1/inspecciones?equipo_id=eq.'+(ins&&ins.equipoId)+'&select=id,saved_at,items',{headers:SB_H});
     const data=await r.json();
     out+='=== TODAS las inspecciones de '+(ins&&ins.equipoId)+' en Supabase ('+data.length+') ===\n';
@@ -671,9 +676,13 @@ async function debugFoto(insId,fotoId){
 }
 async function syncFotosPendientes(){
   if(!navigator.onLine)return;
-  let fotos;
-  try{fotos=await dbGetAll('fotos');}catch(e){console.warn('dbGetAll fotos falló',e);toast('⚠ No se pudo leer fotos locales: '+(e&&e.message||e),false);return;}
-  const pendientes=fotos.filter(f=>!f.uploaded);
+  let fotosIdb=[];
+  try{fotosIdb=await dbGetAll('fotos');}catch(e){console.warn('dbGetAll fotos falló',e);}
+  const fotosLs=lsGetAllFotos();
+  const pendientes=[
+    ...fotosIdb.filter(f=>!f.uploaded).map(f=>({...f,__src:'idb'})),
+    ...fotosLs.filter(f=>!f.uploaded).map(f=>({...f,__src:'ls'})),
+  ];
   if(!pendientes.length)return;
   let synced=0;
   for(const f of pendientes){
@@ -698,8 +707,8 @@ async function syncFotosPendientes(){
         ins.savedAt=Date.now(); // bump: así otros dispositivos detectan el cambio y jalan la URL nueva
         await dbPut('inspecciones',ins);
         if(!ins.pending)await sbInsert(ins); // ya estaba sincronizada: actualizar items con la URL
-        f.uploaded=true;
-        await dbPut('fotos',f);
+        if(f.__src==='ls'){lsDeleteFoto(f.id);} // ya se enlazó y subió: no hace falta conservarlo
+        else{f.uploaded=true;await dbPut('fotos',f);}
         synced++;
       }else{
         // El archivo ya subió a Storage pero no se encontró el ítem dueño en memoria todavía
@@ -844,6 +853,25 @@ function dbDel(store,key){
     tx.oncomplete=res; tx.onerror=rej;
   });
 }
+// --- Respaldo en localStorage para fotos, por si IndexedDB falla en silencio en el dispositivo ---
+const LS_FOTO_PREFIX='fotoFallback_';
+function lsSaveFoto(fr){
+  try{localStorage.setItem(LS_FOTO_PREFIX+fr.id,JSON.stringify(fr));return true;}
+  catch(e){console.warn('localStorage foto save falló',e);return false;}
+}
+function lsGetAllFotos(){
+  const out=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith(LS_FOTO_PREFIX)){
+        try{out.push(JSON.parse(localStorage.getItem(k)));}catch(e){}
+      }
+    }
+  }catch(e){console.warn('localStorage foto read falló',e);}
+  return out;
+}
+function lsDeleteFoto(id){try{localStorage.removeItem(LS_FOTO_PREFIX+id);}catch(e){}}
 
 // =====================================================================
 // DATA
@@ -1231,7 +1259,17 @@ async function saveForm(){
   inspecciones.push(ins);
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
   for(const fr of fotosToQueue){
-    try{await dbPut('fotos',fr);}catch(e){console.warn('foto DB save failed',e);fotoQueueErr=e;}
+    let ok=false;
+    try{
+      await dbPut('fotos',fr);
+      const check=await dbGet('fotos',fr.id);
+      ok=!!check;
+    }catch(e){console.warn('foto DB save failed',e);}
+    if(!ok){
+      // IndexedDB falló en silencio (no dio error pero no quedó grabado) — respaldo en localStorage
+      ok=lsSaveFoto(fr);
+      if(!ok)fotoQueueErr=new Error('Ni IndexedDB ni localStorage pudieron guardar la foto en este dispositivo');
+    }
   }
   if(fotoQueueErr)alert('⚠ Una foto no se pudo subir ni guardar localmente para reintentar.\n\nError: '+(fotoQueueErr.name||'')+' — '+(fotoQueueErr.message||fotoQueueErr));
   if(navigator.onLine){

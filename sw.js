@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v26 (fotos: subida inmediata si hay internet, sin depender de IndexedDB del dispositivo)
-const CACHE = 'gamas-mrt-v26';
+// Gamas MRT – Service Worker v28 (fix: reconectar no disparaba subida de fotos pendientes)
+const CACHE = 'gamas-mrt-v28';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
