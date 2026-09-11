@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v23 (debugFoto ahora lista todas las inspecciones del equipo, detecta duplicados)
-const CACHE = 'gamas-mrt-v23';
+// Gamas MRT – Service Worker v24 (error de guardado de foto ahora como alert bloqueante + info de cuota de almacenamiento)
+const CACHE = 'gamas-mrt-v24';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

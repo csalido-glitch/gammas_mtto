@@ -645,6 +645,12 @@ async function debugFoto(insId,fotoId){
   out+='insId: '+insId+' | equipoId: '+(ins&&ins.equipoId)+'\n';
   out+='ítem en memoria: '+JSON.stringify(item)+'\n';
   try{
+    if(navigator.storage&&navigator.storage.estimate){
+      const est=await navigator.storage.estimate();
+      out+='almacenamiento: '+Math.round(est.usage/1024/1024)+'MB usados de '+Math.round(est.quota/1024/1024)+'MB\n';
+    }
+  }catch(e){}
+  try{
     const fotos=await dbGetAll('fotos');
     const f=fotos.find(x=>x.id===fotoId);
     out+='registro en fotos (IndexedDB): '+(f?JSON.stringify({id:f.id,uploaded:f.uploaded}):'NO EXISTE localmente')+'\n';
@@ -1206,7 +1212,7 @@ async function saveForm(){
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
   let fotoSaveErr=null;
   for(const fr of fotosToSave){try{await dbPut('fotos',fr);}catch(e){console.warn('foto DB save failed',e);fotoSaveErr=e;}}
-  if(fotoSaveErr)toast('⚠ Foto no guardada: '+(fotoSaveErr&&(fotoSaveErr.message||fotoSaveErr.name||fotoSaveErr))||'error desconocido',false);
+  if(fotoSaveErr)alert('⚠ FOTO NO GUARDADA LOCALMENTE\n\nError: '+(fotoSaveErr.name||'')+' — '+(fotoSaveErr.message||fotoSaveErr)+'\n\nManda esto a soporte.');
   if(navigator.onLine){
     sbInsert(ins).then(ok=>{
       if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
