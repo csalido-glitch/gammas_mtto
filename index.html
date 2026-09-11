@@ -664,10 +664,15 @@ async function syncFotosPendientes(){
         ins.savedAt=Date.now(); // bump: así otros dispositivos detectan el cambio y jalan la URL nueva
         await dbPut('inspecciones',ins);
         if(!ins.pending)await sbInsert(ins); // ya estaba sincronizada: actualizar items con la URL
+        f.uploaded=true;
+        await dbPut('fotos',f);
+        synced++;
+      }else{
+        // El archivo ya subió a Storage pero no se encontró el ítem dueño en memoria todavía
+        // (p. ej. la inspección no ha llegado por sync a este dispositivo). No marcamos uploaded
+        // para que se reintente el enlace en el siguiente ciclo, en vez de perder la foto para siempre.
+        console.warn('syncFotosPendientes: no se encontró el ítem dueño de la foto',f.id);
       }
-      f.uploaded=true;
-      await dbPut('fotos',f);
-      synced++;
     }catch(e){console.warn('syncFotosPendientes',e);toast('⚠ Error subiendo foto: '+(e&&e.message||e),false);}
   }
   if(synced>0&&document.querySelector('#view-reports.active'))renderRepTabContent();

@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v20 (fix: fotoUrl no se propagaba entre dispositivos)
-const CACHE = 'gamas-mrt-v20';
+// Gamas MRT – Service Worker v21 (fix: foto marcada 'subida' sin enlazar al ítem se perdía)
+const CACHE = 'gamas-mrt-v21';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
