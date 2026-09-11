@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v31 (más margen y reintento rápido para la primera comprobación de conexión en frío)
-const CACHE = 'gamas-mrt-v31';
+// Gamas MRT – Service Worker v32 (fix: reacción instantánea al quedarse sin conexión, sin perder la corrección de falsos negativos)
+const CACHE = 'gamas-mrt-v32';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

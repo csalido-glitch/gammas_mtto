@@ -481,12 +481,16 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
 
   // Offline detection
-  async function updateOnline(){
-    const online=await isReallyOnline();
+  function setOnlineUI(online){
     document.getElementById('offline-banner').classList.toggle('show',!online);
     const dot=document.getElementById('sync-dot');
     dot.classList.toggle('offline',!online);
     dot.title=online?'En línea':'Sin conexión – datos guardados localmente';
+  }
+  async function updateOnline(){
+    if(!navigator.onLine)setOnlineUI(false); // reacción instantánea, como antes
+    const online=await isReallyOnline(); // siempre confirma con la prueba real (corrige un falso "sin conexión")
+    setOnlineUI(online);
   }
   window.addEventListener('online',()=>{
     updateOnline();
