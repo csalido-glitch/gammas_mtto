@@ -640,7 +640,7 @@ async function syncPending(){
 async function syncFotosPendientes(){
   if(!navigator.onLine)return;
   let fotos;
-  try{fotos=await dbGetAll('fotos');}catch(e){return;}
+  try{fotos=await dbGetAll('fotos');}catch(e){console.warn('dbGetAll fotos falló',e);toast('⚠ No se pudo leer fotos locales: '+(e&&e.message||e),false);return;}
   const pendientes=fotos.filter(f=>!f.uploaded);
   if(!pendientes.length)return;
   let synced=0;
@@ -648,7 +648,7 @@ async function syncFotosPendientes(){
     try{
       const okThumb=await sbUploadFoto(f.id+'_thumb.jpg',f.thumbBlob);
       const okFull=await sbUploadFoto(f.id+'_full.jpg',f.fullBlob);
-      if(!okThumb||!okFull)continue; // se reintenta en el siguiente ciclo
+      if(!okThumb||!okFull){toast('⚠ Subida de foto falló (Storage) — se reintenta',false);continue;} // se reintenta en el siguiente ciclo
       const thumbUrl=sbPublicUrl(f.id+'_thumb.jpg');
       const fullUrl=sbPublicUrl(f.id+'_full.jpg');
       // Encontrar la inspección/ítem dueño de esta foto y anexarle las URLs
@@ -667,7 +667,7 @@ async function syncFotosPendientes(){
       f.uploaded=true;
       await dbPut('fotos',f);
       synced++;
-    }catch(e){console.warn('syncFotosPendientes',e);}
+    }catch(e){console.warn('syncFotosPendientes',e);toast('⚠ Error subiendo foto: '+(e&&e.message||e),false);}
   }
   if(synced>0&&document.querySelector('#view-reports.active'))renderRepTabContent();
 }
@@ -773,6 +773,7 @@ function initDB(){
     };
     r.onsuccess=e=>{db=e.target.result;res(db);};
     r.onerror=e=>rej(e);
+    r.onblocked=()=>{console.warn('IndexedDB upgrade blocked — cierra otras pestañas de la app y recarga');toast('⚠ Cierra otras pestañas de la app y recarga',false);};
   });
 }
 function dbPut(store,obj){
@@ -1174,7 +1175,9 @@ async function saveForm(){
   ins.pending=true; // siempre pending hasta que Supabase confirme
   inspecciones.push(ins);
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
-  for(const fr of fotosToSave){try{await dbPut('fotos',fr);}catch(e){console.warn('foto DB save failed',e);}}
+  let fotoSaveErr=null;
+  for(const fr of fotosToSave){try{await dbPut('fotos',fr);}catch(e){console.warn('foto DB save failed',e);fotoSaveErr=e;}}
+  if(fotoSaveErr)toast('⚠ Foto no guardada: '+(fotoSaveErr&&(fotoSaveErr.message||fotoSaveErr.name||fotoSaveErr))||'error desconocido',false);
   if(navigator.onLine){
     sbInsert(ins).then(ok=>{
       if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}

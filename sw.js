@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v18 (fotos de evidencia en ítems 'malo')
-const CACHE = 'gamas-mrt-v18';
+// Gamas MRT – Service Worker v19 (diagnóstico visible de errores en fotos)
+const CACHE = 'gamas-mrt-v19';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
