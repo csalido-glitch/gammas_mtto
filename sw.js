@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v19 (diagnóstico visible de errores en fotos)
-const CACHE = 'gamas-mrt-v19';
+// Gamas MRT – Service Worker v20 (fix: fotoUrl no se propagaba entre dispositivos)
+const CACHE = 'gamas-mrt-v20';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

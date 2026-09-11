@@ -661,6 +661,7 @@ async function syncFotosPendientes(){
         delete item.fotoId;
         item.fotoUrl=fullUrl;
         item.fotoThumbUrl=thumbUrl;
+        ins.savedAt=Date.now(); // bump: así otros dispositivos detectan el cambio y jalan la URL nueva
         await dbPut('inspecciones',ins);
         if(!ins.pending)await sbInsert(ins); // ya estaba sincronizada: actualizar items con la URL
       }
