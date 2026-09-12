@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v36 (login por usuario, Reportes/Roll libres, Admin con contraseña de texto, adjuntar foto después)
-const CACHE = 'gamas-mrt-v36';
+// Gamas MRT – Service Worker v37 (fix: Reportes quedaba en blanco al quitarle el PIN; banner de alertas no debía verse sin sesión)
+const CACHE = 'gamas-mrt-v37';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

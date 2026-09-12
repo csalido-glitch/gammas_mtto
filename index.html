@@ -1437,6 +1437,7 @@ function repRangeLabel(){
   return{all:'todo el historial',week:'última semana',month:'último mes',custom:'rango seleccionado'}[repRange.mode]||'';
 }
 function renderReports(){
+  document.getElementById('rep-content').style.display='block';
   renderRepTabContent();
 }
 function repTabSwitch(tab){
@@ -1984,7 +1985,7 @@ async function init(){
   // No restaurar 'form' porque el formulario necesita contexto que se perdió
   if(restoreView==='form') restoreView='home';
   showView(restoreView);
-  updateAlertsUI();
+  if(session.user)updateAlertsUI();
   // Update turno every minute
   setInterval(()=>{
     if(document.querySelector('#view-home.active'))renderHome();
