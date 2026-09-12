@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v33 (fix: guardar con foto sin internet se quedaba "colgado" esperando; ahora falla rápido y encola)
-const CACHE = 'gamas-mrt-v33';
+// Gamas MRT – Service Worker v35 (fotoStatus explícito: 'sin_conexion' o 'error_subida' en vez de dejarlo ambiguo)
+const CACHE = 'gamas-mrt-v35';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
