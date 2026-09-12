@@ -241,10 +241,18 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   <div id="views">
     <!-- HOY -->
     <div class="view active" id="view-home">
+      <div id="home-login-gate" style="display:none;padding:30px 24px;text-align:center;">
+        <div class="pin-title">🔧 Gamas Mtto</div>
+        <div class="pin-sub" style="margin-bottom:16px">Inicia sesión para continuar</div>
+        <div class="field" style="text-align:left"><label>Usuario</label><select id="login-user"></select></div>
+        <div class="field" style="text-align:left"><label>Contraseña</label><input type="password" id="login-pass" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:6px" onclick="doLogin()">Entrar</button>
+        <div class="pin-err" id="login-err"></div>
+      </div>
       <div id="mec-bar">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         <span id="mec-name">Mecánico</span>
-        <button id="mec-edit-btn" onclick="openMecModal()">✏️ Editar</button>
+        <button id="mec-edit-btn" onclick="logout()">🚪 Cerrar sesión</button>
       </div>
       <div id="home-alert-banner"></div>
       <div id="home-body"></div>
@@ -289,29 +297,6 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 
     <!-- REPORTES -->
     <div class="view" id="view-reports">
-      <div id="rep-pin-gate">
-        <div class="pin-title">🔒 Reportes</div>
-        <div class="pin-sub">Ingresa el PIN</div>
-        <div class="pin-dots" id="rpd-wrap">
-          <div class="pin-dot" id="rpd0"></div><div class="pin-dot" id="rpd1"></div>
-          <div class="pin-dot" id="rpd2"></div><div class="pin-dot" id="rpd3"></div>
-        </div>
-        <div class="pin-pad">
-          <button class="pin-key" onclick="pinKey('rep','1')">1</button>
-          <button class="pin-key" onclick="pinKey('rep','2')">2</button>
-          <button class="pin-key" onclick="pinKey('rep','3')">3</button>
-          <button class="pin-key" onclick="pinKey('rep','4')">4</button>
-          <button class="pin-key" onclick="pinKey('rep','5')">5</button>
-          <button class="pin-key" onclick="pinKey('rep','6')">6</button>
-          <button class="pin-key" onclick="pinKey('rep','7')">7</button>
-          <button class="pin-key" onclick="pinKey('rep','8')">8</button>
-          <button class="pin-key" onclick="pinKey('rep','9')">9</button>
-          <button class="pin-key" onclick="pinKey('rep','⌫')" style="font-size:14px">⌫</button>
-          <button class="pin-key" onclick="pinKey('rep','0')">0</button>
-          <button class="pin-key" onclick="pinKey('rep','OK')" style="background:var(--accent);color:#fff">OK</button>
-        </div>
-        <div class="pin-err" id="rep-pin-err"></div>
-      </div>
       <div id="rep-content">
         <div id="rep-tabs">
           <button class="rep-tab active" data-tab="list" onclick="repTabSwitch('list')">📋 Listado</button>
@@ -362,31 +347,15 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     <div class="view" id="view-admin">
       <div id="adm-pin-gate">
         <div class="pin-title">⚙️ Admin</div>
-        <div class="pin-sub">PIN de administrador</div>
-        <div class="pin-dots">
-          <div class="pin-dot" id="apd0"></div><div class="pin-dot" id="apd1"></div>
-          <div class="pin-dot" id="apd2"></div><div class="pin-dot" id="apd3"></div>
-        </div>
-        <div class="pin-pad">
-          <button class="pin-key" onclick="pinKey('adm','1')">1</button>
-          <button class="pin-key" onclick="pinKey('adm','2')">2</button>
-          <button class="pin-key" onclick="pinKey('adm','3')">3</button>
-          <button class="pin-key" onclick="pinKey('adm','4')">4</button>
-          <button class="pin-key" onclick="pinKey('adm','5')">5</button>
-          <button class="pin-key" onclick="pinKey('adm','6')">6</button>
-          <button class="pin-key" onclick="pinKey('adm','7')">7</button>
-          <button class="pin-key" onclick="pinKey('adm','8')">8</button>
-          <button class="pin-key" onclick="pinKey('adm','9')">9</button>
-          <button class="pin-key" onclick="pinKey('adm','⌫')" style="font-size:14px">⌫</button>
-          <button class="pin-key" onclick="pinKey('adm','0')">0</button>
-          <button class="pin-key" onclick="pinKey('adm','OK')" style="background:var(--accent);color:#fff">OK</button>
-        </div>
+        <div class="pin-sub">Contraseña de administrador</div>
+        <div class="field"><input type="password" id="adm-pass-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter')checkAdminPassword()"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="checkAdminPassword()">Entrar</button>
         <div class="pin-err" id="adm-pin-err"></div>
       </div>
       <div id="adm-content">
         <div id="adm-tabs">
           <button class="adm-tab active" data-tab="config" onclick="admTab('config')">Configuración</button>
-          <button class="adm-tab" data-tab="mec" onclick="admTab('mec')">Mecánicos</button>
+          <button class="adm-tab" data-tab="mec" onclick="admTab('mec')">Usuarios</button>
           <button class="adm-tab" data-tab="eq" onclick="admTab('eq')">Equipos</button>
           <button class="adm-tab" data-tab="items" onclick="admTab('items')">Ítems</button>
           <button class="adm-tab" data-tab="reinsp" onclick="admTab('reinsp')">Reinspección</button>
@@ -662,6 +631,39 @@ async function syncPending(){
   }
   if(synced>0)toast(`☁ ${synced} inspección${synced>1?'es':''} sincronizada${synced>1?'s':''}`);
 }
+async function attachFotoRetro(insId,itemIdx){
+  if(!(await isReallyOnline())){
+    toast('📵 Sin conexión: intenta de nuevo cuando tengas señal',false);
+    return;
+  }
+  const ins=inspecciones.find(i=>i.id===insId);
+  const item=ins&&ins.items[itemIdx];
+  if(!item)return;
+  const input=document.createElement('input');
+  input.type='file';input.accept='image/*';input.capture='environment';
+  input.onchange=async()=>{
+    const file=input.files[0];if(!file)return;
+    toast('📤 Subiendo foto…');
+    try{
+      const[thumbData,fullData]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      const thumbBlob=await(await fetch(thumbData)).blob();
+      const fullBlob=await(await fetch(fullData)).blob();
+      const fotoId=makeid();
+      const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+      const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+      if(!okThumb||!okFull){toast('⚠ No se pudo subir la foto — intenta de nuevo',false);return;}
+      delete item.fotoStatus;
+      item.fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+      item.fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+      ins.savedAt=Date.now(); // para que otros dispositivos detecten el cambio
+      await dbPut('inspecciones',ins);
+      if(!ins.pending)await sbInsert(ins);
+      toast('✔ Evidencia adjuntada');
+      renderRepTabContent();
+    }catch(e){toast('⚠ No se pudo procesar/subir la foto',false);}
+  };
+  input.click();
+}
 async function debugFoto(insId,fotoId){
   let out='=== DIAGNÓSTICO FOTO ===\n';
   out+='navigator.onLine: '+navigator.onLine+' | conexión real: '+(await isReallyOnline())+'\n';
@@ -928,7 +930,8 @@ const EQUIPOS_DEFAULT=[
 // =====================================================================
 // STATE (loaded from IndexedDB on init)
 // =====================================================================
-let config={startDate:'2026-09-13',cycleDays:25,adminPin:'8520',reportPin:'1234',turno1Start:7,turno2Start:19};
+let config={startDate:'2026-09-13',cycleDays:25,adminPin:'8520',reportPin:'1234',turno1Start:7,turno2Start:19,usuarios:[]};
+let session={user:null};
 let equipos=EQUIPOS_DEFAULT.map(e=>[...e]);
 let catalog={};
 for(const k in CATALOG_BASE) catalog[k]=[...CATALOG_BASE[k]];
@@ -940,7 +943,11 @@ let curAdmTab='config',admSelectedEq=null;
 let currentEq=null,currentTipo='programada';
 let formItemStates={};
 let formItemFotos={};
-function capturePhoto(idx){
+async function capturePhoto(idx){
+  if(!(await isReallyOnline())){
+    toast('📵 Sin conexión: toma la foto con la cámara de tu celular y adjúntala después desde Reportes cuando tengas señal',false);
+    return;
+  }
   const input=document.createElement('input');
   input.type='file';input.accept='image/*';input.capture='environment';
   input.onchange=async()=>{
@@ -971,7 +978,30 @@ const TODAY=new Date(); // fecha real del dispositivo
 // UTILS
 // =====================================================================
 function getTurno(){const h=new Date().getHours();return(h>=config.turno1Start&&h<config.turno2Start)?1:2;}
-function getMecNombre(){return mechNombres[getTurno()]||'Mecánico';}
+function getMecNombre(){return session.user||'Mecánico';}
+function renderLoginOptions(){
+  const sel=document.getElementById('login-user');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Selecciona tu nombre —</option>'+
+    config.usuarios.map(u=>`<option value="${u.nombre}">${u.nombre}</option>`).join('');
+}
+function doLogin(){
+  const nombre=document.getElementById('login-user').value;
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  const u=config.usuarios.find(x=>x.nombre===nombre);
+  if(!u||u.password!==pass){err.textContent='Nombre o contraseña incorrectos';return;}
+  err.textContent='';
+  session.user=nombre;
+  try{sessionStorage.setItem('loggedUser',nombre);}catch(_){}
+  document.getElementById('login-pass').value='';
+  renderHome();
+}
+function logout(){
+  session.user=null;
+  try{sessionStorage.removeItem('loggedUser');}catch(_){}
+  renderHome();
+}
 function getStartDate(){return new Date(config.startDate+'T00:00:00');}
 function dateStr(d){return d.toISOString().slice(0,10);}
 function todayStr(){return dateStr(TODAY);}
@@ -1083,13 +1113,31 @@ function showView(v){
 // HOME
 // =====================================================================
 function renderHome(){
+  const gate=document.getElementById('home-login-gate');
+  const mecBar=document.getElementById('mec-bar');
+  const banner=document.getElementById('home-alert-banner');
+  const body=document.getElementById('home-body');
+  const btnExtra=document.getElementById('btn-extra');
+  const btnShare=document.getElementById('btn-share-turno');
+  if(!session.user){
+    gate.style.display='block';
+    mecBar.style.display='none';
+    banner.innerHTML='';body.innerHTML='';
+    if(btnExtra)btnExtra.style.display='none';
+    if(btnShare)btnShare.style.display='none';
+    renderLoginOptions();
+    return;
+  }
+  gate.style.display='none';
+  mecBar.style.display='flex';
+  if(btnExtra)btnExtra.style.display='';
+  if(btnShare)btnShare.style.display='';
   updateAlertsUI();
   const t=getTurno();
   document.getElementById('turno-badge').textContent=t===1?'T1 · Día':'T2 · Noche';
   document.getElementById('turno-badge').style.background=t===1?'rgba(37,99,235,.35)':'rgba(124,58,237,.35)';
   document.getElementById('mec-name').textContent=getMecNombre();
   const sched=getTodayScheduled();
-  const body=document.getElementById('home-body');
   if(!sched.length){
     const ds=todayStr(),start=getStartDate();
     const msg=TODAY<start
@@ -1232,7 +1280,7 @@ async function saveForm(){
   ins.pending=true; // siempre pending hasta que Supabase confirme
   inspecciones.push(ins);
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
-  if(fotosSinSubir>0)alert('⚠ Sin conexión: '+fotosSinSubir+' foto'+(fotosSinSubir>1?'s':'')+' no se pudo adjuntar.\n\nLa inspección se guardó completa. Reinspecciona este equipo cuando tengas señal para agregar la foto de evidencia.');
+  if(fotosSinSubir>0)alert('⏳ Evidencia fotográfica pendiente\n\nSin conexión ahora — la inspección se guardó completa. En cuanto tengas señal, ve a Reportes y toca "⏳ Evidencia pendiente" junto al ítem para adjuntar la foto.');
   sbInsert(ins).then(ok=>{
     if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
     else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
@@ -1344,41 +1392,20 @@ function renderRoll(){
 // =====================================================================
 // PIN SYSTEM (shared for reports + admin)
 // =====================================================================
-const pinState={rep:{buf:'',unlocked:false},adm:{buf:'',unlocked:false}};
-function pinKey(who,k){
-  const s=pinState[who];
-  if(k==='⌫')s.buf=s.buf.slice(0,-1);
-  else if(k==='OK'){checkPin(who);return;}
-  else if(s.buf.length<4)s.buf+=k;
-  const pref=who==='rep'?'rpd':'apd';
-  [0,1,2,3].forEach(i=>{
-    const el=document.getElementById(pref+i);
-    if(el)el.classList.toggle('filled',i<s.buf.length);
-  });
-  if(s.buf.length===4)checkPin(who);
-}
-function checkPin(who){
-  const s=pinState[who];
-  const correctPin=who==='rep'?config.reportPin:config.adminPin;
-  if(s.buf===correctPin){
-    s.unlocked=true;s.buf='';
-    try{sessionStorage.setItem('pin_'+who,'1');}catch(_){}
-    if(who==='rep'){
-      document.getElementById('rep-pin-gate').style.display='none';
-      document.getElementById('rep-content').style.display='block';
-      renderRepTabContent();
-    } else {
-      document.getElementById('adm-pin-gate').style.display='none';
-      document.getElementById('adm-content').style.display='block';
-      renderAdmPanel();
-    }
-  } else {
-    const errId=who==='rep'?'rep-pin-err':'adm-pin-err';
-    document.getElementById(errId).textContent='PIN incorrecto';
-    s.buf='';
-    const pref=who==='rep'?'rpd':'apd';
-    [0,1,2,3].forEach(i=>{const el=document.getElementById(pref+i);if(el)el.classList.remove('filled');});
-    setTimeout(()=>{document.getElementById(errId).textContent='';},1500);
+let adminUnlocked=false;
+function checkAdminPassword(){
+  const input=document.getElementById('adm-pass-input');
+  const err=document.getElementById('adm-pin-err');
+  if(input.value===config.adminPin){
+    adminUnlocked=true;
+    try{sessionStorage.setItem('pin_adm','1');}catch(_){}
+    document.getElementById('adm-pin-gate').style.display='none';
+    document.getElementById('adm-content').style.display='block';
+    renderAdmPanel();
+  }else{
+    err.textContent='Contraseña incorrecta';
+    input.value='';
+    setTimeout(()=>{err.textContent='';},1500);
   }
 }
 
@@ -1410,14 +1437,7 @@ function repRangeLabel(){
   return{all:'todo el historial',week:'última semana',month:'último mes',custom:'rango seleccionado'}[repRange.mode]||'';
 }
 function renderReports(){
-  if(pinState.rep.unlocked){
-    document.getElementById('rep-pin-gate').style.display='none';
-    document.getElementById('rep-content').style.display='block';
-    renderRepTabContent();
-  } else {
-    document.getElementById('rep-pin-gate').style.display='block';
-    document.getElementById('rep-content').style.display='none';
-  }
+  renderRepTabContent();
 }
 function repTabSwitch(tab){
   if(window.checkForUpdate)window.checkForUpdate();
@@ -1469,10 +1489,8 @@ function renderRepList(){
         fotoHtml=`<img src="${it.fotoThumbUrl}" style="width:26px;height:26px;border-radius:5px;object-fit:cover;margin-left:auto;cursor:pointer" onclick="event.stopPropagation();window.open('${it.fotoUrl}','_blank')">`;
       }else if(it.fotoId){
         fotoHtml=`<span onclick="event.stopPropagation();debugFoto('${ins.id}','${it.fotoId}')" style="font-size:10px;color:var(--sub);margin-left:auto;text-decoration:underline">📷 subiendo…</span>`;
-      }else if(it.fotoStatus==='sin_conexion'){
-        fotoHtml=`<span style="font-size:10px;color:var(--amber);margin-left:auto" title="Sin foto: no había conexión al guardar">📷 sin conexión</span>`;
-      }else if(it.fotoStatus==='error_subida'){
-        fotoHtml=`<span style="font-size:10px;color:var(--red);margin-left:auto" title="Sin foto: falló la subida al guardar">📷 falló subida</span>`;
+      }else if(it.fotoStatus==='sin_conexion'||it.fotoStatus==='error_subida'){
+        fotoHtml=`<span onclick="event.stopPropagation();attachFotoRetro('${ins.id}',${ins.items.indexOf(it)})" style="font-size:10px;color:var(--amber);margin-left:auto;text-decoration:underline;cursor:pointer" title="Toca para adjuntar la evidencia">⏳ Evidencia pendiente</span>`;
       }
       return`<div class="item-detail-row" style="background:${bg};border-radius:6px;padding:5px 8px;margin-bottom:2px;border:none">
         <span class="${cls}">${ico}</span>
@@ -1740,7 +1758,7 @@ function renderRepExport(){
 // ADMIN
 // =====================================================================
 function renderAdmin(){
-  if(pinState.adm.unlocked){
+  if(adminUnlocked){
     document.getElementById('adm-pin-gate').style.display='none';
     document.getElementById('adm-content').style.display='block';
     renderAdmPanel();
@@ -1762,8 +1780,7 @@ function renderAdmPanel(){
       <div class="field"><label>Ciclo de inspección (días)</label><input type="number" id="cfg-cycle" value="${config.cycleDays}" min="1" max="90"></div>
       <div class="field"><label>Turno 1 inicia (hora)</label><input type="number" id="cfg-t1" value="${config.turno1Start}" min="0" max="23"></div>
       <div class="field"><label>Turno 2 inicia (hora)</label><input type="number" id="cfg-t2" value="${config.turno2Start}" min="0" max="23"></div>
-      <div class="field"><label>PIN Administrador</label><input type="password" id="cfg-apin" value="${config.adminPin}" maxlength="6"></div>
-      <div class="field"><label>PIN Reportes</label><input type="password" id="cfg-rpin" value="${config.reportPin}" maxlength="6"></div>
+      <div class="field"><label>Contraseña de Administrador</label><input type="text" id="cfg-apin" value="${config.adminPin}" maxlength="20"></div>
       <button class="btn btn-primary" onclick="saveConfig()">Guardar configuración</button>
       <div id="cfg-status" style="margin-top:10px;font-size:13px;font-weight:700;min-height:20px;"></div>
       <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
@@ -1771,12 +1788,16 @@ function renderAdmPanel(){
       <button class="btn btn-ghost" style="width:100%" onclick="forceDeployUpdate()">🚀 Forzar actualización en todos los dispositivos</button>
       <div id="deploy-status" style="margin-top:8px;font-size:12px;min-height:16px;"></div>`;
   } else if(curAdmTab==='mec'){
-    panel.innerHTML=`
-      <div class="field"><label>🌅 Turno 1 (Día) — ${config.turno1Start}:00 a ${config.turno2Start}:00</label>
-        <input type="text" id="adm-t1" value="${mechNombres[1]||''}"></div>
-      <div class="field"><label>🌙 Turno 2 (Noche) — ${config.turno2Start}:00 a ${config.turno1Start}:00</label>
-        <input type="text" id="adm-t2" value="${mechNombres[2]||''}"></div>
-      <button class="btn btn-primary" onclick="saveMecAdmin()">Guardar nombres</button>`;
+    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${config.usuarios.length} usuario(s)</div>`+
+      config.usuarios.map((u,i)=>`<div class="eq-line">
+        <span class="eq-nom" style="flex:1">${u.nombre}</span>
+        <span style="font-size:11px;color:var(--sub);font-family:monospace">${u.password}</span>
+        <button class="del-btn" onclick="delUsuario(${i})">✕</button>
+      </div>`).join('')+
+      `<div style="margin-top:14px;font-weight:700;font-size:12px;margin-bottom:6px">+ Agregar usuario</div>
+      <div class="field"><label>Nombre completo</label><input type="text" id="nu-nombre" placeholder="Nombre Apellido"></div>
+      <div class="field"><label>Contraseña</label><input type="text" id="nu-pass" placeholder="1234" maxlength="10"></div>
+      <button class="btn btn-green btn-sm" onclick="addUsuario()">+ Agregar</button>`;
   } else if(curAdmTab==='eq'){
     const secOpts=['Trituración','Clasificación','Molienda','Bombeo','Lixiviación'].map(s=>`<option>${s}</option>`).join('');
     panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${equipos.length} equipos</div>`+
@@ -1857,7 +1878,6 @@ async function saveConfig(){
   config.turno1Start=parseInt(document.getElementById('cfg-t1').value)||7;
   config.turno2Start=parseInt(document.getElementById('cfg-t2').value)||19;
   config.adminPin=document.getElementById('cfg-apin').value||'8520';
-  config.reportPin=document.getElementById('cfg-rpin').value||'1234';
   await persist('config',config);
   const st=document.getElementById('cfg-status');
   if(st){st.textContent='Guardando…';st.style.color='var(--sub)';}
@@ -1873,11 +1893,23 @@ async function saveConfig(){
     toast(msg,false);
   }
 }
-async function saveMecAdmin(){
-  mechNombres[1]=document.getElementById('adm-t1').value.trim()||'Mecánico T1';
-  mechNombres[2]=document.getElementById('adm-t2').value.trim()||'Mecánico T2';
-  await persist('mec',mechNombres);
-  toast('Nombres guardados');
+async function addUsuario(){
+  const nombre=document.getElementById('nu-nombre').value.trim();
+  const pass=document.getElementById('nu-pass').value.trim();
+  if(!nombre||!pass){toast('Falta nombre o contraseña',false);return;}
+  if(config.usuarios.some(u=>u.nombre.toLowerCase()===nombre.toLowerCase())){toast('Ya existe ese usuario',false);return;}
+  config.usuarios.push({nombre,password:pass});
+  await persist('config',config);
+  if(await isReallyOnline())await sbPushConfig(config);
+  toast('✅ Usuario agregado');
+  renderAdmPanel();
+}
+async function delUsuario(i){
+  if(!confirm('¿Eliminar al usuario '+config.usuarios[i].nombre+'?'))return;
+  config.usuarios.splice(i,1);
+  await persist('config',config);
+  if(await isReallyOnline())await sbPushConfig(config);
+  renderAdmPanel();
 }
 function delEquipo(i){
   if(!confirm('¿Eliminar '+equipos[i][1]+'?'))return;
@@ -1939,10 +1971,11 @@ async function init(){
   await fetchRemoteInspecciones(); // jala inspecciones de otros dispositivos
   await syncPending();             // sube lo que quedó pendiente offline
 
-  // Restaurar estado de PINs (sesión del navegador, sobrevive recargas automáticas)
+  // Restaurar sesión de usuario y estado de PIN admin (sobrevive recargas automáticas)
   try{
-    if(sessionStorage.getItem('pin_rep')==='1') pinState.rep.unlocked=true;
-    if(sessionStorage.getItem('pin_adm')==='1') pinState.adm.unlocked=true;
+    if(sessionStorage.getItem('pin_adm')==='1') adminUnlocked=true;
+    const su=sessionStorage.getItem('loggedUser');
+    if(su)session.user=su;
   }catch(_){}
 
   // Restaurar vista activa (para que un auto-reload no mande a "Hoy")

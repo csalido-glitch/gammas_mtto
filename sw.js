@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v35 (fotoStatus explícito: 'sin_conexion' o 'error_subida' en vez de dejarlo ambiguo)
-const CACHE = 'gamas-mrt-v35';
+// Gamas MRT – Service Worker v36 (login por usuario, Reportes/Roll libres, Admin con contraseña de texto, adjuntar foto después)
+const CACHE = 'gamas-mrt-v36';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
