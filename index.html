@@ -441,7 +441,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   // Manifest
   const manifest = {
     name:'Gamas Mtto – Minera Río Tinto',short_name:'Gamas MRT',
-    start_url:'.',display:'standalone',
+    start_url:new URL('.',location.href).href,scope:new URL('.',location.href).href,display:'standalone',
     background_color:'#f4f5f7',theme_color:'#2471A3',
     description:'Sistema de inspección de equipos',
     icons:[{src:'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'20\' fill=\'%232471A3\'/%3E%3Ctext y=\'.9em\' font-size=\'80\' x=\'10\'%3E🔧%3C/text%3E%3C/svg%3E',sizes:'192x192',type:'image/svg+xml'}]
@@ -464,12 +464,22 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   window.addEventListener('online',()=>{
     updateOnline();
     syncPending();
+    processFotosPendientes();
     Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]).then(()=>renderHome());
   });
   window.addEventListener('offline',updateOnline);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'){processFotosPendientes();}
+  });
   window.updateOnline=updateOnline;
   updateOnline();
   setTimeout(updateOnline,5000); // reintento rápido por si el primer intento (conexión en frío) tardó de más
+  // Auto-prueba: ¿este dispositivo realmente puede guardar archivos offline de forma confiable?
+  setTimeout(async()=>{
+    dispositivoConfiableOffline=await canPersistOffline();
+    if(!dispositivoConfiableOffline)toast('⚠ Este dispositivo no guarda bien archivos sin conexión — para fotos, mejor usa la cámara normal y adjunta después',false);
+  },3000);
+  setInterval(async()=>{ try{await processFotosPendientes();}catch(e){} try{await syncPending();}catch(e){} },30000);
 
   // Install prompt
   let deferredPrompt=null;
@@ -600,6 +610,8 @@ function setPendingDeletes(ids){try{localStorage.setItem('_pendingDeletes',JSON.
 function addPendingDelete(id){const ids=getPendingDeletes();if(!ids.includes(id)){ids.push(id);setPendingDeletes(ids);}}
 
 async function syncPending(){
+  try{ await processFotosPendientes(); }catch(e){}
+
   if(!(await isReallyOnline()))return;
   // 1. Enviar a Supabase los deletes que quedaron pendientes offline
   const delIds=getPendingDeletes();
@@ -632,10 +644,6 @@ async function syncPending(){
   if(synced>0)toast(`☁ ${synced} inspección${synced>1?'es':''} sincronizada${synced>1?'s':''}`);
 }
 async function attachFotoRetro(insId,itemIdx){
-  if(!(await isReallyOnline())){
-    toast('📵 Sin conexión: intenta de nuevo cuando tengas señal',false);
-    return;
-  }
   const ins=inspecciones.find(i=>i.id===insId);
   const item=ins&&ins.items[itemIdx];
   if(!item)return;
@@ -643,22 +651,45 @@ async function attachFotoRetro(insId,itemIdx){
   input.type='file';input.accept='image/*';input.capture='environment';
   input.onchange=async()=>{
     const file=input.files[0];if(!file)return;
-    toast('📤 Subiendo foto…');
+    toast('📤 Procesando foto…');
     try{
       const[thumbData,fullData]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
       const thumbBlob=await(await fetch(thumbData)).blob();
       const fullBlob=await(await fetch(fullData)).blob();
       const fotoId=makeid();
-      const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
-      const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
-      if(!okThumb||!okFull){toast('⚠ No se pudo subir la foto — intenta de nuevo',false);return;}
-      delete item.fotoStatus;
-      item.fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
-      item.fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
-      ins.savedAt=Date.now(); // para que otros dispositivos detecten el cambio
-      await dbPut('inspecciones',ins);
-      if(!ins.pending)await sbInsert(ins);
-      toast('✔ Evidencia adjuntada');
+      const online=await isReallyOnline();
+      let subida=false;
+      if(online){
+        const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+        const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+        if(okThumb&&okFull){
+          delete item.fotoStatus;
+          item.fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+          item.fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+          ins.savedAt=Date.now(); // para que otros dispositivos detecten el cambio
+          await dbPut('inspecciones',ins);
+          if(!ins.pending)await sbInsert(ins);
+          toast('✔ Evidencia adjuntada');
+          subida=true;
+        }
+      }
+      if(!subida){
+        // Sin conexión o falló la subida: intentar encolar para reintentar sola después
+        const fileNameThumb=fotoId+'_thumb.jpg', fileNameFull=fotoId+'_full.jpg';
+        const okThumb=await saveToQueueStorage(fileNameThumb,thumbBlob);
+        const okFull=await saveToQueueStorage(fileNameFull,fullBlob);
+        if(okThumb&&okFull){
+          delete item.fotoStatus;
+          item.fotoId=fotoId;
+          await dbPut('inspecciones',ins);
+          await dbPut('fotos',{id:fotoId,insId:ins.id,itemIdx,fileNameThumb,fileNameFull,createdAt:Date.now()});
+          toast('📦 Guardada en cola — se subirá sola en cuanto haya señal');
+        }else{
+          item.fotoStatus=online?'error_subida':'sin_conexion';
+          await dbPut('inspecciones',ins);
+          toast('⚠ No se pudo subir ni guardar en cola — intenta de nuevo',false);
+        }
+      }
       renderRepTabContent();
     }catch(e){toast('⚠ No se pudo procesar/subir la foto',false);}
   };
@@ -680,12 +711,15 @@ async function debugFoto(insId,fotoId){
   try{
     const fotos=await dbGetAll('fotos');
     const f=fotos.find(x=>x.id===fotoId);
-    out+='registro en fotos (IndexedDB): '+(f?JSON.stringify({id:f.id,uploaded:f.uploaded}):'NO EXISTE localmente')+'\n';
-  }catch(e){out+='error leyendo fotos: '+e.message+'\n';}
-  try{
-    const lf=lsGetAllFotos().find(x=>x.id===fotoId);
-    out+='registro en localStorage (respaldo): '+(lf?JSON.stringify({id:lf.id,uploaded:lf.uploaded}):'NO EXISTE')+'\n';
-  }catch(e){out+='error leyendo localStorage: '+e.message+'\n';}
+    out+='registro en cola (IndexedDB): '+(f?JSON.stringify(f):'NO EXISTE localmente')+'\n';
+    if(f){
+      const thumbFile=await readFromQueueStorage(f.fileNameThumb);
+      const fullFile=await readFromQueueStorage(f.fileNameFull);
+      out+='archivo thumb en OPFS/Cache: '+(thumbFile?thumbFile.size+' bytes':'NO EXISTE')+'\n';
+      out+='archivo full en OPFS/Cache: '+(fullFile?fullFile.size+' bytes':'NO EXISTE')+'\n';
+    }
+  }catch(e){out+='error leyendo cola: '+e.message+'\n';}
+  out+='dispositivo confiable para guardar offline: '+dispositivoConfiableOffline+'\n';
   try{
     const r=await fetch(SB_URL+'/rest/v1/inspecciones?equipo_id=eq.'+(ins&&ins.equipoId)+'&select=id,saved_at,items',{headers:SB_H});
     const data=await r.json();
@@ -828,25 +862,97 @@ function dbDel(store,key){
     tx.oncomplete=res; tx.onerror=rej;
   });
 }
-// --- Respaldo en localStorage para fotos, por si IndexedDB falla en silencio en el dispositivo ---
-const LS_FOTO_PREFIX='fotoFallback_';
-function lsSaveFoto(fr){
-  try{localStorage.setItem(LS_FOTO_PREFIX+fr.id,JSON.stringify(fr));return true;}
-  catch(e){console.warn('localStorage foto save falló',e);return false;}
-}
-function lsGetAllFotos(){
-  const out=[];
+// --- Almacenamiento robusto para la cola de fotos offline: OPFS primero, Cache Storage como respaldo ---
+const FOTOS_CACHE_NAME='evidencias-cola-v1';
+const FOTOS_CACHE_PREFIX='/cola-fotos/';
+async function saveToQueueStorage(name,blob){
   try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k&&k.startsWith(LS_FOTO_PREFIX)){
-        try{out.push(JSON.parse(localStorage.getItem(k)));}catch(e){}
-      }
+    if(navigator.storage&&navigator.storage.getDirectory){
+      const root=await navigator.storage.getDirectory();
+      const handle=await root.getFileHandle(name,{create:true});
+      const w=await handle.createWritable();
+      await w.write(blob);await w.close();
+      // Verificación: releer de inmediato, por si "tuvo éxito" pero no quedó grabado
+      const verify=await(await root.getFileHandle(name)).getFile();
+      if(verify.size>0)return true;
     }
-  }catch(e){console.warn('localStorage foto read falló',e);}
-  return out;
+  }catch(e){console.warn('OPFS falló, se intenta Cache Storage',e);}
+  try{
+    const cache=await caches.open(FOTOS_CACHE_NAME);
+    await cache.put(FOTOS_CACHE_PREFIX+name,new Response(blob));
+    const check=await cache.match(FOTOS_CACHE_PREFIX+name);
+    return !!check;
+  }catch(e){console.warn('Cache Storage también falló',e);return false;}
 }
-function lsDeleteFoto(id){try{localStorage.removeItem(LS_FOTO_PREFIX+id);}catch(e){}}
+async function readFromQueueStorage(name){
+  try{
+    const root=await navigator.storage.getDirectory();
+    const h=await root.getFileHandle(name);
+    return await h.getFile();
+  }catch(e){}
+  try{
+    const cache=await caches.open(FOTOS_CACHE_NAME);
+    const res=await cache.match(FOTOS_CACHE_PREFIX+name);
+    return res?await res.blob():null;
+  }catch(e){return null;}
+}
+async function deleteFromQueueStorage(name){
+  try{const root=await navigator.storage.getDirectory();await root.removeEntry(name);}catch(e){}
+  try{const cache=await caches.open(FOTOS_CACHE_NAME);await cache.delete(FOTOS_CACHE_PREFIX+name);}catch(e){}
+}
+// Auto-prueba al arrancar: ¿este dispositivo realmente puede guardar archivos offline?
+async function canPersistOffline(){
+  try{if(navigator.storage&&navigator.storage.persist)await navigator.storage.persist();}catch(e){}
+  const testName='__test_'+Date.now()+'.txt';
+  try{
+    const ok=await saveToQueueStorage(testName,new Blob(['test']));
+    if(!ok){await deleteFromQueueStorage(testName);return false;}
+    const r=await readFromQueueStorage(testName);
+    await deleteFromQueueStorage(testName);
+    return !!r&&r.size>0;
+  }catch(e){return false;}
+}
+async function processFotosPendientes(){
+  if(!(await isReallyOnline()))return 0;
+  let cola=[];
+  try{cola=await dbGetAll('fotos');}catch(e){console.warn('no se pudo leer la cola de fotos',e);return 0;}
+  if(!cola.length)return 0;
+  let subidas=0;
+  for(const job of cola){
+    try{
+      const thumbBlob=await readFromQueueStorage(job.fileNameThumb);
+      const fullBlob=await readFromQueueStorage(job.fileNameFull);
+      if(!thumbBlob||!fullBlob)continue; // se reintenta en el siguiente ciclo
+      const okThumb=await sbUploadFoto(job.fileNameThumb,thumbBlob);
+      const okFull=await sbUploadFoto(job.fileNameFull,fullBlob);
+      if(!okThumb||!okFull)continue; // se reintenta en el siguiente ciclo
+      let ins=inspecciones.find(i=>i.id===job.insId);
+      if(!ins)ins=await dbGet('inspecciones',job.insId);
+      if(ins){
+        const it=ins.items[job.itemIdx];
+        if(it){
+          delete it.fotoStatus;delete it.fotoId;
+          it.fotoUrl=sbPublicUrl(job.fileNameFull);
+          it.fotoThumbUrl=sbPublicUrl(job.fileNameThumb);
+          ins.savedAt=Date.now(); // así otros dispositivos detectan el cambio y jalan la URL nueva
+          await dbPut('inspecciones',ins);
+          const mem=inspecciones.find(i=>i.id===job.insId);
+          if(mem){mem.items[job.itemIdx]=it;mem.savedAt=ins.savedAt;}
+          if(!ins.pending)await sbInsert(ins);
+        }
+      }
+      await deleteFromQueueStorage(job.fileNameThumb);
+      await deleteFromQueueStorage(job.fileNameFull);
+      await dbDel('fotos',job.id);
+      subidas++;
+    }catch(e){console.warn('cola de fotos: falló un job',job.id,e);}
+  }
+  if(subidas>0){
+    toast(`✔ ${subidas} foto${subidas>1?'s':''} en cola subida${subidas>1?'s':''}`);
+    if(document.querySelector('#view-reports.active'))renderRepTabContent();
+  }
+  return subidas;
+}
 
 // =====================================================================
 // DATA
@@ -936,6 +1042,7 @@ let equipos=EQUIPOS_DEFAULT.map(e=>[...e]);
 let catalog={};
 for(const k in CATALOG_BASE) catalog[k]=[...CATALOG_BASE[k]];
 let inspecciones=[];
+let dispositivoConfiableOffline=true;
 let mechNombres={1:'Mecánico Turno 1',2:'Mecánico Turno 2'};
 let repPinBuf='',repUnlocked=false;
 let admPinBuf='',admUnlocked=false;
@@ -944,9 +1051,9 @@ let currentEq=null,currentTipo='programada';
 let formItemStates={};
 let formItemFotos={};
 async function capturePhoto(idx){
-  if(!(await isReallyOnline())){
-    toast('📵 Sin conexión: toma la foto con la cámara de tu celular y adjúntala después desde Reportes cuando tengas señal',false);
-    return;
+  const online=await isReallyOnline();
+  if(!online&&!dispositivoConfiableOffline){
+    toast('⚠ Sin conexión y este dispositivo no guarda bien fotos offline — mejor tómala con la cámara normal de tu celular y adjúntala después',false);
   }
   const input=document.createElement('input');
   input.type='file';input.accept='image/*';input.capture='environment';
@@ -1240,21 +1347,22 @@ async function saveForm(){
   if(window.checkForUpdate)window.checkForUpdate();
   const items=getCatalogItems(currentEq[0]);
   const itemsData=items.map((nombre,idx)=>({nombre,estado:formItemStates[idx]||null}));
-  // Fotos: requieren conexión a internet en el momento de guardar. Se intentan subir de inmediato;
-  // si no hay internet o falla, la inspección se guarda igual pero SIN esa foto — se avisa al
-  // mecánico para que reinspeccione el equipo y la adjunte cuando tenga señal.
+  // Fotos: se intenta subir de inmediato si hay conexión real. Si falla o no hay conexión,
+  // se intenta encolar (OPFS, con respaldo en Cache Storage) para reintentar solas más tarde.
+  // Solo si ni subir ni encolar funcionan, se avisa que la evidencia quedó pendiente manual.
   const hayFotos=Object.keys(formItemFotos).length>0;
-  let fotosSinSubir=0;
+  const fotosParaEncolar=[]; // {idx, fotoId, thumbBlob, fullBlob}
+  let fotosSinResolver=0;
   if(hayFotos)toast('📤 Subiendo foto(s)…');
   const intentarSubidaYa=hayFotos&&await isReallyOnline();
   for(const idx of Object.keys(formItemFotos)){
     const f=formItemFotos[idx];
     let subida=false;
+    const fotoId=makeid();
+    const thumbBlob=await(await fetch(f.thumbData)).blob();
+    const fullBlob=await(await fetch(f.fullData)).blob();
     if(intentarSubidaYa){
-      const fotoId=makeid();
       try{
-        const thumbBlob=await(await fetch(f.thumbData)).blob();
-        const fullBlob=await(await fetch(f.fullData)).blob();
         const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
         const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
         if(okThumb&&okFull){
@@ -1265,8 +1373,8 @@ async function saveForm(){
       }catch(e){console.warn('subida de foto falló',e);}
     }
     if(!subida){
-      itemsData[idx].fotoStatus=intentarSubidaYa?'error_subida':'sin_conexion';
-      fotosSinSubir++;
+      itemsData[idx].fotoId=fotoId; // referencia temporal hasta que la cola la resuelva
+      fotosParaEncolar.push({idx,fotoId,thumbBlob,fullBlob});
     }
   }
   const ins={
@@ -1280,11 +1388,33 @@ async function saveForm(){
   ins.pending=true; // siempre pending hasta que Supabase confirme
   inspecciones.push(ins);
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
-  if(fotosSinSubir>0)alert('⏳ Evidencia fotográfica pendiente\n\nSin conexión ahora — la inspección se guardó completa. En cuanto tengas señal, ve a Reportes y toca "⏳ Evidencia pendiente" junto al ítem para adjuntar la foto.');
+  // Encolar las fotos que no se pudieron subir de inmediato
+  for(const fp of fotosParaEncolar){
+    const fileNameThumb=fp.fotoId+'_thumb.jpg', fileNameFull=fp.fotoId+'_full.jpg';
+    const okThumb=await saveToQueueStorage(fileNameThumb,fp.thumbBlob);
+    const okFull=await saveToQueueStorage(fileNameFull,fp.fullBlob);
+    if(okThumb&&okFull){
+      try{
+        await dbPut('fotos',{id:fp.fotoId,insId:ins.id,itemIdx:Number(fp.idx),fileNameThumb,fileNameFull,createdAt:Date.now()});
+      }catch(e){console.warn('no se pudo guardar metadata de cola',e);fotosSinResolver++;}
+    }else{
+      // Ni subir ni encolar funcionó: se queda como "evidencia pendiente" manual (comportamiento anterior)
+      delete itemsData[fp.idx].fotoId;
+      itemsData[fp.idx].fotoStatus=intentarSubidaYa?'error_subida':'sin_conexion';
+      await dbPut('inspecciones',ins);
+      fotosSinResolver++;
+    }
+  }
+  if(fotosSinResolver>0){
+    alert('⏳ Evidencia fotográfica pendiente\n\nNo se pudo subir ni guardar en cola en este momento. La inspección se guardó completa. En cuanto tengas señal, ve a Reportes y toca "⏳ Evidencia pendiente" junto al ítem para adjuntar la foto.');
+  }else if(fotosParaEncolar.length>0){
+    toast('📦 Foto guardada en cola — se subirá sola en cuanto haya señal');
+  }
   sbInsert(ins).then(ok=>{
     if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
     else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
   }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
+  if(fotosParaEncolar.length)processFotosPendientes();
   formItemFotos={};
   closeForm();
 }
@@ -1996,6 +2126,7 @@ async function init(){
     const snapCfg=JSON.stringify(config);
     const snapIns=JSON.stringify(inspecciones.map(i=>i.id+i.savedAt));
     await syncPending();  // sube pendientes primero
+    await processFotosPendientes(); // sube fotos en cola si ya hay conexión
     await Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]);
     const changed=JSON.stringify(config)!==snapCfg||JSON.stringify(inspecciones.map(i=>i.id+i.savedAt))!==snapIns;
     if(changed){

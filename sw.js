@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v37 (fix: Reportes quedaba en blanco al quitarle el PIN; banner de alertas no debía verse sin sesión)
-const CACHE = 'gamas-mrt-v37';
+// Gamas MRT – Service Worker v39 (cola offline real para fotos: OPFS + Cache Storage, con auto-prueba de confiabilidad por dispositivo)
+const CACHE = 'gamas-mrt-v39';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -22,6 +22,9 @@ self.addEventListener('message', e => {
 // Network-first para TODO — siempre intenta red, cae a caché si offline
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // Nunca interceptar/cachear llamadas a Supabase (REST/Storage) — que las maneje
+  // directo la app (fetch normal), no tiene sentido cachearlas ni sirve para offline real
+  if (e.request.url.includes('supabase.co')) return;
   e.respondWith((async () => {
     try {
       const res = await fetch(e.request, {cache: 'no-cache'});
