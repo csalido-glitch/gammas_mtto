@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v41 (fix crítico: ya no recarga de golpe si hay una inspección abierta a la mitad; login obligatorio para inspeccionar desde Roll/Reportes; Admin: reordenar equipos y editar ítems)
-const CACHE = 'gamas-mrt-v41';
+// Gamas MRT – Service Worker v42 (fix: dateStr() adelantaba un día después de las 6pm por usar toISOString/UTC en vez de hora local)
+const CACHE = 'gamas-mrt-v42';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

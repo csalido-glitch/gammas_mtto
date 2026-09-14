@@ -1118,7 +1118,10 @@ function logout(){
   renderHome();
 }
 function getStartDate(){return new Date(config.startDate+'T00:00:00');}
-function dateStr(d){return d.toISOString().slice(0,10);}
+function dateStr(d){
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function todayStr(){return dateStr(TODAY);}
 function fmtDate(d){return d.toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short'});}
 function getCatalogItems(eqId){
@@ -1710,7 +1713,7 @@ function renderRepStats(){
   all.forEach(ins=>{
     const d=new Date(ins.savedAt);const day=(d.getDay()+6)%7;
     d.setHours(0,0,0,0);d.setDate(d.getDate()-day);
-    const wk=d.toISOString().slice(0,10);
+    const wk=dateStr(d);
     if(!weekMap[wk])weekMap[wk]={b:0,m:0,r:0,label:d};
     ins.items.forEach(it=>{if(it.estado==='b')weekMap[wk].b++;else if(it.estado==='m')weekMap[wk].m++;else if(it.estado==='r')weekMap[wk].r++;});
   });
