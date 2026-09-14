@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v43 (fix encabezado de mes invisible en modo claro; fechas en formato dd-mmm-aa fuera de Roll; Admin cierra sesión al cambiar de pestaña; resumen de turno con fotos adjuntas)
-const CACHE = 'gamas-mrt-v43';
+// Gamas MRT – Service Worker v44 (Admin → Historial: editar cualquier inspección ya guardada, sin importar el tipo)
+const CACHE = 'gamas-mrt-v44';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

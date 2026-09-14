@@ -1058,6 +1058,7 @@ let curAdmTab='config',admSelectedEq=null;
 let currentEq=null,currentTipo='programada';
 let formItemStates={};
 let formItemFotos={};
+let editingInsId=null; // si tiene valor, saveForm() actualiza esa inspección ya existente en vez de crear una nueva
 async function capturePhoto(idx){
   const online=await isReallyOnline();
   if(!online&&!dispositivoConfiableOffline){
@@ -1365,6 +1366,7 @@ function openForm(eqId,tipo){
     return;
   }
   const eq=equipos.find(e=>e[0]===eqId);if(!eq)return;
+  editingInsId=null;
   currentEq=eq;currentTipo=tipo;formItemStates={};formItemFotos={};
   const items=getCatalogItems(eqId);
   const col=tipoColor(eq[3]);
@@ -1395,6 +1397,40 @@ function openForm(eqId,tipo){
   document.getElementById('form-obs').value='';
   showView('form');
 }
+function editInspeccionAdmin(id){
+  const ins=inspecciones.find(i=>i.id===id);
+  if(!ins){toast('No se encontró esa inspección',false);return;}
+  editingInsId=id;formItemStates={};formItemFotos={};
+  currentEq=equipos.find(e=>e[0]===ins.equipoId)||[ins.equipoId,ins.equipoNombre,ins.seccion,'t-trit',ins.area];
+  currentTipo=ins.tipo;
+  const col=tipoColor(currentEq[3]);
+  document.getElementById('form-title').textContent=ins.equipoNombre;
+  document.getElementById('form-color-bar').style.background=col;
+  const tag=document.getElementById('form-tipo-tag');
+  tag.textContent='✏️ EDICIÓN';tag.className='tag tag-venc';
+  document.getElementById('form-meta').innerHTML=`
+    <span class="tag ${Number(ins.turno)===1?'tag-t1':'tag-t2'}">T${ins.turno}</span>
+    <span class="eq-id">${ins.equipoId}</span>
+    <span style="font-size:11px;color:var(--sub)">${fmtFechaCorta(ins.fecha)}</span>
+    <span style="font-size:11px;color:var(--sub)">${ins.mecanico}</span>
+    <span style="font-size:11px;color:var(--sub)">${ins.area}</span>`;
+  document.getElementById('form-items').innerHTML=ins.items.map((item,idx)=>{
+    if(item.estado)formItemStates[idx]=item.estado;
+    const fotoHtml=item.fotoThumbUrl?`<img src="${item.fotoThumbUrl}" style="width:22px;height:22px;border-radius:4px;object-fit:cover">`:'';
+    return `<div class="item-row">
+      <span class="item-name">${idx+1}. ${item.nombre}</span>
+      <div class="item-btns">
+        <button class="item-btn${item.estado==='b'?' sel-b':''}" id="ib-b-${idx}" onclick="setItem(${idx},'b')">✔</button>
+        <button class="item-btn${item.estado==='r'?' sel-r':''}" id="ib-r-${idx}" onclick="setItem(${idx},'r')">~</button>
+        <button class="item-btn${item.estado==='m'?' sel-m':''}" id="ib-m-${idx}" onclick="setItem(${idx},'m')">✘</button>
+        <button id="foto-btn-${idx}" onclick="capturePhoto(${idx})" style="display:${item.estado==='m'?'inline-block':'none'};border:none;background:none;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="Agregar/cambiar foto de evidencia">📷</button>
+        <span id="foto-preview-${idx}" style="display:inline-flex;align-items:center">${fotoHtml}</span>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('form-obs').value=ins.observaciones||'';
+  showView('form');
+}
 function setItem(idx,estado){
   const prev=formItemStates[idx];
   if(prev===estado)delete formItemStates[idx]; else formItemStates[idx]=estado;
@@ -1409,6 +1445,7 @@ function setItem(idx,estado){
 }
 async function saveForm(){
   if(window.checkForUpdate)window.checkForUpdate();
+  if(editingInsId)return await saveFormEdit();
   const items=getCatalogItems(currentEq[0]);
   const itemsData=items.map((nombre,idx)=>({nombre,estado:formItemStates[idx]||null}));
   // Fotos: se intenta subir de inmediato si hay conexión real. Si falla o no hay conexión,
@@ -1481,6 +1518,54 @@ async function saveForm(){
   if(fotosParaEncolar.length)processFotosPendientes();
   formItemFotos={};
   closeForm();
+}
+async function saveFormEdit(){
+  const ins=inspecciones.find(i=>i.id===editingInsId);
+  if(!ins){editingInsId=null;closeForm();return;}
+  ins.items.forEach((item,idx)=>{item.estado=formItemStates[idx]||null;});
+  const hayFotos=Object.keys(formItemFotos).length>0;
+  if(hayFotos){
+    toast('📤 Subiendo foto(s)…');
+    const online=await isReallyOnline();
+    for(const idx of Object.keys(formItemFotos)){
+      const f=formItemFotos[idx];
+      const item=ins.items[idx];
+      const fotoId=makeid();
+      const thumbBlob=await(await fetch(f.thumbData)).blob();
+      const fullBlob=await(await fetch(f.fullData)).blob();
+      let subida=false;
+      if(online){
+        try{
+          const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+          const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+          if(okThumb&&okFull){
+            delete item.fotoStatus;
+            item.fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+            item.fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+            subida=true;
+          }
+        }catch(e){console.warn('subida de foto (edición) falló',e);}
+      }
+      if(!subida){
+        const okThumb=await saveToQueueStorage(fotoId+'_thumb.jpg',thumbBlob);
+        const okFull=await saveToQueueStorage(fotoId+'_full.jpg',fullBlob);
+        if(okThumb&&okFull){
+          item.fotoId=fotoId;
+          await dbPut('fotos',{id:fotoId,insId:ins.id,itemIdx:Number(idx),fileNameThumb:fotoId+'_thumb.jpg',fileNameFull:fotoId+'_full.jpg',createdAt:Date.now()});
+        }else{
+          item.fotoStatus=online?'error_subida':'sin_conexion';
+        }
+      }
+    }
+  }
+  ins.observaciones=document.getElementById('form-obs').value.trim();
+  ins.savedAt=Date.now(); // para que el cambio se propague a otros dispositivos
+  try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save (edición) falló',e);}
+  if(await isReallyOnline())await sbInsert(ins);
+  toast('✔ Inspección actualizada');
+  editingInsId=null;formItemFotos={};
+  closeForm();
+  if(document.querySelector('#view-admin.active'))renderAdmPanel();
 }
 function closeForm(){showView('home');}
 
@@ -2043,7 +2128,7 @@ function renderAdmPanel(){
   } else if(curAdmTab==='historial'){
     const sorted=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
     panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:10px">
-      ${sorted.length} inspección(es) en total. Toca 🗑 para borrar (se elimina de todos los dispositivos).</div>`+
+      ${sorted.length} inspección(es) en total. Toca ✏️ para editar o 🗑 para borrar (se elimina de todos los dispositivos).</div>`+
       (sorted.length?sorted.map(ins=>`
       <div class="item-line" style="flex-wrap:wrap;gap:4px">
         <div style="flex:1;min-width:0">
@@ -2052,6 +2137,7 @@ function renderAdmPanel(){
           <span style="font-size:11px;color:var(--sub)">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico}</span>
           ${ins.pending?'<span style="font-size:10px;color:var(--amber);margin-left:4px">⏳ pendiente</span>':''}
         </div>
+        <button class="del-btn" style="background:#dbeafe;color:var(--accent);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700;margin-right:4px" onclick="editInspeccionAdmin('${ins.id}')">✏️</button>
         <button class="del-btn" style="background:#fee2e2;color:var(--red);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700" onclick="deleteInspeccion('${ins.id}')">🗑</button>
       </div>`).join('')
       :'<div style="color:var(--sub);font-size:13px;padding:20px 0;text-align:center">Sin inspecciones registradas.</div>');
