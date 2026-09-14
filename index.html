@@ -464,7 +464,6 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   window.addEventListener('online',()=>{
     updateOnline();
     syncPending();
-    processFotosPendientes();
     Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]).then(()=>renderHome());
   });
   window.addEventListener('offline',updateOnline);
@@ -479,7 +478,6 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     dispositivoConfiableOffline=await canPersistOffline();
     if(!dispositivoConfiableOffline)toast('⚠ Este dispositivo no guarda bien archivos sin conexión — para fotos, mejor usa la cámara normal y adjunta después',false);
   },3000);
-  setInterval(async()=>{ try{await processFotosPendientes();}catch(e){} try{await syncPending();}catch(e){} },30000);
 
   // Install prompt
   let deferredPrompt=null;
@@ -507,13 +505,23 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
           }
         });
       });
-      let reloading=false;
-      navigator.serviceWorker.addEventListener('controllerchange',()=>{
-        if(reloading)return; reloading=true; window.location.reload();
-      });
+      let reloading=false,pendingReload=false;
+      function safeReload(){
+        if(reloading)return;
+        if(document.querySelector('#view-form.active')){
+          // Hay una inspección abierta a la mitad — no interrumpir, recargar hasta que salga de ahí
+          pendingReload=true;
+          return;
+        }
+        reloading=true;window.location.reload();
+      }
+      navigator.serviceWorker.addEventListener('controllerchange',safeReload);
       navigator.serviceWorker.addEventListener('message',e=>{
-        if(e.data&&e.data.type==='RELOAD'&&!reloading){reloading=true;window.location.reload();}
+        if(e.data&&e.data.type==='RELOAD')safeReload();
       });
+      window.triggerPendingReload=()=>{
+        if(pendingReload&&!reloading){reloading=true;window.location.reload();}
+      };
       // checkForUpdate central con cooldown de 20s: se puede llamar seguido (navegación, guardar,
       // reconexión, etc.) sin generar peticiones de más
       let lastUpdateCheck=0;
@@ -1205,11 +1213,13 @@ async function persist(key,val){try{await dbPut('kv',{k:key,v:val});}catch(e){co
 // =====================================================================
 function showView(v){
   if(window.checkForUpdate)window.checkForUpdate();
+  const wasInForm=document.getElementById('view-form').classList.contains('active');
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
   document.getElementById('view-'+v).scrollTop=0;
   try{sessionStorage.setItem('activeView',v);}catch(_){}
+  if(wasInForm&&v!=='form'&&window.triggerPendingReload)window.triggerPendingReload();
   if(v==='home')renderHome();
   if(v==='roll')renderRoll();
   if(v==='reports')renderReports();
@@ -1300,6 +1310,11 @@ async function saveMecNames(){
 // FORM
 // =====================================================================
 function openForm(eqId,tipo){
+  if(!session.user){
+    toast('🔒 Inicia sesión para poder inspeccionar',false);
+    showView('home'); // renderHome() ya muestra la pantalla de login si no hay sesión
+    return;
+  }
   const eq=equipos.find(e=>e[0]===eqId);if(!eq)return;
   currentEq=eq;currentTipo=tipo;formItemStates={};formItemFotos={};
   const items=getCatalogItems(eqId);
@@ -1931,8 +1946,12 @@ function renderAdmPanel(){
       <button class="btn btn-green btn-sm" onclick="addUsuario()">+ Agregar</button>`;
   } else if(curAdmTab==='eq'){
     const secOpts=['Trituración','Clasificación','Molienda','Bombeo','Lixiviación'].map(s=>`<option>${s}</option>`).join('');
-    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${equipos.length} equipos</div>`+
+    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${equipos.length} equipos — el orden define el día que le toca a cada uno en el ciclo de inspección</div>`+
       equipos.map((eq,i)=>`<div class="eq-line">
+        <span style="display:flex;flex-direction:column;gap:2px">
+          <button class="del-btn" style="padding:0 6px" onclick="moveEquipo(${i},-1)" ${i===0?'disabled':''}>▲</button>
+          <button class="del-btn" style="padding:0 6px" onclick="moveEquipo(${i},1)" ${i===equipos.length-1?'disabled':''}>▼</button>
+        </span>
         <span class="eq-lid">${eq[0]}</span>
         <span class="eq-lnom">${eq[1]}</span>
         <span style="font-size:10px;color:var(--sub);min-width:50px">${eq[2]}</span>
@@ -1953,7 +1972,11 @@ function renderAdmPanel(){
       (admSelectedEq?
         (isShared?`<div style="background:#fef3c7;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px">⚠ Ítems compartidos con su grupo.</div>`:'')
         +`<div style="font-size:12px;font-weight:700;margin-bottom:4px">${items.length} ítems</div>`
-        +items.map((it,idx)=>`<div class="item-line"><span>${idx+1}. ${it}</span>
+        +items.map((it,idx)=>`<div class="item-line">
+          <span style="font-size:11px;color:var(--sub);min-width:18px">${idx+1}.</span>
+          <input type="text" value="${it.replace(/"/g,'&quot;')}" ${isShared?'disabled':''}
+            onchange="editItemName('${admSelectedEq}',${idx},this.value)"
+            style="flex:1;border:none;background:transparent;font-size:13px;padding:4px 2px">
           ${!isShared?`<button class="del-btn" onclick="delItem('${admSelectedEq}',${idx})">✕</button>`:''}</div>`).join('')
         +(!isShared?`<div class="add-row"><input type="text" id="new-item-inp" placeholder="Nuevo ítem">
           <button class="btn btn-green btn-sm" onclick="addItem('${admSelectedEq}')">+</button></div>`:'')
@@ -2046,6 +2069,12 @@ function delEquipo(i){
   if(!confirm('¿Eliminar '+equipos[i][1]+'?'))return;
   equipos.splice(i,1);renderAdmPanel();
 }
+function moveEquipo(i,dir){
+  const j=i+dir;
+  if(j<0||j>=equipos.length)return;
+  [equipos[i],equipos[j]]=[equipos[j],equipos[i]];
+  renderAdmPanel();
+}
 function addEquipo(){
   const id=document.getElementById('ne-id').value.trim().toUpperCase();
   const nom=document.getElementById('ne-nom').value.trim().toUpperCase();
@@ -2056,6 +2085,13 @@ function addEquipo(){
   const tc=sec==='Trituración'?'t-trit':sec==='Clasificación'?'t-clas':sec==='Molienda'?'t-mol':sec==='Bombeo'?'t-bom':'t-lix';
   equipos.push([id,nom,sec,tc,area]);
   toast('Equipo agregado ✔');renderAdmPanel();
+}
+function editItemName(eqId,idx,value){
+  const v=value.trim();
+  if(!v){toast('El nombre del ítem no puede quedar vacío',false);renderAdmPanel();return;}
+  if(!catalog[eqId])catalog[eqId]=[...getCatalogItems(eqId)];
+  catalog[eqId][idx]=v;
+  toast('✔ Ítem actualizado');
 }
 function delItem(eqId,idx){
   if(!catalog[eqId])catalog[eqId]=[...getCatalogItems(eqId)];
@@ -2125,8 +2161,7 @@ async function init(){
     if(window.updateOnline)window.updateOnline();
     const snapCfg=JSON.stringify(config);
     const snapIns=JSON.stringify(inspecciones.map(i=>i.id+i.savedAt));
-    await syncPending();  // sube pendientes primero
-    await processFotosPendientes(); // sube fotos en cola si ya hay conexión
+    await syncPending();  // sube pendientes primero, y también intenta subir la cola de fotos
     await Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]);
     const changed=JSON.stringify(config)!==snapCfg||JSON.stringify(inspecciones.map(i=>i.id+i.savedAt))!==snapIns;
     if(changed){

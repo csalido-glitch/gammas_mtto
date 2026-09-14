@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v39 (cola offline real para fotos: OPFS + Cache Storage, con auto-prueba de confiabilidad por dispositivo)
-const CACHE = 'gamas-mrt-v39';
+// Gamas MRT – Service Worker v41 (fix crítico: ya no recarga de golpe si hay una inspección abierta a la mitad; login obligatorio para inspeccionar desde Roll/Reportes; Admin: reordenar equipos y editar ítems)
+const CACHE = 'gamas-mrt-v41';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -8,7 +8,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== 'evidencias-cola-v1').map(k => caches.delete(k))))
       .then(() => self.clients.claim())
       .then(() => self.clients.matchAll({type:'window',includeUncontrolled:true}))
       .then(clients => clients.forEach(c => { try{ c.postMessage({type:'RELOAD'}); }catch(_){} }))
