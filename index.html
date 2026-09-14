@@ -104,7 +104,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 .roll-table tbody .col-n{color:var(--sub);font-size:10px;}
 .roll-table tbody .col-id{font-weight:700;padding:0 4px;font-size:10px;}
 .day-head{text-align:center;padding:0 3px;font-weight:700;min-width:28px;}
-.month-head{text-align:center;font-weight:700;font-size:11px;background:var(--accent);color:#fff;padding:0 6px;}
+.month-head{text-align:center;font-weight:700;font-size:11px;background:var(--accent)!important;color:#fff;padding:0 6px;}
 .day-cell{text-align:center;cursor:default;}
 .day-cell.today-col{background:rgba(36,113,163,.08)!important;}
 .pip{display:inline-block;width:18px;height:14px;border-radius:4px;font-size:9px;font-weight:700;line-height:14px;text-align:center;color:#fff;}
@@ -1123,7 +1123,16 @@ function dateStr(d){
   return `${y}-${m}-${day}`;
 }
 function todayStr(){return dateStr(TODAY);}
-function fmtDate(d){return d.toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short'});}
+const MESES_CORTOS=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fmtDate(d){
+  return `${String(d.getDate()).padStart(2,'0')}-${MESES_CORTOS[d.getMonth()]}-${String(d.getFullYear()).slice(2)}`;
+}
+function fmtFechaCorta(fechaStr){
+  if(!fechaStr)return '';
+  const[y,m,d]=fechaStr.split('-');
+  if(!y||!m||!d)return fechaStr;
+  return `${d}-${MESES_CORTOS[parseInt(m,10)-1]}-${y.slice(2)}`;
+}
 function getCatalogItems(eqId){
   if(eqId.startsWith('BW-'))return PUMP_ITEMS;
   if(eqId.startsWith('LX-'))return LIX_ITEMS;
@@ -1177,21 +1186,48 @@ async function shareTurnoSummary(){
   const doneCount=sched.filter(eq=>isDoneToday(eq[0])).length;
   let totalB=0,totalM=0,totalR=0;
   const equiposConMalos=[];
+  const fotosParaAdjuntar=[]; // {url, label}
   deHoy.forEach(ins=>{
     const malos=ins.items.filter(it=>it.estado==='m');
     ins.items.forEach(it=>{if(it.estado==='b')totalB++;else if(it.estado==='m')totalM++;else if(it.estado==='r')totalR++;});
-    if(malos.length)equiposConMalos.push(`  • ${ins.equipoId} (${ins.equipoNombre}): ${malos.map(m=>m.nombre).join(', ')}`);
+    if(malos.length){
+      let linea=`  • ${ins.equipoId} (${ins.equipoNombre}) — ${ins.seccion}\n    Ítems: ${malos.map(m=>m.nombre).join(', ')}`;
+      if(ins.observaciones)linea+=`\n    Nota: ${ins.observaciones}`;
+      equiposConMalos.push(linea);
+      malos.forEach(m=>{if(m.fotoUrl)fotosParaAdjuntar.push({url:m.fotoUrl,label:`${ins.equipoId}_${m.nombre}`});});
+    }
   });
-  let texto=`📋 Resumen turno T${t} · ${ts}\n`;
+  const pendientes=sched.filter(eq=>!isDoneToday(eq[0]));
+  let texto=`📋 *Resumen turno T${t}* · ${fmtFechaCorta(ts)}\n`;
   texto+=`Mecánico: ${getMecNombre()}\n`;
-  texto+=`Equipos programados: ${sched.length} · Completados: ${doneCount}\n`;
+  texto+=`Equipos programados: ${sched.length} · Completados: ${doneCount} · Pendientes: ${pendientes.length}\n`;
   texto+=`Inspecciones registradas este turno: ${deHoy.length}\n`;
   texto+=`Ítems: ✔ ${totalB} bueno${totalB!==1?'s':''} · ~ ${totalR} regular${totalR!==1?'es':''} · ✘ ${totalM} malo${totalM!==1?'s':''}\n`;
+  if(pendientes.length){
+    texto+=`\n⏳ Equipos aún pendientes hoy:\n${pendientes.map(eq=>`  • ${eq[0]} (${eq[1]})`).join('\n')}\n`;
+  }
   if(equiposConMalos.length){
     texto+=`\n⚠ Equipos con ítems en mal estado:\n${equiposConMalos.join('\n')}`;
+  }else{
+    texto+=`\n✅ Sin ítems en mal estado este turno.`;
+  }
+  // Intentar adjuntar las fotos de evidencia como archivos (además del texto), para que
+  // se vea como un mensaje completo con imágenes al compartir a WhatsApp u otros.
+  let files=[];
+  if(fotosParaAdjuntar.length&&navigator.canShare){
+    try{
+      const blobs=await Promise.all(fotosParaAdjuntar.slice(0,10).map(f=>fetch(f.url).then(r=>r.blob())));
+      files=blobs.map((b,i)=>new File([b],fotosParaAdjuntar[i].label.replace(/[^a-zA-Z0-9_-]/g,'_')+'.jpg',{type:'image/jpeg'}));
+      if(!navigator.canShare({files}))files=[]; // el navegador no soporta compartir estos archivos, seguir solo con texto
+    }catch(e){console.warn('no se pudieron preparar las fotos para compartir',e);files=[];}
   }
   if(navigator.share){
-    try{await navigator.share({title:'Resumen del turno — Gamas Mtto MRT',text:texto});return;}catch(e){/* usuario canceló o falló, cae a fallback */}
+    try{
+      const payload={title:'Resumen del turno — Gamas Mtto MRT',text:texto};
+      if(files.length)payload.files=files;
+      await navigator.share(payload);
+      return;
+    }catch(e){/* usuario canceló o falló, cae a fallback */}
   }
   try{
     await navigator.clipboard.writeText(texto);
@@ -1217,12 +1253,22 @@ async function persist(key,val){try{await dbPut('kv',{k:key,v:val});}catch(e){co
 function showView(v){
   if(window.checkForUpdate)window.checkForUpdate();
   const wasInForm=document.getElementById('view-form').classList.contains('active');
+  const wasInAdmin=document.getElementById('view-admin').classList.contains('active');
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
   document.getElementById('view-'+v).scrollTop=0;
   try{sessionStorage.setItem('activeView',v);}catch(_){}
   if(wasInForm&&v!=='form'&&window.triggerPendingReload)window.triggerPendingReload();
+  if(wasInAdmin&&v!=='admin'){
+    // Cerrar sesión de Admin al salir de esa pestaña — la próxima vez que entre, pide contraseña de nuevo
+    adminUnlocked=false;
+    try{sessionStorage.removeItem('pin_adm');}catch(_){}
+    const gate=document.getElementById('adm-pin-gate'),content=document.getElementById('adm-content'),input=document.getElementById('adm-pass-input');
+    if(gate)gate.style.display='block';
+    if(content)content.style.display='none';
+    if(input)input.value='';
+  }
   if(v==='home')renderHome();
   if(v==='roll')renderRoll();
   if(v==='reports')renderReports();
@@ -1654,7 +1700,7 @@ function renderRepList(){
         <span class="tag ${ins.tipo==='extra'?'tag-extra':ins.tipo==='reinspeccion'?'tag-venc':'tag-prog'}">${ins.tipo.toUpperCase()}</span>
         <span class="rep-chevron">▾</span>
       </div>
-      <div class="rep-meta">${ins.fecha} · T${ins.turno} · ${ins.mecanico} · ${ins.area}</div>
+      <div class="rep-meta">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico} · ${ins.area}</div>
       <div class="rep-counts">
         <span class="cnt-b">✔ ${b} Buenos</span>
         <span class="cnt-r">~ ${r} Regulares</span>
@@ -1817,7 +1863,7 @@ function renderRepReinc(){
       <div class="rank-pos">${i+1}</div>
       <div class="rank-info" style="cursor:pointer" onclick="repGoToEquipo('${x.equipoId}')">
         <div class="rank-name">${x.equipoId}${eq?' · '+eq[1]:''}</div>
-        <div class="rank-sub">${x.nombre} · última vez: ${x.lastFecha}</div>
+        <div class="rank-sub">${x.nombre} · última vez: ${fmtFechaCorta(x.lastFecha)}</div>
       </div>
       <div class="rank-count">×${x.count}</div>
       <button style="border:1.5px solid var(--border);background:none;color:var(--text);border-radius:7px;padding:6px 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();markReincResuelta(${i})">✔ Resuelta</button>
@@ -1992,7 +2038,7 @@ function renderAdmPanel(){
       <div class="field"><label>Equipo</label><select id="reinsp-eq">${eqOpts}</select></div>
       <button class="btn btn-primary btn-sm" style="margin-bottom:16px" onclick="startReinsp()">Iniciar reinspección →</button>
       ${recent.length?'<div style="font-size:12px;font-weight:700;margin-bottom:6px">Últimas inspecciones</div>'
-        +recent.map(ins=>`<div class="item-line"><span>${ins.fecha} · <b>${ins.equipoId}</b> · T${ins.turno} · ${ins.tipo}</span></div>`).join('')
+        +recent.map(ins=>`<div class="item-line"><span>${fmtFechaCorta(ins.fecha)} · <b>${ins.equipoId}</b> · T${ins.turno} · ${ins.tipo}</span></div>`).join('')
         :'<div style="color:var(--sub);font-size:13px">Sin inspecciones aún.</div>'}`;
   } else if(curAdmTab==='historial'){
     const sorted=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
@@ -2003,7 +2049,7 @@ function renderAdmPanel(){
         <div style="flex:1;min-width:0">
           <span style="font-weight:700;font-size:12px;font-family:monospace">${ins.equipoId}</span>
           <span style="font-size:11px;color:var(--sub);margin-left:4px">${ins.equipoNombre}</span><br>
-          <span style="font-size:11px;color:var(--sub)">${ins.fecha} · T${ins.turno} · ${ins.mecanico}</span>
+          <span style="font-size:11px;color:var(--sub)">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico}</span>
           ${ins.pending?'<span style="font-size:10px;color:var(--amber);margin-left:4px">⏳ pendiente</span>':''}
         </div>
         <button class="del-btn" style="background:#fee2e2;color:var(--red);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700" onclick="deleteInspeccion('${ins.id}')">🗑</button>
@@ -2281,7 +2327,7 @@ function confirmCancel(){
 function deleteInspeccion(id){
   if(window.checkForUpdate)window.checkForUpdate();
   const ins=inspecciones.find(i=>i.id===id);
-  const label=ins?`${ins.equipoId} · ${ins.fecha} · T${ins.turno}`:'esta inspección';
+  const label=ins?`${ins.equipoId} · ${fmtFechaCorta(ins.fecha)} · T${ins.turno}`:'esta inspección';
   showConfirm(`Se borrará "${label}" en todos los dispositivos. ¿Continuar?`, async()=>{
     // Quitar de memoria
     const idx=inspecciones.findIndex(i=>i.id===id);

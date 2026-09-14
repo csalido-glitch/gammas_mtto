@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v42 (fix: dateStr() adelantaba un día después de las 6pm por usar toISOString/UTC en vez de hora local)
-const CACHE = 'gamas-mrt-v42';
+// Gamas MRT – Service Worker v43 (fix encabezado de mes invisible en modo claro; fechas en formato dd-mmm-aa fuera de Roll; Admin cierra sesión al cambiar de pestaña; resumen de turno con fotos adjuntas)
+const CACHE = 'gamas-mrt-v43';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
