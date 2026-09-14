@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v45 (nuevo: "Equipos a inspeccionar por día" configurable, con recálculo sugerido del ciclo; numeración y día de ciclo visibles en Admin → Equipos)
-const CACHE = 'gamas-mrt-v45';
+// Gamas MRT – Service Worker v46 (Roll: columna ÁREA oculta en celular para ver más días; resaltado en cruz al pasar el mouse en laptop)
+const CACHE = 'gamas-mrt-v46';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

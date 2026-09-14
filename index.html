@@ -97,6 +97,9 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 .col-id{position:sticky;left:28px;z-index:6;background:var(--surface);width:68px;min-width:68px;font-family:monospace;}
 .col-nom{position:sticky;left:96px;z-index:6;background:var(--surface);width:160px;min-width:160px;padding:0 6px;}
 .col-area{position:sticky;left:256px;z-index:6;background:var(--surface);width:110px;min-width:110px;padding:0 4px;box-shadow:3px 0 6px -2px rgba(0,0,0,.12);}
+@media (max-width:480px){.col-area{display:none;}}
+.roll-hover-row{background:rgba(36,113,163,.15)!important;}
+.roll-hover-col{background:rgba(36,113,163,.15)!important;}
 .roll-table thead tr:nth-child(1) th{position:sticky;top:0;z-index:12;background:var(--surface);}
 .roll-table thead tr:nth-child(2) th{position:sticky;top:24px;z-index:12;background:var(--surface);}
 .roll-table thead th.col-n,.roll-table thead th.col-id,
@@ -1600,6 +1603,27 @@ function pickSheet(eqId){
 // =====================================================================
 // ROLL
 // =====================================================================
+function setupRollHover(){
+  const wrap=document.getElementById('roll-wrap');
+  if(!wrap)return;
+  let curRow=null,curCol=null;
+  wrap.addEventListener('mouseover',e=>{
+    const cell=e.target.closest('[data-eqrow]');
+    if(!cell)return;
+    const r=cell.dataset.eqrow,c=cell.dataset.col;
+    if(r===curRow&&c===curCol)return;
+    if(curRow!==null)wrap.querySelectorAll(`[data-eqrow="${curRow}"]`).forEach(el=>el.classList.remove('roll-hover-row'));
+    if(curCol!==null)wrap.querySelectorAll(`.day-head[data-col="${curCol}"]`).forEach(el=>el.classList.remove('roll-hover-col'));
+    curRow=r;curCol=c!==undefined?c:null;
+    wrap.querySelectorAll(`[data-eqrow="${r}"]`).forEach(el=>el.classList.add('roll-hover-row'));
+    if(curCol!==null)wrap.querySelectorAll(`.day-head[data-col="${curCol}"]`).forEach(el=>el.classList.add('roll-hover-col'));
+  });
+  wrap.addEventListener('mouseleave',()=>{
+    if(curRow!==null)wrap.querySelectorAll(`[data-eqrow="${curRow}"]`).forEach(el=>el.classList.remove('roll-hover-row'));
+    if(curCol!==null)wrap.querySelectorAll(`.day-head[data-col="${curCol}"]`).forEach(el=>el.classList.remove('roll-hover-col'));
+    curRow=null;curCol=null;
+  });
+}
 function renderRoll(){
   const secFil=document.getElementById('roll-sec').value;
   const areaFil=document.getElementById('roll-area').value;
@@ -1630,9 +1654,9 @@ function renderRoll(){
       eqs.forEach(eq=>{
         const gi=equipos.indexOf(eq);
         const col=tipoColor(eq[3]);
-        rows+=`<tr><td class="col-n">${gi+1}</td><td class="col-id" style="color:${col}">${eq[0]}</td>
-          <td class="col-nom">${eq[1]}</td><td class="col-area" style="font-size:10px;color:var(--sub)">${eq[4]}</td>`;
-        days.forEach(d=>{
+        rows+=`<tr><td class="col-n" data-eqrow="${gi}">${gi+1}</td><td class="col-id" data-eqrow="${gi}" style="color:${col}">${eq[0]}</td>
+          <td class="col-nom" data-eqrow="${gi}">${eq[1]}</td><td class="col-area" data-eqrow="${gi}" style="font-size:10px;color:var(--sub)">${eq[4]}</td>`;
+        days.forEach((d,di)=>{
           const ds=dateStr(d);const isToday=ds===todStr;
           const sched=isScheduled(gi,d);
           const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&ins.fecha===ds);
@@ -1649,7 +1673,7 @@ function renderRoll(){
             else
               cell=`<span class="${pc}">●</span>`;
           }
-          rows+=`<td class="day-cell${isToday?' today-col':''}">${cell}</td>`;
+          rows+=`<td class="day-cell${isToday?' today-col':''}" data-eqrow="${gi}" data-col="${di}">${cell}</td>`;
         });
         rows+='</tr>';
       });
@@ -1664,7 +1688,7 @@ function renderRoll(){
         <th class="col-area month-head" rowspan="2">ÁREA</th>
         ${months.map(m=>`<th class="month-head" colspan="${m.span}">${m.label.toUpperCase()}</th>`).join('')}
       </tr>
-      <tr>${days.map(d=>{const it=dateStr(d)===todStr;return`<th class="day-head${it?' today-col':''}" style="${it?'color:var(--accent)':''}">${d.getDate()}</th>`;}).join('')}</tr>
+      <tr>${days.map((d,di)=>{const it=dateStr(d)===todStr;return`<th class="day-head${it?' today-col':''}" data-col="${di}" style="${it?'color:var(--accent)':''}">${d.getDate()}</th>`;}).join('')}</tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>`;
@@ -2264,6 +2288,7 @@ function startReinsp(){
 // INIT — load from IndexedDB
 // =====================================================================
 async function init(){
+  setupRollHover();
   try{
     if(navigator.storage&&navigator.storage.persist){
       const already=await navigator.storage.persisted();
