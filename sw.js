@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v44 (Admin → Historial: editar cualquier inspección ya guardada, sin importar el tipo)
-const CACHE = 'gamas-mrt-v44';
+// Gamas MRT – Service Worker v45 (nuevo: "Equipos a inspeccionar por día" configurable, con recálculo sugerido del ciclo; numeración y día de ciclo visibles en Admin → Equipos)
+const CACHE = 'gamas-mrt-v45';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

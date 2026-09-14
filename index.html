@@ -1044,7 +1044,7 @@ const EQUIPOS_DEFAULT=[
 // =====================================================================
 // STATE (loaded from IndexedDB on init)
 // =====================================================================
-let config={startDate:'2026-09-13',cycleDays:25,adminPin:'8520',reportPin:'1234',turno1Start:7,turno2Start:19,usuarios:[]};
+let config={startDate:'2026-09-13',cycleDays:25,adminPin:'8520',reportPin:'1234',turno1Start:7,turno2Start:19,usuarios:[],equiposPorDia:1};
 let session={user:null};
 let equipos=EQUIPOS_DEFAULT.map(e=>[...e]);
 let catalog={};
@@ -1141,8 +1141,10 @@ function getCatalogItems(eqId){
   return catalog[eqId]||[];
 }
 function isScheduled(eqIdx,date){
+  const porDia=config.equiposPorDia||1;
+  const offsetDias=Math.floor(eqIdx/porDia);
   const sd=getStartDate();
-  const first=new Date(sd);first.setDate(first.getDate()+eqIdx);first.setHours(0,0,0,0);
+  const first=new Date(sd);first.setDate(first.getDate()+offsetDias);first.setHours(0,0,0,0);
   const dt=new Date(date);dt.setHours(0,0,0,0);
   const diff=Math.round((dt-first)/86400000);
   return diff>=0&&diff%config.cycleDays===0;
@@ -2057,7 +2059,9 @@ function renderAdmPanel(){
   if(curAdmTab==='config'){
     panel.innerHTML=`
       <div class="field"><label>Fecha de arranque</label><input type="date" id="cfg-start" value="${config.startDate}"></div>
-      <div class="field"><label>Ciclo de inspección (días)</label><input type="number" id="cfg-cycle" value="${config.cycleDays}" min="1" max="90"></div>
+      <div class="field"><label>Equipos a inspeccionar por día</label><input type="number" id="cfg-porDia" value="${config.equiposPorDia||1}" min="1" max="${equipos.length}" onchange="recalcCicloSugerido()"></div>
+      <div class="field"><label>Ciclo de inspección (días)</label><input type="number" id="cfg-cycle" value="${config.cycleDays}" min="1" max="90">
+        <div id="cfg-cycle-hint" style="font-size:11px;color:var(--sub);margin-top:3px"></div></div>
       <div class="field"><label>Turno 1 inicia (hora)</label><input type="number" id="cfg-t1" value="${config.turno1Start}" min="0" max="23"></div>
       <div class="field"><label>Turno 2 inicia (hora)</label><input type="number" id="cfg-t2" value="${config.turno2Start}" min="0" max="23"></div>
       <div class="field"><label>Contraseña de Administrador</label><input type="text" id="cfg-apin" value="${config.adminPin}" maxlength="20"></div>
@@ -2080,8 +2084,10 @@ function renderAdmPanel(){
       <button class="btn btn-green btn-sm" onclick="addUsuario()">+ Agregar</button>`;
   } else if(curAdmTab==='eq'){
     const secOpts=['Trituración','Clasificación','Molienda','Bombeo','Lixiviación'].map(s=>`<option>${s}</option>`).join('');
-    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${equipos.length} equipos — el orden define el día que le toca a cada uno en el ciclo de inspección</div>`+
+    const porDia=config.equiposPorDia||1;
+    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${equipos.length} equipos — el orden define el día que le toca a cada uno en el ciclo de inspección (${porDia} equipo${porDia!==1?'s':''}/día)</div>`+
       equipos.map((eq,i)=>`<div class="eq-line">
+        <span style="font-size:11px;color:var(--sub);min-width:20px;text-align:right">${i+1}.</span>
         <span style="display:flex;flex-direction:column;gap:2px">
           <button class="del-btn" style="padding:0 6px" onclick="moveEquipo(${i},-1)" ${i===0?'disabled':''}>▲</button>
           <button class="del-btn" style="padding:0 6px" onclick="moveEquipo(${i},1)" ${i===equipos.length-1?'disabled':''}>▼</button>
@@ -2089,6 +2095,7 @@ function renderAdmPanel(){
         <span class="eq-lid">${eq[0]}</span>
         <span class="eq-lnom">${eq[1]}</span>
         <span style="font-size:10px;color:var(--sub);min-width:50px">${eq[2]}</span>
+        <span style="font-size:10px;color:var(--accent);font-weight:700;min-width:38px">Día ${Math.floor(i/porDia)+1}</span>
         <button class="del-btn" onclick="delEquipo(${i})">✕</button>
       </div>`).join('')+
       `<div style="margin-top:14px;font-weight:700;font-size:12px;margin-bottom:6px">+ Agregar equipo</div>
@@ -2161,8 +2168,15 @@ async function forceDeployUpdate(){
   }
 }
 
+function recalcCicloSugerido(){
+  const porDia=parseInt(document.getElementById('cfg-porDia').value)||1;
+  const sugerido=Math.ceil(equipos.length/porDia);
+  document.getElementById('cfg-cycle').value=sugerido;
+  document.getElementById('cfg-cycle-hint').textContent=`Sugerido para ${equipos.length} equipos a ${porDia}/día: ${sugerido} días. Puedes ajustarlo a mano si quieres.`;
+}
 async function saveConfig(){
   config.startDate=document.getElementById('cfg-start').value;
+  config.equiposPorDia=parseInt(document.getElementById('cfg-porDia').value)||1;
   config.cycleDays=parseInt(document.getElementById('cfg-cycle').value)||25;
   config.turno1Start=parseInt(document.getElementById('cfg-t1').value)||7;
   config.turno2Start=parseInt(document.getElementById('cfg-t2').value)||19;
