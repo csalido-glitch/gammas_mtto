@@ -1,4 +1,4 @@
-// Gamas MRT – Service Worker v48 (mejoras: lista regulares, filtro equipo, CSV/PDF, banner vencidos)
+// Gamas MRT – Service Worker v48 (mejoras: conteo regulares/nulos corregido en todos los módulos, banner vencidos hoy en Home)
 const CACHE = 'gamas-mrt-v48';
 
 self.addEventListener('install', e => {
