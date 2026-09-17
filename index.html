@@ -97,6 +97,9 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 .col-id{position:sticky;left:28px;z-index:6;background:var(--surface);width:68px;min-width:68px;font-family:monospace;}
 .col-nom{position:sticky;left:96px;z-index:6;background:var(--surface);width:160px;min-width:160px;padding:0 6px;}
 .col-area{position:sticky;left:256px;z-index:6;background:var(--surface);width:110px;min-width:110px;padding:0 4px;box-shadow:3px 0 6px -2px rgba(0,0,0,.12);}
+@media (max-width:480px){.col-area{display:none;}}
+.roll-hover-row{background:rgba(36,113,163,.15)!important;}
+.roll-hover-col{background:rgba(36,113,163,.15)!important;}
 .roll-table thead tr:nth-child(1) th{position:sticky;top:0;z-index:12;background:var(--surface);}
 .roll-table thead tr:nth-child(2) th{position:sticky;top:24px;z-index:12;background:var(--surface);}
 .roll-table thead th.col-n,.roll-table thead th.col-id,
@@ -104,7 +107,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 .roll-table tbody .col-n{color:var(--sub);font-size:10px;}
 .roll-table tbody .col-id{font-weight:700;padding:0 4px;font-size:10px;}
 .day-head{text-align:center;padding:0 3px;font-weight:700;min-width:28px;}
-.month-head{text-align:center;font-weight:700;font-size:11px;background:var(--accent);color:#fff;padding:0 6px;}
+.month-head{text-align:center;font-weight:700;font-size:11px;background:var(--accent)!important;color:#fff;padding:0 6px;}
 .day-cell{text-align:center;cursor:default;}
 .day-cell.today-col{background:rgba(36,113,163,.08)!important;}
 .pip{display:inline-block;width:18px;height:14px;border-radius:4px;font-size:9px;font-weight:700;line-height:14px;text-align:center;color:#fff;}
@@ -145,6 +148,31 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 #adm-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);padding:0 8px;}
 .adm-tab{padding:10px 14px;font-size:12px;font-weight:700;color:var(--sub);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
 .adm-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+#rep-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);margin:0 -0px 6px;}
+.rep-tab{padding:10px 14px;font-size:12px;font-weight:700;color:var(--sub);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0;}
+.rep-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.rep-tab-panel{padding-bottom:12px;}
+.kpi-row{display:flex;gap:8px;padding:0 12px 6px;flex-wrap:wrap;}
+.kpi-card{flex:1;min-width:120px;background:var(--surface);border-radius:12px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);text-align:center;}
+.kpi-num{font-size:22px;font-weight:800;color:var(--accent);}
+.kpi-label{font-size:11px;color:var(--sub);margin-top:2px;font-weight:600;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.bar-label{width:110px;flex-shrink:0;font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-track{flex:1;height:16px;background:var(--bg);border-radius:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:8px;background:var(--red);transition:width .3s;}
+.bar-val{width:38px;flex-shrink:0;font-size:12px;font-weight:700;text-align:right;}
+.rank-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.rank-pos{width:22px;flex-shrink:0;font-size:13px;font-weight:800;color:var(--sub);text-align:center;}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rank-sub{font-size:11px;color:var(--sub);}
+.rank-count{font-size:16px;font-weight:800;color:var(--red);flex-shrink:0;}
+.warn-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.export-btn{display:block;width:100%;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;}
+.nav-badge{position:absolute;top:2px;right:calc(50% - 20px);width:9px;height:9px;border-radius:50%;background:var(--red);border:1.5px solid var(--surface);}
+.alert-banner{margin:6px 12px;padding:12px 14px;border-radius:12px;background:rgba(220,38,38,.1);border:1px solid var(--red);cursor:pointer;}
+.alert-banner-title{font-size:13px;font-weight:700;color:var(--red);}
+.alert-banner-sub{font-size:11px;color:var(--sub);margin-top:2px;}
 .adm-panel{padding:12px;}
 .item-line{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);}
 .item-line span{flex:1;font-size:13px;}
@@ -208,7 +236,6 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
     <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v25</span></h1>
     <div id="sync-dot" title="En línea"></div>
-    <span id="sync-badge" style="font-size:10px;opacity:.7;color:#fff;font-family:monospace;"></span>
     <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
     <span id="turno-badge">T1 · Día</span>
   </div>
@@ -217,15 +244,27 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   <div id="views">
     <!-- HOY -->
     <div class="view active" id="view-home">
+      <div id="home-login-gate" style="display:none;padding:30px 24px;text-align:center;">
+        <div class="pin-title">🔧 Gamas Mtto</div>
+        <div class="pin-sub" style="margin-bottom:16px">Inicia sesión para continuar</div>
+        <div class="field" style="text-align:left"><label>Usuario</label><select id="login-user"></select></div>
+        <div class="field" style="text-align:left"><label>Contraseña</label><input type="password" id="login-pass" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:6px" onclick="doLogin()">Entrar</button>
+        <div class="pin-err" id="login-err"></div>
+      </div>
       <div id="mec-bar">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         <span id="mec-name">Mecánico</span>
-        <button id="mec-edit-btn" onclick="openMecModal()">✏️ Editar</button>
+        <button id="mec-edit-btn" onclick="logout()">🚪 Cerrar sesión</button>
       </div>
+      <div id="home-alert-banner"></div>
       <div id="home-body"></div>
       <button id="btn-extra" onclick="openSheet()">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         Revisión adicional / no programada
+      </button>
+      <button id="btn-share-turno" onclick="shareTurnoSummary()" style="width:calc(100% - 24px);margin:8px 12px 12px;padding:11px;border-radius:11px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:700;cursor:pointer">
+        📤 Compartir resumen del turno
       </button>
     </div>
 
@@ -261,46 +300,49 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 
     <!-- REPORTES -->
     <div class="view" id="view-reports">
-      <div id="rep-pin-gate">
-        <div class="pin-title">🔒 Reportes</div>
-        <div class="pin-sub">Ingresa el PIN</div>
-        <div class="pin-dots" id="rpd-wrap">
-          <div class="pin-dot" id="rpd0"></div><div class="pin-dot" id="rpd1"></div>
-          <div class="pin-dot" id="rpd2"></div><div class="pin-dot" id="rpd3"></div>
-        </div>
-        <div class="pin-pad">
-          <button class="pin-key" onclick="pinKey('rep','1')">1</button>
-          <button class="pin-key" onclick="pinKey('rep','2')">2</button>
-          <button class="pin-key" onclick="pinKey('rep','3')">3</button>
-          <button class="pin-key" onclick="pinKey('rep','4')">4</button>
-          <button class="pin-key" onclick="pinKey('rep','5')">5</button>
-          <button class="pin-key" onclick="pinKey('rep','6')">6</button>
-          <button class="pin-key" onclick="pinKey('rep','7')">7</button>
-          <button class="pin-key" onclick="pinKey('rep','8')">8</button>
-          <button class="pin-key" onclick="pinKey('rep','9')">9</button>
-          <button class="pin-key" onclick="pinKey('rep','⌫')" style="font-size:14px">⌫</button>
-          <button class="pin-key" onclick="pinKey('rep','0')">0</button>
-          <button class="pin-key" onclick="pinKey('rep','OK')" style="background:var(--accent);color:#fff">OK</button>
-        </div>
-        <div class="pin-err" id="rep-pin-err"></div>
-      </div>
       <div id="rep-content">
-        <div id="rep-filters">
-          <select id="rep-fsec" onchange="renderRepList()">
-            <option value="">— Sección —</option>
-            <option>Trituración</option><option>Clasificación</option>
-            <option>Molienda</option><option>Bombeo</option><option>Lixiviación</option>
-          </select>
-          <select id="rep-fturno" onchange="renderRepList()">
-            <option value="">— Turno —</option>
-            <option value="1">T1 Día</option><option value="2">T2 Noche</option>
-          </select>
-          <select id="rep-festado" onchange="renderRepList()">
-            <option value="">— Estado —</option>
-            <option value="ok">Sin malos</option><option value="mal">Con malos</option>
-          </select>
+        <div id="rep-tabs">
+          <button class="rep-tab active" data-tab="list" onclick="repTabSwitch('list')">📋 Listado</button>
+          <button class="rep-tab" data-tab="stats" onclick="repTabSwitch('stats')">📊 Estadísticas</button>
+          <button class="rep-tab" data-tab="ranking" onclick="repTabSwitch('ranking')">🏆 Ranking</button>
+          <button class="rep-tab" data-tab="reinc" onclick="repTabSwitch('reinc')">🔁 Reincidencias</button>
+          <button class="rep-tab" data-tab="export" onclick="repTabSwitch('export')">📤 Exportar</button>
         </div>
-        <div id="rep-list"></div>
+        <div id="rep-range-bar" style="display:none;padding:8px 12px 0;">
+          <select id="rep-range-mode" onchange="repRangeChange()">
+            <option value="all">Todo el historial</option>
+            <option value="week">Última semana</option>
+            <option value="month">Último mes</option>
+            <option value="custom">Rango personalizado…</option>
+          </select>
+          <div id="rep-range-custom" style="display:none;gap:6px;margin-top:6px;">
+            <input type="date" id="rep-range-from" onchange="repRangeChange()" style="flex:1">
+            <input type="date" id="rep-range-to" onchange="repRangeChange()" style="flex:1">
+          </div>
+        </div>
+        <div id="rep-tab-list">
+          <div id="rep-filters">
+            <input type="text" id="rep-fbusca" placeholder="🔍 Buscar equipo (ID o nombre)" oninput="renderRepList()" style="margin-bottom:8px">
+            <select id="rep-fsec" onchange="renderRepList()">
+              <option value="">— Sección —</option>
+              <option>Trituración</option><option>Clasificación</option>
+              <option>Molienda</option><option>Bombeo</option><option>Lixiviación</option>
+            </select>
+            <select id="rep-fturno" onchange="renderRepList()">
+              <option value="">— Turno —</option>
+              <option value="1">T1 Día</option><option value="2">T2 Noche</option>
+            </select>
+            <select id="rep-festado" onchange="renderRepList()">
+              <option value="">— Estado —</option>
+              <option value="ok">Sin malos</option><option value="mal">Con malos</option>
+            </select>
+          </div>
+          <div id="rep-list"></div>
+        </div>
+        <div id="rep-tab-stats" class="rep-tab-panel" style="display:none"></div>
+        <div id="rep-tab-ranking" class="rep-tab-panel" style="display:none"></div>
+        <div id="rep-tab-reinc" class="rep-tab-panel" style="display:none"></div>
+        <div id="rep-tab-export" class="rep-tab-panel" style="display:none"></div>
       </div>
     </div>
 
@@ -308,31 +350,15 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     <div class="view" id="view-admin">
       <div id="adm-pin-gate">
         <div class="pin-title">⚙️ Admin</div>
-        <div class="pin-sub">PIN de administrador</div>
-        <div class="pin-dots">
-          <div class="pin-dot" id="apd0"></div><div class="pin-dot" id="apd1"></div>
-          <div class="pin-dot" id="apd2"></div><div class="pin-dot" id="apd3"></div>
-        </div>
-        <div class="pin-pad">
-          <button class="pin-key" onclick="pinKey('adm','1')">1</button>
-          <button class="pin-key" onclick="pinKey('adm','2')">2</button>
-          <button class="pin-key" onclick="pinKey('adm','3')">3</button>
-          <button class="pin-key" onclick="pinKey('adm','4')">4</button>
-          <button class="pin-key" onclick="pinKey('adm','5')">5</button>
-          <button class="pin-key" onclick="pinKey('adm','6')">6</button>
-          <button class="pin-key" onclick="pinKey('adm','7')">7</button>
-          <button class="pin-key" onclick="pinKey('adm','8')">8</button>
-          <button class="pin-key" onclick="pinKey('adm','9')">9</button>
-          <button class="pin-key" onclick="pinKey('adm','⌫')" style="font-size:14px">⌫</button>
-          <button class="pin-key" onclick="pinKey('adm','0')">0</button>
-          <button class="pin-key" onclick="pinKey('adm','OK')" style="background:var(--accent);color:#fff">OK</button>
-        </div>
+        <div class="pin-sub">Contraseña de administrador</div>
+        <div class="field"><input type="password" id="adm-pass-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter')checkAdminPassword()"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="checkAdminPassword()">Entrar</button>
         <div class="pin-err" id="adm-pin-err"></div>
       </div>
       <div id="adm-content">
         <div id="adm-tabs">
           <button class="adm-tab active" data-tab="config" onclick="admTab('config')">Configuración</button>
-          <button class="adm-tab" data-tab="mec" onclick="admTab('mec')">Mecánicos</button>
+          <button class="adm-tab" data-tab="mec" onclick="admTab('mec')">Usuarios</button>
           <button class="adm-tab" data-tab="eq" onclick="admTab('eq')">Equipos</button>
           <button class="adm-tab" data-tab="items" onclick="admTab('items')">Ítems</button>
           <button class="adm-tab" data-tab="reinsp" onclick="admTab('reinsp')">Reinspección</button>
@@ -350,7 +376,8 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     <button class="nav-btn" data-view="roll" onclick="showView('roll')">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Roll
     </button>
-    <button class="nav-btn" data-view="reports" onclick="showView('reports')">
+    <button class="nav-btn" data-view="reports" onclick="showView('reports')" style="position:relative">
+      <span id="reports-badge" class="nav-badge" style="display:none"></span>
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Reportes
     </button>
     <button class="nav-btn" data-view="admin" onclick="showView('admin')">
@@ -417,7 +444,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   // Manifest
   const manifest = {
     name:'Gamas Mtto – Minera Río Tinto',short_name:'Gamas MRT',
-    start_url:'.',display:'standalone',
+    start_url:new URL('.',location.href).href,scope:new URL('.',location.href).href,display:'standalone',
     background_color:'#f4f5f7',theme_color:'#2471A3',
     description:'Sistema de inspección de equipos',
     icons:[{src:'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' rx=\'20\' fill=\'%232471A3\'/%3E%3Ctext y=\'.9em\' font-size=\'80\' x=\'10\'%3E🔧%3C/text%3E%3C/svg%3E',sizes:'192x192',type:'image/svg+xml'}]
@@ -426,12 +453,16 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
 
   // Offline detection
-  function updateOnline(){
-    const online=navigator.onLine;
+  function setOnlineUI(online){
     document.getElementById('offline-banner').classList.toggle('show',!online);
     const dot=document.getElementById('sync-dot');
     dot.classList.toggle('offline',!online);
     dot.title=online?'En línea':'Sin conexión – datos guardados localmente';
+  }
+  async function updateOnline(){
+    if(!navigator.onLine)setOnlineUI(false); // reacción instantánea, como antes
+    const online=await isReallyOnline(); // siempre confirma con la prueba real (corrige un falso "sin conexión")
+    setOnlineUI(online);
   }
   window.addEventListener('online',()=>{
     updateOnline();
@@ -439,7 +470,17 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]).then(()=>renderHome());
   });
   window.addEventListener('offline',updateOnline);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'){processFotosPendientes();}
+  });
+  window.updateOnline=updateOnline;
   updateOnline();
+  setTimeout(updateOnline,5000); // reintento rápido por si el primer intento (conexión en frío) tardó de más
+  // Auto-prueba: ¿este dispositivo realmente puede guardar archivos offline de forma confiable?
+  setTimeout(async()=>{
+    dispositivoConfiableOffline=await canPersistOffline();
+    if(!dispositivoConfiableOffline)toast('⚠ Este dispositivo no guarda bien archivos sin conexión — para fotos, mejor usa la cámara normal y adjunta después',false);
+  },3000);
 
   // Install prompt
   let deferredPrompt=null;
@@ -467,14 +508,38 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
           }
         });
       });
-      let reloading=false;
-      navigator.serviceWorker.addEventListener('controllerchange',()=>{
-        if(reloading)return; reloading=true; window.location.reload();
-      });
+      let reloading=false,pendingReload=false;
+      function safeReload(){
+        if(reloading)return;
+        if(document.querySelector('#view-form.active')){
+          // Hay una inspección abierta a la mitad — no interrumpir, recargar hasta que salga de ahí
+          pendingReload=true;
+          return;
+        }
+        reloading=true;window.location.reload();
+      }
+      navigator.serviceWorker.addEventListener('controllerchange',safeReload);
       navigator.serviceWorker.addEventListener('message',e=>{
-        if(e.data&&e.data.type==='RELOAD'&&!reloading){reloading=true;window.location.reload();}
+        if(e.data&&e.data.type==='RELOAD')safeReload();
       });
-      reg.update().catch(()=>{});
+      window.triggerPendingReload=()=>{
+        if(pendingReload&&!reloading){reloading=true;window.location.reload();}
+      };
+      // checkForUpdate central con cooldown de 20s: se puede llamar seguido (navegación, guardar,
+      // reconexión, etc.) sin generar peticiones de más
+      let lastUpdateCheck=0;
+      window.checkForUpdate=()=>{
+        const now=Date.now();
+        if(now-lastUpdateCheck<20000)return; // ya se revisó hace poco
+        lastUpdateCheck=now;
+        reg.update().catch(()=>{});
+      };
+      window.checkForUpdate();
+      setInterval(window.checkForUpdate,60000);
+      document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='visible')window.checkForUpdate();
+      });
+      window.addEventListener('online',window.checkForUpdate);
     }).catch(()=>{});
   }
 })();
@@ -485,13 +550,64 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 const SB_URL='https://ewgcufflruljsemexded.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3Z2N1ZmZscnVsanNlbWV4ZGVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5OTkwNDgsImV4cCI6MjEwNDU3NTA0OH0.K3agZNVCCYbp6qDNLQjZKvCv_jTbVDvdSAAdtSErKBM';
 const SB_H={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+// navigator.onLine puede reportar false incorrectamente (rareza conocida de Windows/Chrome con
+// ciertas redes/VPN/proxy) aunque sí haya internet real. Esta función hace una prueba real y rápida.
+async function isReallyOnline(){
+  try{
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),8000);
+    await fetch(SB_URL+'/rest/v1/',{method:'HEAD',headers:SB_H,signal:ctrl.signal});
+    clearTimeout(t);
+    return true;
+  }catch(e){return false;}
+}
+const SB_BUCKET='evidencias_gammas';
+function sbPublicUrl(path){return `${SB_URL}/storage/v1/object/public/${SB_BUCKET}/${path}`;}
+async function sbUploadFoto(path,blob){
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),6000);
+  try{
+    const r=await fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}/${path}`,{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'image/jpeg','x-upsert':'true'},
+      body:blob,
+      signal:ctrl.signal
+    });
+    return r.ok;
+  }finally{clearTimeout(t);}
+}
+// Redimensiona y comprime una foto a JPEG antes de guardarla/subirla
+function compressImage(file,maxSize,quality){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('No se pudo leer el archivo'));
+    reader.onload=e=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('No se pudo cargar la imagen'));
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>h){if(w>maxSize){h=Math.round(h*maxSize/w);w=maxSize;}}
+        else{if(h>maxSize){w=Math.round(w*maxSize/h);h=maxSize;}}
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        try{
+          const dataUrl=canvas.toDataURL('image/jpeg',quality);
+          dataUrl?resolve(dataUrl):reject(new Error('No se pudo comprimir'));
+        }catch(err){reject(err);}
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 // --- INSPECCIONES ---
 async function sbInsert(ins){
   const row={id:ins.id,equipo_id:ins.equipoId,equipo_nombre:ins.equipoNombre,
     seccion:ins.seccion,area:ins.area,tipo:ins.tipo,turno:ins.turno,
     mecanico:ins.mecanico,fecha:ins.fecha,items:ins.items,
-    observaciones:ins.observaciones,saved_at:new Date(ins.savedAt).toISOString()};
+    observaciones:ins.observaciones,saved_at:ins.savedAt};
   try{
     const r=await fetch(SB_URL+'/rest/v1/inspecciones?on_conflict=id',{
       method:'POST',headers:{...SB_H,'Prefer':'resolution=ignore-duplicates'},body:JSON.stringify(row)});
@@ -505,7 +621,9 @@ function setPendingDeletes(ids){try{localStorage.setItem('_pendingDeletes',JSON.
 function addPendingDelete(id){const ids=getPendingDeletes();if(!ids.includes(id)){ids.push(id);setPendingDeletes(ids);}}
 
 async function syncPending(){
-  if(!navigator.onLine)return;
+  try{ await processFotosPendientes(); }catch(e){}
+
+  if(!(await isReallyOnline()))return;
   // 1. Enviar a Supabase los deletes que quedaron pendientes offline
   const delIds=getPendingDeletes();
   if(delIds.length){
@@ -536,13 +654,109 @@ async function syncPending(){
   }
   if(synced>0)toast(`☁ ${synced} inspección${synced>1?'es':''} sincronizada${synced>1?'s':''}`);
 }
+async function attachFotoRetro(insId,itemIdx){
+  const ins=inspecciones.find(i=>i.id===insId);
+  const item=ins&&ins.items[itemIdx];
+  if(!item)return;
+  const input=document.createElement('input');
+  input.type='file';input.accept='image/*';input.capture='environment';
+  input.onchange=async()=>{
+    const file=input.files[0];if(!file)return;
+    toast('📤 Procesando foto…');
+    try{
+      const[thumbData,fullData]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      const thumbBlob=await(await fetch(thumbData)).blob();
+      const fullBlob=await(await fetch(fullData)).blob();
+      const fotoId=makeid();
+      const online=await isReallyOnline();
+      let subida=false;
+      if(online){
+        const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+        const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+        if(okThumb&&okFull){
+          delete item.fotoStatus;
+          item.fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+          item.fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+          ins.savedAt=Date.now(); // para que otros dispositivos detecten el cambio
+          await dbPut('inspecciones',ins);
+          if(!ins.pending)await sbInsert(ins);
+          toast('✔ Evidencia adjuntada');
+          subida=true;
+        }
+      }
+      if(!subida){
+        // Sin conexión o falló la subida: intentar encolar para reintentar sola después
+        const fileNameThumb=fotoId+'_thumb.jpg', fileNameFull=fotoId+'_full.jpg';
+        const okThumb=await saveToQueueStorage(fileNameThumb,thumbBlob);
+        const okFull=await saveToQueueStorage(fileNameFull,fullBlob);
+        if(okThumb&&okFull){
+          delete item.fotoStatus;
+          item.fotoId=fotoId;
+          await dbPut('inspecciones',ins);
+          await dbPut('fotos',{id:fotoId,insId:ins.id,itemIdx,fileNameThumb,fileNameFull,createdAt:Date.now()});
+          toast('📦 Guardada en cola — se subirá sola en cuanto haya señal');
+        }else{
+          item.fotoStatus=online?'error_subida':'sin_conexion';
+          await dbPut('inspecciones',ins);
+          toast('⚠ No se pudo subir ni guardar en cola — intenta de nuevo',false);
+        }
+      }
+      renderRepTabContent();
+    }catch(e){toast('⚠ No se pudo procesar/subir la foto',false);}
+  };
+  input.click();
+}
+async function debugFoto(insId,fotoId){
+  let out='=== DIAGNÓSTICO FOTO ===\n';
+  out+='navigator.onLine: '+navigator.onLine+' | conexión real: '+(await isReallyOnline())+'\n';
+  const ins=inspecciones.find(i=>i.id===insId);
+  const item=ins&&ins.items.find(it=>it.fotoId===fotoId||it.fotoUrl);
+  out+='insId: '+insId+' | equipoId: '+(ins&&ins.equipoId)+'\n';
+  out+='ítem en memoria: '+JSON.stringify(item)+'\n';
+  try{
+    if(navigator.storage&&navigator.storage.estimate){
+      const est=await navigator.storage.estimate();
+      out+='almacenamiento: '+Math.round(est.usage/1024/1024)+'MB usados de '+Math.round(est.quota/1024/1024)+'MB\n';
+    }
+  }catch(e){}
+  try{
+    const fotos=await dbGetAll('fotos');
+    const f=fotos.find(x=>x.id===fotoId);
+    out+='registro en cola (IndexedDB): '+(f?JSON.stringify(f):'NO EXISTE localmente')+'\n';
+    if(f){
+      const thumbFile=await readFromQueueStorage(f.fileNameThumb);
+      const fullFile=await readFromQueueStorage(f.fileNameFull);
+      out+='archivo thumb en OPFS/Cache: '+(thumbFile?thumbFile.size+' bytes':'NO EXISTE')+'\n';
+      out+='archivo full en OPFS/Cache: '+(fullFile?fullFile.size+' bytes':'NO EXISTE')+'\n';
+    }
+  }catch(e){out+='error leyendo cola: '+e.message+'\n';}
+  out+='dispositivo confiable para guardar offline: '+dispositivoConfiableOffline+'\n';
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/inspecciones?equipo_id=eq.'+(ins&&ins.equipoId)+'&select=id,saved_at,items',{headers:SB_H});
+    const data=await r.json();
+    out+='=== TODAS las inspecciones de '+(ins&&ins.equipoId)+' en Supabase ('+data.length+') ===\n';
+    data.forEach(row=>{
+      const malos=(row.items||[]).filter(it=>it.fotoId||it.fotoUrl);
+      out+='id:'+row.id+' saved_at:'+row.saved_at+' fotos:'+JSON.stringify(malos)+'\n';
+    });
+  }catch(e){out+='error consultando Supabase: '+e.message;}
+  alert(out);
+}
 
 async function fetchRemoteInspecciones(){
-  if(!navigator.onLine)return;
   try{
-    const r=await fetch(SB_URL+'/rest/v1/inspecciones?select=*&order=saved_at.desc&limit=500',{headers:SB_H});
-    if(!r.ok)return;
-    const rows=await r.json();
+    // Trae TODAS las inspecciones paginando (escalable: no se limita a un tope fijo)
+    let rows=[];
+    const pageSize=1000;
+    let offset=0;
+    for(let page=0;page<50;page++){ // tope de seguridad: 50 páginas = 50,000 registros
+      const r=await fetch(SB_URL+'/rest/v1/inspecciones?select=*&order=saved_at.desc&offset='+offset+'&limit='+pageSize,{headers:SB_H});
+      if(!r.ok)return;
+      const chunk=await r.json();
+      rows=rows.concat(chunk);
+      if(chunk.length<pageSize)break; // ya no hay más páginas
+      offset+=pageSize;
+    }
     const pendingDelIds=getPendingDeletes();
     for(const row of rows){
       // No reimportar inspecciones que borramos offline y aún no hemos confirmado en Supabase
@@ -557,6 +771,15 @@ async function fetchRemoteInspecciones(){
       } else if(!inspecciones[idx].pending && ins.savedAt>inspecciones[idx].savedAt){
         // actualiza si la versión remota es más nueva (y no tenemos una local pendiente de subir)
         inspecciones[idx]=ins;await dbPut('inspecciones',ins);
+      }
+    }
+    // Quitar localmente las que ya no existen en Supabase (borradas desde otro dispositivo)
+    const remoteIds=new Set(rows.map(r=>r.id));
+    for(let i=inspecciones.length-1;i>=0;i--){
+      const ins=inspecciones[i];
+      if(!ins.pending && !remoteIds.has(ins.id) && !pendingDelIds.includes(ins.id)){
+        inspecciones.splice(i,1);
+        await dbDel('inspecciones',ins.id);
       }
     }
   }catch(e){console.warn('fetchRemoteInspecciones',e);}
@@ -579,7 +802,6 @@ async function sbPushConfig(cfg){
 }
 
 async function fetchRemoteConfig(){
-  if(!navigator.onLine)return;
   try{
     const r=await fetch(SB_URL+'/rest/v1/app_config?key=eq.global&select=value',{headers:SB_H});
     if(!r.ok)return;
@@ -603,7 +825,7 @@ async function fetchRemoteConfig(){
 // =====================================================================
 // INDEXEDDB
 // =====================================================================
-const DB_NAME='gamas-mrt-db', DB_VER=1;
+const DB_NAME='gamas-mrt-db', DB_VER=2;
 let db=null;
 
 function initDB(){
@@ -615,9 +837,12 @@ function initDB(){
         d.createObjectStore('inspecciones',{keyPath:'id'});
       if(!d.objectStoreNames.contains('kv'))
         d.createObjectStore('kv',{keyPath:'k'});
+      if(!d.objectStoreNames.contains('fotos'))
+        d.createObjectStore('fotos',{keyPath:'id'});
     };
     r.onsuccess=e=>{db=e.target.result;res(db);};
     r.onerror=e=>rej(e);
+    r.onblocked=()=>{console.warn('IndexedDB upgrade blocked — cierra otras pestañas de la app y recarga');toast('⚠ Cierra otras pestañas de la app y recarga',false);};
   });
 }
 function dbPut(store,obj){
@@ -647,6 +872,97 @@ function dbDel(store,key){
     tx.objectStore(store).delete(key);
     tx.oncomplete=res; tx.onerror=rej;
   });
+}
+// --- Almacenamiento robusto para la cola de fotos offline: OPFS primero, Cache Storage como respaldo ---
+const FOTOS_CACHE_NAME='evidencias-cola-v1';
+const FOTOS_CACHE_PREFIX='/cola-fotos/';
+async function saveToQueueStorage(name,blob){
+  try{
+    if(navigator.storage&&navigator.storage.getDirectory){
+      const root=await navigator.storage.getDirectory();
+      const handle=await root.getFileHandle(name,{create:true});
+      const w=await handle.createWritable();
+      await w.write(blob);await w.close();
+      // Verificación: releer de inmediato, por si "tuvo éxito" pero no quedó grabado
+      const verify=await(await root.getFileHandle(name)).getFile();
+      if(verify.size>0)return true;
+    }
+  }catch(e){console.warn('OPFS falló, se intenta Cache Storage',e);}
+  try{
+    const cache=await caches.open(FOTOS_CACHE_NAME);
+    await cache.put(FOTOS_CACHE_PREFIX+name,new Response(blob));
+    const check=await cache.match(FOTOS_CACHE_PREFIX+name);
+    return !!check;
+  }catch(e){console.warn('Cache Storage también falló',e);return false;}
+}
+async function readFromQueueStorage(name){
+  try{
+    const root=await navigator.storage.getDirectory();
+    const h=await root.getFileHandle(name);
+    return await h.getFile();
+  }catch(e){}
+  try{
+    const cache=await caches.open(FOTOS_CACHE_NAME);
+    const res=await cache.match(FOTOS_CACHE_PREFIX+name);
+    return res?await res.blob():null;
+  }catch(e){return null;}
+}
+async function deleteFromQueueStorage(name){
+  try{const root=await navigator.storage.getDirectory();await root.removeEntry(name);}catch(e){}
+  try{const cache=await caches.open(FOTOS_CACHE_NAME);await cache.delete(FOTOS_CACHE_PREFIX+name);}catch(e){}
+}
+// Auto-prueba al arrancar: ¿este dispositivo realmente puede guardar archivos offline?
+async function canPersistOffline(){
+  try{if(navigator.storage&&navigator.storage.persist)await navigator.storage.persist();}catch(e){}
+  const testName='__test_'+Date.now()+'.txt';
+  try{
+    const ok=await saveToQueueStorage(testName,new Blob(['test']));
+    if(!ok){await deleteFromQueueStorage(testName);return false;}
+    const r=await readFromQueueStorage(testName);
+    await deleteFromQueueStorage(testName);
+    return !!r&&r.size>0;
+  }catch(e){return false;}
+}
+async function processFotosPendientes(){
+  if(!(await isReallyOnline()))return 0;
+  let cola=[];
+  try{cola=await dbGetAll('fotos');}catch(e){console.warn('no se pudo leer la cola de fotos',e);return 0;}
+  if(!cola.length)return 0;
+  let subidas=0;
+  for(const job of cola){
+    try{
+      const thumbBlob=await readFromQueueStorage(job.fileNameThumb);
+      const fullBlob=await readFromQueueStorage(job.fileNameFull);
+      if(!thumbBlob||!fullBlob)continue; // se reintenta en el siguiente ciclo
+      const okThumb=await sbUploadFoto(job.fileNameThumb,thumbBlob);
+      const okFull=await sbUploadFoto(job.fileNameFull,fullBlob);
+      if(!okThumb||!okFull)continue; // se reintenta en el siguiente ciclo
+      let ins=inspecciones.find(i=>i.id===job.insId);
+      if(!ins)ins=await dbGet('inspecciones',job.insId);
+      if(ins){
+        const it=ins.items[job.itemIdx];
+        if(it){
+          delete it.fotoStatus;delete it.fotoId;
+          it.fotoUrl=sbPublicUrl(job.fileNameFull);
+          it.fotoThumbUrl=sbPublicUrl(job.fileNameThumb);
+          ins.savedAt=Date.now(); // así otros dispositivos detectan el cambio y jalan la URL nueva
+          await dbPut('inspecciones',ins);
+          const mem=inspecciones.find(i=>i.id===job.insId);
+          if(mem){mem.items[job.itemIdx]=it;mem.savedAt=ins.savedAt;}
+          if(!ins.pending)await sbInsert(ins);
+        }
+      }
+      await deleteFromQueueStorage(job.fileNameThumb);
+      await deleteFromQueueStorage(job.fileNameFull);
+      await dbDel('fotos',job.id);
+      subidas++;
+    }catch(e){console.warn('cola de fotos: falló un job',job.id,e);}
+  }
+  if(subidas>0){
+    toast(`✔ ${subidas} foto${subidas>1?'s':''} en cola subida${subidas>1?'s':''}`);
+    if(document.querySelector('#view-reports.active'))renderRepTabContent();
+  }
+  return subidas;
 }
 
 // =====================================================================
@@ -731,28 +1047,96 @@ const EQUIPOS_DEFAULT=[
 // =====================================================================
 // STATE (loaded from IndexedDB on init)
 // =====================================================================
-let config={startDate:'2026-09-13',cycleDays:25,adminPin:'8520',reportPin:'1234',turno1Start:7,turno2Start:19};
+let config={startDate:'2026-09-13',cycleDays:25,adminPin:'8520',reportPin:'1234',turno1Start:7,turno2Start:19,usuarios:[],equiposPorDia:1};
+let session={user:null};
 let equipos=EQUIPOS_DEFAULT.map(e=>[...e]);
 let catalog={};
 for(const k in CATALOG_BASE) catalog[k]=[...CATALOG_BASE[k]];
 let inspecciones=[];
+let dispositivoConfiableOffline=true;
 let mechNombres={1:'Mecánico Turno 1',2:'Mecánico Turno 2'};
 let repPinBuf='',repUnlocked=false;
 let admPinBuf='',admUnlocked=false;
 let curAdmTab='config',admSelectedEq=null;
 let currentEq=null,currentTipo='programada';
 let formItemStates={};
+let formItemFotos={};
+let editingInsId=null; // si tiene valor, saveForm() actualiza esa inspección ya existente en vez de crear una nueva
+async function capturePhoto(idx){
+  const online=await isReallyOnline();
+  if(!online&&!dispositivoConfiableOffline){
+    toast('⚠ Sin conexión y este dispositivo no guarda bien fotos offline — mejor tómala con la cámara normal de tu celular y adjúntala después',false);
+  }
+  const input=document.createElement('input');
+  input.type='file';input.accept='image/*';input.capture='environment';
+  input.onchange=async()=>{
+    const file=input.files[0];if(!file)return;
+    toast('📷 Procesando foto…');
+    try{
+      const[thumbData,fullData]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      formItemFotos[idx]={thumbData,fullData};
+      renderFormItemPhoto(idx);
+    }catch(e){toast('No se pudo procesar la foto',false);}
+  };
+  input.click();
+}
+function removePhoto(idx){
+  delete formItemFotos[idx];
+  renderFormItemPhoto(idx);
+}
+function renderFormItemPhoto(idx){
+  const el=document.getElementById('foto-preview-'+idx);
+  if(!el)return;
+  const f=formItemFotos[idx];
+  el.innerHTML=f?`<img src="${f.thumbData}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;margin-left:4px">
+    <button onclick="removePhoto(${idx})" style="border:none;background:none;color:var(--red);font-size:14px;cursor:pointer;padding:0 4px" title="Quitar foto">✕</button>`:'';
+}
 const TODAY=new Date(); // fecha real del dispositivo
 
 // =====================================================================
 // UTILS
 // =====================================================================
 function getTurno(){const h=new Date().getHours();return(h>=config.turno1Start&&h<config.turno2Start)?1:2;}
-function getMecNombre(){return mechNombres[getTurno()]||'Mecánico';}
+function getMecNombre(){return session.user||'Mecánico';}
+function renderLoginOptions(){
+  const sel=document.getElementById('login-user');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Selecciona tu nombre —</option>'+
+    config.usuarios.map(u=>`<option value="${u.nombre}">${u.nombre}</option>`).join('');
+}
+function doLogin(){
+  const nombre=document.getElementById('login-user').value;
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  const u=config.usuarios.find(x=>x.nombre===nombre);
+  if(!u||u.password!==pass){err.textContent='Nombre o contraseña incorrectos';return;}
+  err.textContent='';
+  session.user=nombre;
+  try{sessionStorage.setItem('loggedUser',nombre);}catch(_){}
+  document.getElementById('login-pass').value='';
+  renderHome();
+}
+function logout(){
+  session.user=null;
+  try{sessionStorage.removeItem('loggedUser');}catch(_){}
+  renderHome();
+}
 function getStartDate(){return new Date(config.startDate+'T00:00:00');}
-function dateStr(d){return d.toISOString().slice(0,10);}
+function dateStr(d){
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function todayStr(){return dateStr(TODAY);}
-function fmtDate(d){return d.toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short'});}
+const MESES_CORTOS=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fmtDate(d){
+  return `${String(d.getDate()).padStart(2,'0')}-${MESES_CORTOS[d.getMonth()]}-${String(d.getFullYear()).slice(2)}`;
+}
+function fmtFechaCorta(fechaStr){
+  if(!fechaStr)return '';
+  const[y,m,d]=fechaStr.split('-');
+  if(!y||!m||!d)return fechaStr;
+  return `${d}-${MESES_CORTOS[parseInt(m,10)-1]}-${y.slice(2)}`;
+}
 function getCatalogItems(eqId){
   if(eqId.startsWith('BW-'))return PUMP_ITEMS;
   if(eqId.startsWith('LX-'))return LIX_ITEMS;
@@ -760,8 +1144,10 @@ function getCatalogItems(eqId){
   return catalog[eqId]||[];
 }
 function isScheduled(eqIdx,date){
+  const porDia=config.equiposPorDia||1;
+  const offsetDias=Math.floor(eqIdx/porDia);
   const sd=getStartDate();
-  const first=new Date(sd);first.setDate(first.getDate()+eqIdx);first.setHours(0,0,0,0);
+  const first=new Date(sd);first.setDate(first.getDate()+offsetDias);first.setHours(0,0,0,0);
   const dt=new Date(date);dt.setHours(0,0,0,0);
   const diff=Math.round((dt-first)/86400000);
   return diff>=0&&diff%config.cycleDays===0;
@@ -770,6 +1156,91 @@ function getTodayScheduled(){return equipos.filter((_,i)=>isScheduled(i,TODAY));
 function isDoneToday(eqId){
   const ts=todayStr();
   return inspecciones.some(ins=>ins.equipoId===eqId&&ins.fecha===ts&&ins.tipo!=='reinspeccion');
+}
+function getEquiposSinInspeccionReciente(){
+  const umbral=Math.max(config.cycleDays*2,14);
+  return equipos.map(eq=>{
+    const propias=inspecciones.filter(i=>i.equipoId===eq[0]);
+    if(!propias.length)return{eq,dias:null};
+    const ultima=Math.max(...propias.map(i=>i.savedAt));
+    const dias=Math.floor((Date.now()-ultima)/86400000);
+    return{eq,dias};
+  }).filter(x=>x.dias===null||x.dias>=umbral).sort((a,b)=>(b.dias??999999)-(a.dias??999999));
+}
+function updateAlertsUI(){
+  const sinReciente=getEquiposSinInspeccionReciente();
+  const badge=document.getElementById('reports-badge');
+  if(badge)badge.style.display=sinReciente.length?'block':'none';
+  const banner=document.getElementById('home-alert-banner');
+  if(!banner)return;
+  if(!sinReciente.length){banner.innerHTML='';return;}
+  const top=sinReciente[0];
+  banner.innerHTML=`<div class="alert-banner" onclick="goToAlertsDetail()">
+    <div class="alert-banner-title">⚠ ${sinReciente.length} equipo${sinReciente.length!==1?'s':''} sin inspección reciente</div>
+    <div class="alert-banner-sub">${top.eq[0]} · ${top.eq[1]} — ${top.dias===null?'nunca inspeccionado':top.dias+' días sin revisión'}${sinReciente.length>1?' y '+(sinReciente.length-1)+' más':''}. Toca para ver detalle.</div>
+  </div>`;
+}
+function goToAlertsDetail(){
+  showView('reports');
+  repTabSwitch('stats');
+}
+async function shareTurnoSummary(){
+  const ts=todayStr();
+  const t=getTurno();
+  const deHoy=inspecciones.filter(i=>i.fecha===ts&&Number(i.turno)===t);
+  const sched=getTodayScheduled();
+  const doneCount=sched.filter(eq=>isDoneToday(eq[0])).length;
+  let totalB=0,totalM=0,totalR=0;
+  const equiposConMalos=[];
+  const fotosParaAdjuntar=[]; // {url, label}
+  deHoy.forEach(ins=>{
+    const malos=ins.items.filter(it=>it.estado==='m');
+    ins.items.forEach(it=>{if(it.estado==='b')totalB++;else if(it.estado==='m')totalM++;else if(it.estado==='r')totalR++;});
+    if(malos.length){
+      let linea=`  • ${ins.equipoId} (${ins.equipoNombre}) — ${ins.seccion}\n    Ítems: ${malos.map(m=>m.nombre).join(', ')}`;
+      if(ins.observaciones)linea+=`\n    Nota: ${ins.observaciones}`;
+      equiposConMalos.push(linea);
+      malos.forEach(m=>{if(m.fotoUrl)fotosParaAdjuntar.push({url:m.fotoUrl,label:`${ins.equipoId}_${m.nombre}`});});
+    }
+  });
+  const pendientes=sched.filter(eq=>!isDoneToday(eq[0]));
+  let texto=`📋 *Resumen turno T${t}* · ${fmtFechaCorta(ts)}\n`;
+  texto+=`Mecánico: ${getMecNombre()}\n`;
+  texto+=`Equipos programados: ${sched.length} · Completados: ${doneCount} · Pendientes: ${pendientes.length}\n`;
+  texto+=`Inspecciones registradas este turno: ${deHoy.length}\n`;
+  texto+=`Ítems: ✔ ${totalB} bueno${totalB!==1?'s':''} · ~ ${totalR} regular${totalR!==1?'es':''} · ✘ ${totalM} malo${totalM!==1?'s':''}\n`;
+  if(pendientes.length){
+    texto+=`\n⏳ Equipos aún pendientes hoy:\n${pendientes.map(eq=>`  • ${eq[0]} (${eq[1]})`).join('\n')}\n`;
+  }
+  if(equiposConMalos.length){
+    texto+=`\n⚠ Equipos con ítems en mal estado:\n${equiposConMalos.join('\n')}`;
+  }else{
+    texto+=`\n✅ Sin ítems en mal estado este turno.`;
+  }
+  // Intentar adjuntar las fotos de evidencia como archivos (además del texto), para que
+  // se vea como un mensaje completo con imágenes al compartir a WhatsApp u otros.
+  let files=[];
+  if(fotosParaAdjuntar.length&&navigator.canShare){
+    try{
+      const blobs=await Promise.all(fotosParaAdjuntar.slice(0,10).map(f=>fetch(f.url).then(r=>r.blob())));
+      files=blobs.map((b,i)=>new File([b],fotosParaAdjuntar[i].label.replace(/[^a-zA-Z0-9_-]/g,'_')+'.jpg',{type:'image/jpeg'}));
+      if(!navigator.canShare({files}))files=[]; // el navegador no soporta compartir estos archivos, seguir solo con texto
+    }catch(e){console.warn('no se pudieron preparar las fotos para compartir',e);files=[];}
+  }
+  if(navigator.share){
+    try{
+      const payload={title:'Resumen del turno — Gamas Mtto MRT',text:texto};
+      if(files.length)payload.files=files;
+      await navigator.share(payload);
+      return;
+    }catch(e){/* usuario canceló o falló, cae a fallback */}
+  }
+  try{
+    await navigator.clipboard.writeText(texto);
+    toast('📋 Resumen copiado — pégalo donde quieras');
+  }catch(e){
+    toast('No se pudo compartir ni copiar',false);
+  }
 }
 function tipoColor(tc){
   return{'t-trit':'var(--trit)','t-clas':'var(--clas)','t-mol':'var(--mol)','t-bom':'var(--bom)','t-lix':'var(--lix)'}[tc]||'var(--accent)';
@@ -786,11 +1257,24 @@ async function persist(key,val){try{await dbPut('kv',{k:key,v:val});}catch(e){co
 // NAVIGATION
 // =====================================================================
 function showView(v){
+  if(window.checkForUpdate)window.checkForUpdate();
+  const wasInForm=document.getElementById('view-form').classList.contains('active');
+  const wasInAdmin=document.getElementById('view-admin').classList.contains('active');
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
   document.getElementById('view-'+v).scrollTop=0;
   try{sessionStorage.setItem('activeView',v);}catch(_){}
+  if(wasInForm&&v!=='form'&&window.triggerPendingReload)window.triggerPendingReload();
+  if(wasInAdmin&&v!=='admin'){
+    // Cerrar sesión de Admin al salir de esa pestaña — la próxima vez que entre, pide contraseña de nuevo
+    adminUnlocked=false;
+    try{sessionStorage.removeItem('pin_adm');}catch(_){}
+    const gate=document.getElementById('adm-pin-gate'),content=document.getElementById('adm-content'),input=document.getElementById('adm-pass-input');
+    if(gate)gate.style.display='block';
+    if(content)content.style.display='none';
+    if(input)input.value='';
+  }
   if(v==='home')renderHome();
   if(v==='roll')renderRoll();
   if(v==='reports')renderReports();
@@ -801,12 +1285,31 @@ function showView(v){
 // HOME
 // =====================================================================
 function renderHome(){
+  const gate=document.getElementById('home-login-gate');
+  const mecBar=document.getElementById('mec-bar');
+  const banner=document.getElementById('home-alert-banner');
+  const body=document.getElementById('home-body');
+  const btnExtra=document.getElementById('btn-extra');
+  const btnShare=document.getElementById('btn-share-turno');
+  if(!session.user){
+    gate.style.display='block';
+    mecBar.style.display='none';
+    banner.innerHTML='';body.innerHTML='';
+    if(btnExtra)btnExtra.style.display='none';
+    if(btnShare)btnShare.style.display='none';
+    renderLoginOptions();
+    return;
+  }
+  gate.style.display='none';
+  mecBar.style.display='flex';
+  if(btnExtra)btnExtra.style.display='';
+  if(btnShare)btnShare.style.display='';
+  updateAlertsUI();
   const t=getTurno();
   document.getElementById('turno-badge').textContent=t===1?'T1 · Día':'T2 · Noche';
   document.getElementById('turno-badge').style.background=t===1?'rgba(37,99,235,.35)':'rgba(124,58,237,.35)';
   document.getElementById('mec-name').textContent=getMecNombre();
   const sched=getTodayScheduled();
-  const body=document.getElementById('home-body');
   if(!sched.length){
     const ds=todayStr(),start=getStartDate();
     const msg=TODAY<start
@@ -862,8 +1365,14 @@ async function saveMecNames(){
 // FORM
 // =====================================================================
 function openForm(eqId,tipo){
+  if(!session.user){
+    toast('🔒 Inicia sesión para poder inspeccionar',false);
+    showView('home'); // renderHome() ya muestra la pantalla de login si no hay sesión
+    return;
+  }
   const eq=equipos.find(e=>e[0]===eqId);if(!eq)return;
-  currentEq=eq;currentTipo=tipo;formItemStates={};
+  editingInsId=null;
+  currentEq=eq;currentTipo=tipo;formItemStates={};formItemFotos={};
   const items=getCatalogItems(eqId);
   const col=tipoColor(eq[3]);
   document.getElementById('form-title').textContent=eq[1];
@@ -886,9 +1395,45 @@ function openForm(eqId,tipo){
         <button class="item-btn" id="ib-b-${idx}" onclick="setItem(${idx},'b')">✔</button>
         <button class="item-btn" id="ib-r-${idx}" onclick="setItem(${idx},'r')">~</button>
         <button class="item-btn" id="ib-m-${idx}" onclick="setItem(${idx},'m')">✘</button>
+        <button id="foto-btn-${idx}" onclick="capturePhoto(${idx})" style="display:none;border:none;background:none;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="Agregar foto de evidencia">📷</button>
+        <span id="foto-preview-${idx}" style="display:inline-flex;align-items:center"></span>
       </div>
     </div>`).join('');
   document.getElementById('form-obs').value='';
+  showView('form');
+}
+function editInspeccionAdmin(id){
+  const ins=inspecciones.find(i=>i.id===id);
+  if(!ins){toast('No se encontró esa inspección',false);return;}
+  editingInsId=id;formItemStates={};formItemFotos={};
+  currentEq=equipos.find(e=>e[0]===ins.equipoId)||[ins.equipoId,ins.equipoNombre,ins.seccion,'t-trit',ins.area];
+  currentTipo=ins.tipo;
+  const col=tipoColor(currentEq[3]);
+  document.getElementById('form-title').textContent=ins.equipoNombre;
+  document.getElementById('form-color-bar').style.background=col;
+  const tag=document.getElementById('form-tipo-tag');
+  tag.textContent='✏️ EDICIÓN';tag.className='tag tag-venc';
+  document.getElementById('form-meta').innerHTML=`
+    <span class="tag ${Number(ins.turno)===1?'tag-t1':'tag-t2'}">T${ins.turno}</span>
+    <span class="eq-id">${ins.equipoId}</span>
+    <span style="font-size:11px;color:var(--sub)">${fmtFechaCorta(ins.fecha)}</span>
+    <span style="font-size:11px;color:var(--sub)">${ins.mecanico}</span>
+    <span style="font-size:11px;color:var(--sub)">${ins.area}</span>`;
+  document.getElementById('form-items').innerHTML=ins.items.map((item,idx)=>{
+    if(item.estado)formItemStates[idx]=item.estado;
+    const fotoHtml=item.fotoThumbUrl?`<img src="${item.fotoThumbUrl}" style="width:22px;height:22px;border-radius:4px;object-fit:cover">`:'';
+    return `<div class="item-row">
+      <span class="item-name">${idx+1}. ${item.nombre}</span>
+      <div class="item-btns">
+        <button class="item-btn${item.estado==='b'?' sel-b':''}" id="ib-b-${idx}" onclick="setItem(${idx},'b')">✔</button>
+        <button class="item-btn${item.estado==='r'?' sel-r':''}" id="ib-r-${idx}" onclick="setItem(${idx},'r')">~</button>
+        <button class="item-btn${item.estado==='m'?' sel-m':''}" id="ib-m-${idx}" onclick="setItem(${idx},'m')">✘</button>
+        <button id="foto-btn-${idx}" onclick="capturePhoto(${idx})" style="display:${item.estado==='m'?'inline-block':'none'};border:none;background:none;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="Agregar/cambiar foto de evidencia">📷</button>
+        <span id="foto-preview-${idx}" style="display:inline-flex;align-items:center">${fotoHtml}</span>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('form-obs').value=ins.observaciones||'';
   showView('form');
 }
 function setItem(idx,estado){
@@ -899,29 +1444,133 @@ function setItem(idx,estado){
     const btn=document.getElementById(`ib-${x}-${idx}`);
     if(btn)btn.className='item-btn'+(s===x?' sel-'+x:'');
   });
+  const fotoBtn=document.getElementById('foto-btn-'+idx);
+  if(fotoBtn)fotoBtn.style.display=s==='m'?'inline-block':'none';
+  if(s!=='m'&&formItemFotos[idx])removePhoto(idx);
 }
 async function saveForm(){
+  if(window.checkForUpdate)window.checkForUpdate();
+  if(editingInsId)return await saveFormEdit();
   const items=getCatalogItems(currentEq[0]);
+  const itemsData=items.map((nombre,idx)=>({nombre,estado:formItemStates[idx]||null}));
+  // Fotos: se intenta subir de inmediato si hay conexión real. Si falla o no hay conexión,
+  // se intenta encolar (OPFS, con respaldo en Cache Storage) para reintentar solas más tarde.
+  // Solo si ni subir ni encolar funcionan, se avisa que la evidencia quedó pendiente manual.
+  const hayFotos=Object.keys(formItemFotos).length>0;
+  const fotosParaEncolar=[]; // {idx, fotoId, thumbBlob, fullBlob}
+  let fotosSinResolver=0;
+  if(hayFotos)toast('📤 Subiendo foto(s)…');
+  const intentarSubidaYa=hayFotos&&await isReallyOnline();
+  for(const idx of Object.keys(formItemFotos)){
+    const f=formItemFotos[idx];
+    let subida=false;
+    const fotoId=makeid();
+    const thumbBlob=await(await fetch(f.thumbData)).blob();
+    const fullBlob=await(await fetch(f.fullData)).blob();
+    if(intentarSubidaYa){
+      try{
+        const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+        const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+        if(okThumb&&okFull){
+          itemsData[idx].fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+          itemsData[idx].fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+          subida=true;
+        }
+      }catch(e){console.warn('subida de foto falló',e);}
+    }
+    if(!subida){
+      itemsData[idx].fotoId=fotoId; // referencia temporal hasta que la cola la resuelva
+      fotosParaEncolar.push({idx,fotoId,thumbBlob,fullBlob});
+    }
+  }
   const ins={
     id:makeid(),equipoId:currentEq[0],equipoNombre:currentEq[1],
     seccion:currentEq[2],area:currentEq[4],tipo:currentTipo,
     turno:getTurno(),mecanico:getMecNombre(),fecha:todayStr(),
-    items:items.map((nombre,idx)=>({nombre,estado:formItemStates[idx]||null})),
+    items:itemsData,
     observaciones:document.getElementById('form-obs').value.trim(),
     savedAt:Date.now(),
   };
   ins.pending=true; // siempre pending hasta que Supabase confirme
   inspecciones.push(ins);
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
-  if(navigator.onLine){
-    sbInsert(ins).then(ok=>{
-      if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
-      else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
-    }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
-  }else{
-    toast('✔ Inspección guardada offline — se subirá al reconectar');
+  // Encolar las fotos que no se pudieron subir de inmediato
+  for(const fp of fotosParaEncolar){
+    const fileNameThumb=fp.fotoId+'_thumb.jpg', fileNameFull=fp.fotoId+'_full.jpg';
+    const okThumb=await saveToQueueStorage(fileNameThumb,fp.thumbBlob);
+    const okFull=await saveToQueueStorage(fileNameFull,fp.fullBlob);
+    if(okThumb&&okFull){
+      try{
+        await dbPut('fotos',{id:fp.fotoId,insId:ins.id,itemIdx:Number(fp.idx),fileNameThumb,fileNameFull,createdAt:Date.now()});
+      }catch(e){console.warn('no se pudo guardar metadata de cola',e);fotosSinResolver++;}
+    }else{
+      // Ni subir ni encolar funcionó: se queda como "evidencia pendiente" manual (comportamiento anterior)
+      delete itemsData[fp.idx].fotoId;
+      itemsData[fp.idx].fotoStatus=intentarSubidaYa?'error_subida':'sin_conexion';
+      await dbPut('inspecciones',ins);
+      fotosSinResolver++;
+    }
   }
+  if(fotosSinResolver>0){
+    alert('⏳ Evidencia fotográfica pendiente\n\nNo se pudo subir ni guardar en cola en este momento. La inspección se guardó completa. En cuanto tengas señal, ve a Reportes y toca "⏳ Evidencia pendiente" junto al ítem para adjuntar la foto.');
+  }else if(fotosParaEncolar.length>0){
+    toast('📦 Foto guardada en cola — se subirá sola en cuanto haya señal');
+  }
+  sbInsert(ins).then(ok=>{
+    if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
+    else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
+  }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
+  if(fotosParaEncolar.length)processFotosPendientes();
+  formItemFotos={};
   closeForm();
+}
+async function saveFormEdit(){
+  const ins=inspecciones.find(i=>i.id===editingInsId);
+  if(!ins){editingInsId=null;closeForm();return;}
+  ins.items.forEach((item,idx)=>{item.estado=formItemStates[idx]||null;});
+  const hayFotos=Object.keys(formItemFotos).length>0;
+  if(hayFotos){
+    toast('📤 Subiendo foto(s)…');
+    const online=await isReallyOnline();
+    for(const idx of Object.keys(formItemFotos)){
+      const f=formItemFotos[idx];
+      const item=ins.items[idx];
+      const fotoId=makeid();
+      const thumbBlob=await(await fetch(f.thumbData)).blob();
+      const fullBlob=await(await fetch(f.fullData)).blob();
+      let subida=false;
+      if(online){
+        try{
+          const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
+          const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+          if(okThumb&&okFull){
+            delete item.fotoStatus;
+            item.fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
+            item.fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
+            subida=true;
+          }
+        }catch(e){console.warn('subida de foto (edición) falló',e);}
+      }
+      if(!subida){
+        const okThumb=await saveToQueueStorage(fotoId+'_thumb.jpg',thumbBlob);
+        const okFull=await saveToQueueStorage(fotoId+'_full.jpg',fullBlob);
+        if(okThumb&&okFull){
+          item.fotoId=fotoId;
+          await dbPut('fotos',{id:fotoId,insId:ins.id,itemIdx:Number(idx),fileNameThumb:fotoId+'_thumb.jpg',fileNameFull:fotoId+'_full.jpg',createdAt:Date.now()});
+        }else{
+          item.fotoStatus=online?'error_subida':'sin_conexion';
+        }
+      }
+    }
+  }
+  ins.observaciones=document.getElementById('form-obs').value.trim();
+  ins.savedAt=Date.now(); // para que el cambio se propague a otros dispositivos
+  try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save (edición) falló',e);}
+  if(await isReallyOnline())await sbInsert(ins);
+  toast('✔ Inspección actualizada');
+  editingInsId=null;formItemFotos={};
+  closeForm();
+  if(document.querySelector('#view-admin.active'))renderAdmPanel();
 }
 function closeForm(){showView('home');}
 
@@ -954,6 +1603,27 @@ function pickSheet(eqId){
 // =====================================================================
 // ROLL
 // =====================================================================
+function setupRollHover(){
+  const wrap=document.getElementById('roll-wrap');
+  if(!wrap)return;
+  let curRow=null,curCol=null;
+  wrap.addEventListener('mouseover',e=>{
+    const cell=e.target.closest('[data-eqrow]');
+    if(!cell)return;
+    const r=cell.dataset.eqrow,c=cell.dataset.col;
+    if(r===curRow&&c===curCol)return;
+    if(curRow!==null)wrap.querySelectorAll(`[data-eqrow="${curRow}"]`).forEach(el=>el.classList.remove('roll-hover-row'));
+    if(curCol!==null)wrap.querySelectorAll(`.day-head[data-col="${curCol}"]`).forEach(el=>el.classList.remove('roll-hover-col'));
+    curRow=r;curCol=c!==undefined?c:null;
+    wrap.querySelectorAll(`[data-eqrow="${r}"]`).forEach(el=>el.classList.add('roll-hover-row'));
+    if(curCol!==null)wrap.querySelectorAll(`.day-head[data-col="${curCol}"]`).forEach(el=>el.classList.add('roll-hover-col'));
+  });
+  wrap.addEventListener('mouseleave',()=>{
+    if(curRow!==null)wrap.querySelectorAll(`[data-eqrow="${curRow}"]`).forEach(el=>el.classList.remove('roll-hover-row'));
+    if(curCol!==null)wrap.querySelectorAll(`.day-head[data-col="${curCol}"]`).forEach(el=>el.classList.remove('roll-hover-col'));
+    curRow=null;curCol=null;
+  });
+}
 function renderRoll(){
   const secFil=document.getElementById('roll-sec').value;
   const areaFil=document.getElementById('roll-area').value;
@@ -962,7 +1632,10 @@ function renderRoll(){
   const curArea=areaEl.value;
   areaEl.innerHTML='<option value="">— Área —</option>'+areas.map(a=>`<option${a===curArea?' selected':''}>${a}</option>`).join('');
   const eqF=equipos.filter(e=>(!secFil||e[2]===secFil)&&(!areaFil||e[4]===areaFil));
-  const rangeStart=new Date(2026,8,1),rangeEnd=new Date(2026,10,30);
+  // Ventana móvil relativa a hoy (antes estaba hardcodeada a sep-nov 2026, lo que rompía
+  // el Roll después de esa fecha). Ahora siempre es válida, sin importar el año.
+  const rangeStart=new Date(TODAY);rangeStart.setHours(0,0,0,0);rangeStart.setDate(rangeStart.getDate()-15);
+  const rangeEnd=new Date(TODAY);rangeEnd.setHours(0,0,0,0);rangeEnd.setDate(rangeEnd.getDate()+75);
   const days=[];
   for(let d=new Date(rangeStart);d<=rangeEnd;d.setDate(d.getDate()+1))days.push(new Date(d));
   const months=[];let cm=-1,cs=0;
@@ -981,9 +1654,9 @@ function renderRoll(){
       eqs.forEach(eq=>{
         const gi=equipos.indexOf(eq);
         const col=tipoColor(eq[3]);
-        rows+=`<tr><td class="col-n">${gi+1}</td><td class="col-id" style="color:${col}">${eq[0]}</td>
-          <td class="col-nom">${eq[1]}</td><td class="col-area" style="font-size:10px;color:var(--sub)">${eq[4]}</td>`;
-        days.forEach(d=>{
+        rows+=`<tr><td class="col-n" data-eqrow="${gi}">${gi+1}</td><td class="col-id" data-eqrow="${gi}" style="color:${col}">${eq[0]}</td>
+          <td class="col-nom" data-eqrow="${gi}">${eq[1]}</td><td class="col-area" data-eqrow="${gi}" style="font-size:10px;color:var(--sub)">${eq[4]}</td>`;
+        days.forEach((d,di)=>{
           const ds=dateStr(d);const isToday=ds===todStr;
           const sched=isScheduled(gi,d);
           const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&ins.fecha===ds);
@@ -1000,7 +1673,7 @@ function renderRoll(){
             else
               cell=`<span class="${pc}">●</span>`;
           }
-          rows+=`<td class="day-cell${isToday?' today-col':''}">${cell}</td>`;
+          rows+=`<td class="day-cell${isToday?' today-col':''}" data-eqrow="${gi}" data-col="${di}">${cell}</td>`;
         });
         rows+='</tr>';
       });
@@ -1015,7 +1688,7 @@ function renderRoll(){
         <th class="col-area month-head" rowspan="2">ÁREA</th>
         ${months.map(m=>`<th class="month-head" colspan="${m.span}">${m.label.toUpperCase()}</th>`).join('')}
       </tr>
-      <tr>${days.map(d=>{const it=dateStr(d)===todStr;return`<th class="day-head${it?' today-col':''}" style="${it?'color:var(--accent)':''}">${d.getDate()}</th>`;}).join('')}</tr>
+      <tr>${days.map((d,di)=>{const it=dateStr(d)===todStr;return`<th class="day-head${it?' today-col':''}" data-col="${di}" style="${it?'color:var(--accent)':''}">${d.getDate()}</th>`;}).join('')}</tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>`;
@@ -1024,69 +1697,86 @@ function renderRoll(){
 // =====================================================================
 // PIN SYSTEM (shared for reports + admin)
 // =====================================================================
-const pinState={rep:{buf:'',unlocked:false},adm:{buf:'',unlocked:false}};
-function pinKey(who,k){
-  const s=pinState[who];
-  if(k==='⌫')s.buf=s.buf.slice(0,-1);
-  else if(k==='OK'){checkPin(who);return;}
-  else if(s.buf.length<4)s.buf+=k;
-  const pref=who==='rep'?'rpd':'apd';
-  [0,1,2,3].forEach(i=>{
-    const el=document.getElementById(pref+i);
-    if(el)el.classList.toggle('filled',i<s.buf.length);
-  });
-  if(s.buf.length===4)checkPin(who);
-}
-function checkPin(who){
-  const s=pinState[who];
-  const correctPin=who==='rep'?config.reportPin:config.adminPin;
-  if(s.buf===correctPin){
-    s.unlocked=true;s.buf='';
-    try{sessionStorage.setItem('pin_'+who,'1');}catch(_){}
-    if(who==='rep'){
-      document.getElementById('rep-pin-gate').style.display='none';
-      document.getElementById('rep-content').style.display='block';
-      renderRepList();
-    } else {
-      document.getElementById('adm-pin-gate').style.display='none';
-      document.getElementById('adm-content').style.display='block';
-      renderAdmPanel();
-    }
-  } else {
-    const errId=who==='rep'?'rep-pin-err':'adm-pin-err';
-    document.getElementById(errId).textContent='PIN incorrecto';
-    s.buf='';
-    const pref=who==='rep'?'rpd':'apd';
-    [0,1,2,3].forEach(i=>{const el=document.getElementById(pref+i);if(el)el.classList.remove('filled');});
-    setTimeout(()=>{document.getElementById(errId).textContent='';},1500);
+let adminUnlocked=false;
+function checkAdminPassword(){
+  const input=document.getElementById('adm-pass-input');
+  const err=document.getElementById('adm-pin-err');
+  if(input.value===config.adminPin){
+    adminUnlocked=true;
+    try{sessionStorage.setItem('pin_adm','1');}catch(_){}
+    document.getElementById('adm-pin-gate').style.display='none';
+    document.getElementById('adm-content').style.display='block';
+    renderAdmPanel();
+  }else{
+    err.textContent='Contraseña incorrecta';
+    input.value='';
+    setTimeout(()=>{err.textContent='';},1500);
   }
 }
 
 // =====================================================================
 // REPORTS
 // =====================================================================
-function renderReports(){
-  if(pinState.rep.unlocked){
-    document.getElementById('rep-pin-gate').style.display='none';
-    document.getElementById('rep-content').style.display='block';
-    renderRepList();
-  } else {
-    document.getElementById('rep-pin-gate').style.display='block';
-    document.getElementById('rep-content').style.display='none';
+let repTab='list';
+let repRange={mode:'all',from:'',to:''};
+function repRangeChange(){
+  repRange.mode=document.getElementById('rep-range-mode').value;
+  document.getElementById('rep-range-custom').style.display=repRange.mode==='custom'?'flex':'none';
+  repRange.from=document.getElementById('rep-range-from').value;
+  repRange.to=document.getElementById('rep-range-to').value;
+  renderRepTabContent();
+}
+function getRangeFilteredInspecciones(){
+  if(repRange.mode==='all')return inspecciones;
+  let fromMs=null,toMs=null;
+  const now=Date.now();
+  if(repRange.mode==='week')fromMs=now-7*86400000;
+  else if(repRange.mode==='month')fromMs=now-30*86400000;
+  else if(repRange.mode==='custom'){
+    if(repRange.from)fromMs=new Date(repRange.from+'T00:00:00').getTime();
+    if(repRange.to)toMs=new Date(repRange.to+'T23:59:59').getTime();
   }
+  return inspecciones.filter(i=>(fromMs===null||i.savedAt>=fromMs)&&(toMs===null||i.savedAt<=toMs));
+}
+function repRangeLabel(){
+  return{all:'todo el historial',week:'última semana',month:'último mes',custom:'rango seleccionado'}[repRange.mode]||'';
+}
+function renderReports(){
+  document.getElementById('rep-content').style.display='block';
+  renderRepTabContent();
+}
+function repTabSwitch(tab){
+  if(window.checkForUpdate)window.checkForUpdate();
+  repTab=tab;
+  document.querySelectorAll('.rep-tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));
+  document.getElementById('rep-tab-list').style.display=tab==='list'?'block':'none';
+  document.getElementById('rep-range-bar').style.display=tab==='list'?'none':'block';
+  ['stats','ranking','reinc','export'].forEach(t=>{
+    document.getElementById('rep-tab-'+t).style.display=t===tab?'block':'none';
+  });
+  renderRepTabContent();
+}
+function renderRepTabContent(){
+  if(repTab==='list')renderRepList();
+  else if(repTab==='stats')renderRepStats();
+  else if(repTab==='ranking')renderRepRanking();
+  else if(repTab==='reinc')renderRepReinc();
+  else if(repTab==='export')renderRepExport();
 }
 function renderRepList(){
+  const busca=(document.getElementById('rep-fbusca').value||'').trim().toLowerCase();
   const sec=document.getElementById('rep-fsec').value;
   const turno=document.getElementById('rep-fturno').value;
   const estado=document.getElementById('rep-festado').value;
   let data=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
+  if(busca)data=data.filter(i=>i.equipoId.toLowerCase().includes(busca)||i.equipoNombre.toLowerCase().includes(busca));
   if(sec)data=data.filter(i=>i.seccion===sec);
   if(turno)data=data.filter(i=>String(i.turno)===turno);
   if(estado==='ok')data=data.filter(i=>!i.items.some(it=>it.estado==='m'));
   if(estado==='mal')data=data.filter(i=>i.items.some(it=>it.estado==='m'));
   const el=document.getElementById('rep-list');
   if(!data.length){
-    el.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin inspecciones${sec||turno||estado?' con esos filtros':' registradas aún'}.</div>`;
+    el.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin inspecciones${sec||turno||estado||busca?' con esos filtros':' registradas aún'}.</div>`;
     return;
   }
   el.innerHTML=data.map((ins,i)=>{
@@ -1100,9 +1790,18 @@ function renderRepList(){
       const cls=it.estado==='b'?'item-estado-b':it.estado==='m'?'item-estado-m':'item-estado-r';
       const ico=it.estado==='b'?'✔':it.estado==='m'?'✘':'~';
       const bg=it.estado==='b'?'rgba(22,163,74,.07)':it.estado==='m'?'rgba(220,38,38,.07)':'rgba(217,119,6,.07)';
+      let fotoHtml='';
+      if(it.fotoThumbUrl){
+        fotoHtml=`<img src="${it.fotoThumbUrl}" style="width:26px;height:26px;border-radius:5px;object-fit:cover;margin-left:auto;cursor:pointer" onclick="event.stopPropagation();window.open('${it.fotoUrl}','_blank')">`;
+      }else if(it.fotoId){
+        fotoHtml=`<span onclick="event.stopPropagation();debugFoto('${ins.id}','${it.fotoId}')" style="font-size:10px;color:var(--sub);margin-left:auto;text-decoration:underline">📷 subiendo…</span>`;
+      }else if(it.fotoStatus==='sin_conexion'||it.fotoStatus==='error_subida'){
+        fotoHtml=`<span onclick="event.stopPropagation();attachFotoRetro('${ins.id}',${ins.items.indexOf(it)})" style="font-size:10px;color:var(--amber);margin-left:auto;text-decoration:underline;cursor:pointer" title="Toca para adjuntar la evidencia">⏳ Evidencia pendiente</span>`;
+      }
       return`<div class="item-detail-row" style="background:${bg};border-radius:6px;padding:5px 8px;margin-bottom:2px;border:none">
         <span class="${cls}">${ico}</span>
         <span class="item-detail-name">${it.nombre}</span>
+        ${fotoHtml}
       </div>`;
     }).join('');
     return`<div class="card rep-card" style="border-left-color:${col}" onclick="toggleRepCard(this)">
@@ -1112,7 +1811,7 @@ function renderRepList(){
         <span class="tag ${ins.tipo==='extra'?'tag-extra':ins.tipo==='reinspeccion'?'tag-venc':'tag-prog'}">${ins.tipo.toUpperCase()}</span>
         <span class="rep-chevron">▾</span>
       </div>
-      <div class="rep-meta">${ins.fecha} · T${ins.turno} · ${ins.mecanico} · ${ins.area}</div>
+      <div class="rep-meta">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico} · ${ins.area}</div>
       <div class="rep-counts">
         <span class="cnt-b">✔ ${b} Buenos</span>
         <span class="cnt-r">~ ${r} Regulares</span>
@@ -1126,11 +1825,246 @@ function renderRepList(){
   }).join('');
 }
 
+// --- ir desde Ranking/Reincidencias al listado filtrado por ese equipo ---
+function repGoToEquipo(eqId){
+  repTabSwitch('list');
+  const inp=document.getElementById('rep-fbusca');
+  if(inp){inp.value=eqId;renderRepList();}
+}
+
+// --- ESTADÍSTICAS ---
+function renderRepStats(){
+  const el=document.getElementById('rep-tab-stats');
+  const all=getRangeFilteredInspecciones();
+  const totalIns=all.length;
+  let totalB=0,totalM=0,totalR=0;
+  all.forEach(ins=>ins.items.forEach(it=>{
+    if(it.estado==='b')totalB++;else if(it.estado==='m')totalM++;else if(it.estado==='r')totalR++;
+  }));
+  const totalItems=totalB+totalM+totalR;
+  const pctMalos=totalItems?Math.round(totalM/totalItems*100):0;
+  // Cumplimiento hoy y equipos sin inspección reciente siempre se calculan con TODO el historial,
+  // independientemente del rango elegido arriba (son sobre el estado actual, no sobre un periodo)
+  const sched=getTodayScheduled();
+  const doneCount=sched.filter(eq=>isDoneToday(eq[0])).length;
+  const pctHoy=sched.length?Math.round(doneCount/sched.length*100):100;
+  const turnos=[1,2].map(t=>{
+    const insT=all.filter(i=>Number(i.turno)===t);
+    let b=0,m=0,r=0;
+    insT.forEach(ins=>ins.items.forEach(it=>{if(it.estado==='b')b++;else if(it.estado==='m')m++;else if(it.estado==='r')r++;}));
+    const tot=b+m+r;
+    return{turno:t,pct:tot?Math.round(m/tot*100):0,total:insT.length};
+  });
+  const secMap={};
+  all.forEach(ins=>{
+    const malos=ins.items.filter(it=>it.estado==='m').length;
+    if(!malos)return;
+    secMap[ins.seccion]=(secMap[ins.seccion]||0)+malos;
+  });
+  const secArr=Object.entries(secMap).sort((a,b)=>b[1]-a[1]);
+  const maxSec=secArr.length?secArr[0][1]:1;
+  const umbral=Math.max(config.cycleDays*2,14);
+  const sinReciente=getEquiposSinInspeccionReciente();
+  // Tendencia semanal de % ítems malos (agrupado por semana, lunes como inicio)
+  const weekMap={};
+  all.forEach(ins=>{
+    const d=new Date(ins.savedAt);const day=(d.getDay()+6)%7;
+    d.setHours(0,0,0,0);d.setDate(d.getDate()-day);
+    const wk=dateStr(d);
+    if(!weekMap[wk])weekMap[wk]={b:0,m:0,r:0,label:d};
+    ins.items.forEach(it=>{if(it.estado==='b')weekMap[wk].b++;else if(it.estado==='m')weekMap[wk].m++;else if(it.estado==='r')weekMap[wk].r++;});
+  });
+  const weeks=Object.keys(weekMap).sort().slice(-12).map(wk=>{
+    const w=weekMap[wk];const tot=w.b+w.m+w.r;
+    return{fecha:w.label,pct:tot?Math.round(w.m/tot*100):0,total:tot};
+  });
+  el.innerHTML=`
+    <div style="padding:0 12px 4px;font-size:11px;color:var(--sub)">Mostrando: ${repRangeLabel()}</div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-num">${totalIns}</div><div class="kpi-label">Inspecciones (${repRangeLabel()})</div></div>
+      <div class="kpi-card"><div class="kpi-num">${pctHoy}%</div><div class="kpi-label">Cumplimiento hoy (${doneCount}/${sched.length})</div></div>
+      <div class="kpi-card"><div class="kpi-num">${pctMalos}%</div><div class="kpi-label">Ítems en mal estado</div></div>
+    </div>
+    <div class="section-head">Comparativo por turno (% ítems malos)</div>
+    <div class="card">
+      ${turnos.map(t=>`<div class="bar-row">
+          <div class="bar-label">T${t.turno} · ${t.turno===1?'Día':'Noche'}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${t.pct}%"></div></div>
+          <div class="bar-val">${t.pct}%</div>
+        </div>`).join('')}
+      <div style="font-size:11px;color:var(--sub);margin-top:2px">Basado en ${turnos.reduce((a,t)=>a+t.total,0)} inspecciones en este periodo</div>
+    </div>
+    <div class="section-head">Secciones con más ítems malos</div>
+    <div class="card">
+      ${secArr.length?secArr.map(([sec,cnt])=>`<div class="bar-row">
+          <div class="bar-label">${sec}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(cnt/maxSec*100)}%"></div></div>
+          <div class="bar-val">${cnt}</div>
+        </div>`).join(''):'<div style="text-align:center;color:var(--sub);font-size:12px;padding:10px">Sin datos en este periodo.</div>'}
+    </div>
+    <div class="section-head">Tendencia semanal (% ítems malos)</div>
+    <div class="card">
+      ${weeks.length?weeks.map(w=>`<div class="bar-row">
+          <div class="bar-label">${w.fecha.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${w.pct}%"></div></div>
+          <div class="bar-val">${w.pct}%</div>
+        </div>`).join(''):'<div style="text-align:center;color:var(--sub);font-size:12px;padding:10px">Aún no hay suficientes datos para una tendencia.</div>'}
+      ${weeks.length?`<div style="font-size:11px;color:var(--sub);margin-top:2px">Últimas ${weeks.length} semana${weeks.length!==1?'s':''} con datos, agrupadas de lunes a domingo</div>`:''}
+    </div>
+    <div class="section-head">⚠ Equipos sin inspección reciente (${umbral}+ días, sobre todo el historial)</div>
+    <div class="card">
+      ${sinReciente.length?sinReciente.map(x=>`<div class="warn-row">
+          <span><strong>${x.eq[0]}</strong> · ${x.eq[1]}</span>
+          <span style="color:var(--red);font-weight:700">${x.dias===null?'Nunca':x.dias+' días'}</span>
+        </div>`).join(''):'<div style="text-align:center;color:var(--sub);font-size:12px;padding:10px">Todos los equipos tienen inspecciones recientes.</div>'}
+    </div>`;
+}
+
+// --- RANKING DE EQUIPOS ---
+function renderRepRanking(){
+  const el=document.getElementById('rep-tab-ranking');
+  const ranged=getRangeFilteredInspecciones();
+  const stats=equipos.map(eq=>{
+    const propias=ranged.filter(i=>i.equipoId===eq[0]);
+    let b=0,m=0,r=0;
+    propias.forEach(ins=>ins.items.forEach(it=>{if(it.estado==='b')b++;else if(it.estado==='m')m++;else if(it.estado==='r')r++;}));
+    const total=b+m+r;
+    return{eq,malos:m,inspecciones:propias.length,pct:total?Math.round(m/total*100):0};
+  }).filter(s=>s.inspecciones>0).sort((a,b)=>b.malos-a.malos);
+  if(!stats.length){
+    el.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin inspecciones en este periodo (${repRangeLabel()}).</div>`;
+    return;
+  }
+  el.innerHTML=`<div style="padding:0 12px 4px;font-size:11px;color:var(--sub)">Mostrando: ${repRangeLabel()}</div><div class="card">`+stats.map((s,i)=>`
+    <div class="rank-row" style="cursor:pointer" onclick="repGoToEquipo('${s.eq[0]}')">
+      <div class="rank-pos">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${s.eq[0]} · ${s.eq[1]}</div>
+        <div class="rank-sub">${s.inspecciones} inspección${s.inspecciones!==1?'es':''} · ${s.pct}% de ítems malos</div>
+      </div>
+      <div class="rank-count">${s.malos}</div>
+    </div>`).join('')+'</div>';
+}
+
+// --- REINCIDENCIAS ---
+function renderRepReinc(){
+  const el=document.getElementById('rep-tab-reinc');
+  const resueltas=config.reincResueltas||{};
+  const map={};
+  getRangeFilteredInspecciones().forEach(ins=>{
+    ins.items.forEach(it=>{
+      if(it.estado!=='m')return;
+      const key=ins.equipoId+'||'+it.nombre;
+      const resolvedAt=resueltas[key]||0;
+      if(ins.savedAt<=resolvedAt)return; // ya se marcó como atendida y no ha vuelto a fallar desde entonces
+      if(!map[key])map[key]={equipoId:ins.equipoId,nombre:it.nombre,count:0,lastFecha:ins.fecha,lastSavedAt:ins.savedAt};
+      map[key].count++;
+      if(ins.savedAt>map[key].lastSavedAt){map[key].lastFecha=ins.fecha;map[key].lastSavedAt=ins.savedAt;}
+    });
+  });
+  const list=Object.values(map).filter(x=>x.count>=2).sort((a,b)=>b.count-a.count);
+  reincListCache=list.map(x=>({...x,key:x.equipoId+'||'+x.nombre}));
+  if(!list.length){
+    el.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin reincidencias activas en este periodo (${repRangeLabel()}) — ítems marcados "malo" 2+ veces en el mismo equipo sin marcarse como resueltas.</div>`;
+    return;
+  }
+  el.innerHTML=`<div style="padding:0 12px 4px;font-size:11px;color:var(--sub)">Mostrando: ${repRangeLabel()}</div><div class="card">`+reincListCache.map((x,i)=>{
+    const eq=equipos.find(e=>e[0]===x.equipoId);
+    return`<div class="rank-row">
+      <div class="rank-pos">${i+1}</div>
+      <div class="rank-info" style="cursor:pointer" onclick="repGoToEquipo('${x.equipoId}')">
+        <div class="rank-name">${x.equipoId}${eq?' · '+eq[1]:''}</div>
+        <div class="rank-sub">${x.nombre} · última vez: ${fmtFechaCorta(x.lastFecha)}</div>
+      </div>
+      <div class="rank-count">×${x.count}</div>
+      <button style="border:1.5px solid var(--border);background:none;color:var(--text);border-radius:7px;padding:6px 8px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();markReincResuelta(${i})">✔ Resuelta</button>
+    </div>`;
+  }).join('')+'</div>';
+}
+async function markReincResuelta(idx){
+  const x=reincListCache[idx];if(!x)return;
+  await fetchRemoteConfig();
+  config.reincResueltas=config.reincResueltas||{};
+  config.reincResueltas[x.key]=Date.now();
+  await persist('config',config);
+  await sbPushConfig(config);
+  toast('✅ Marcada como resuelta');
+  renderRepReinc();
+}
+
+// --- EXPORTAR CSV ---
+function csvEscape(v){
+  const s=(v===undefined||v===null)?'':String(v);
+  return '"'+s.replace(/"/g,'""')+'"';
+}
+function downloadCSV(filename,rows){
+  const csv=rows.map(r=>r.map(csvEscape).join(',')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function insToRow(ins){
+  const b=ins.items.filter(it=>it.estado==='b').length;
+  const m=ins.items.filter(it=>it.estado==='m').length;
+  const r=ins.items.filter(it=>it.estado==='r').length;
+  const malos=ins.items.filter(it=>it.estado==='m').map(it=>it.nombre).join('; ');
+  return[ins.fecha,'T'+ins.turno,ins.equipoId,ins.equipoNombre,ins.seccion,ins.area,ins.tipo,ins.mecanico,b,r,m,malos,ins.observaciones||''];
+}
+function exportHistorialCSV(){
+  const header=['Fecha','Turno','Equipo ID','Equipo','Sección','Área','Tipo','Mecánico','Buenos','Regulares','Malos','Ítems en mal estado','Observaciones'];
+  const rows=[header,...[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt).map(insToRow)];
+  downloadCSV('historial_inspecciones_'+todayStr()+'.csv',rows);
+  toast('📥 CSV descargado');
+}
+function exportHoyCSV(){
+  const ts=todayStr();
+  const header=['Fecha','Turno','Equipo ID','Equipo','Sección','Área','Tipo','Mecánico','Buenos','Regulares','Malos','Ítems en mal estado','Observaciones'];
+  const delHoy=inspecciones.filter(i=>i.fecha===ts).sort((a,b)=>b.savedAt-a.savedAt);
+  if(!delHoy.length){toast('Sin inspecciones hoy',false);return;}
+  downloadCSV('reporte_hoy_'+ts+'.csv',[header,...delHoy.map(insToRow)]);
+  toast('📥 CSV descargado');
+}
+function exportRankingCSV(){
+  const header=['Equipo ID','Equipo','Sección','Inspecciones','Ítems Malos','% Malos'];
+  const rows=[header];
+  equipos.forEach(eq=>{
+    const propias=inspecciones.filter(i=>i.equipoId===eq[0]);
+    if(!propias.length)return;
+    let b=0,m=0,r=0;
+    propias.forEach(ins=>ins.items.forEach(it=>{if(it.estado==='b')b++;else if(it.estado==='m')m++;else if(it.estado==='r')r++;}));
+    const total=b+m+r;
+    rows.push([eq[0],eq[1],eq[2],propias.length,m,total?Math.round(m/total*100)+'%':'0%']);
+  });
+  downloadCSV('ranking_equipos_'+todayStr()+'.csv',rows);
+  toast('📥 CSV descargado');
+}
+function exportRangoCSV(){
+  const ranged=getRangeFilteredInspecciones();
+  if(!ranged.length){toast('Sin inspecciones en ese rango',false);return;}
+  const header=['Fecha','Turno','Equipo ID','Equipo','Sección','Área','Tipo','Mecánico','Buenos','Regulares','Malos','Ítems en mal estado','Observaciones'];
+  const rows=[header,...[...ranged].sort((a,b)=>b.savedAt-a.savedAt).map(insToRow)];
+  downloadCSV('reporte_'+repRange.mode+'_'+todayStr()+'.csv',rows);
+  toast('📥 CSV descargado');
+}
+function renderRepExport(){
+  const el=document.getElementById('rep-tab-export');
+  el.innerHTML=`<div class="card">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:10px">Los archivos se descargan en formato CSV, compatibles con Excel y Google Sheets.</div>
+      <button class="export-btn" onclick="exportHoyCSV()">📥 Reporte de hoy</button>
+      <button class="export-btn" onclick="exportRangoCSV()">📥 Rango seleccionado (${repRangeLabel()})</button>
+      <button class="export-btn" onclick="exportHistorialCSV()">📥 Historial completo</button>
+      <button class="export-btn" onclick="exportRankingCSV()">📥 Ranking de equipos</button>
+    </div>`;
+}
+
 // =====================================================================
 // ADMIN
 // =====================================================================
 function renderAdmin(){
-  if(pinState.adm.unlocked){
+  if(adminUnlocked){
     document.getElementById('adm-pin-gate').style.display='none';
     document.getElementById('adm-content').style.display='block';
     renderAdmPanel();
@@ -1149,11 +2083,12 @@ function renderAdmPanel(){
   if(curAdmTab==='config'){
     panel.innerHTML=`
       <div class="field"><label>Fecha de arranque</label><input type="date" id="cfg-start" value="${config.startDate}"></div>
-      <div class="field"><label>Ciclo de inspección (días)</label><input type="number" id="cfg-cycle" value="${config.cycleDays}" min="1" max="90"></div>
+      <div class="field"><label>Equipos a inspeccionar por día</label><input type="number" id="cfg-porDia" value="${config.equiposPorDia||1}" min="1" max="${equipos.length}" onchange="recalcCicloSugerido()"></div>
+      <div class="field"><label>Ciclo de inspección (días)</label><input type="number" id="cfg-cycle" value="${config.cycleDays}" min="1" max="90">
+        <div id="cfg-cycle-hint" style="font-size:11px;color:var(--sub);margin-top:3px"></div></div>
       <div class="field"><label>Turno 1 inicia (hora)</label><input type="number" id="cfg-t1" value="${config.turno1Start}" min="0" max="23"></div>
       <div class="field"><label>Turno 2 inicia (hora)</label><input type="number" id="cfg-t2" value="${config.turno2Start}" min="0" max="23"></div>
-      <div class="field"><label>PIN Administrador</label><input type="password" id="cfg-apin" value="${config.adminPin}" maxlength="6"></div>
-      <div class="field"><label>PIN Reportes</label><input type="password" id="cfg-rpin" value="${config.reportPin}" maxlength="6"></div>
+      <div class="field"><label>Contraseña de Administrador</label><input type="text" id="cfg-apin" value="${config.adminPin}" maxlength="20"></div>
       <button class="btn btn-primary" onclick="saveConfig()">Guardar configuración</button>
       <div id="cfg-status" style="margin-top:10px;font-size:13px;font-weight:700;min-height:20px;"></div>
       <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
@@ -1161,19 +2096,30 @@ function renderAdmPanel(){
       <button class="btn btn-ghost" style="width:100%" onclick="forceDeployUpdate()">🚀 Forzar actualización en todos los dispositivos</button>
       <div id="deploy-status" style="margin-top:8px;font-size:12px;min-height:16px;"></div>`;
   } else if(curAdmTab==='mec'){
-    panel.innerHTML=`
-      <div class="field"><label>🌅 Turno 1 (Día) — ${config.turno1Start}:00 a ${config.turno2Start}:00</label>
-        <input type="text" id="adm-t1" value="${mechNombres[1]||''}"></div>
-      <div class="field"><label>🌙 Turno 2 (Noche) — ${config.turno2Start}:00 a ${config.turno1Start}:00</label>
-        <input type="text" id="adm-t2" value="${mechNombres[2]||''}"></div>
-      <button class="btn btn-primary" onclick="saveMecAdmin()">Guardar nombres</button>`;
+    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${config.usuarios.length} usuario(s)</div>`+
+      config.usuarios.map((u,i)=>`<div class="eq-line">
+        <span class="eq-nom" style="flex:1">${u.nombre}</span>
+        <span style="font-size:11px;color:var(--sub);font-family:monospace">${u.password}</span>
+        <button class="del-btn" onclick="delUsuario(${i})">✕</button>
+      </div>`).join('')+
+      `<div style="margin-top:14px;font-weight:700;font-size:12px;margin-bottom:6px">+ Agregar usuario</div>
+      <div class="field"><label>Nombre completo</label><input type="text" id="nu-nombre" placeholder="Nombre Apellido"></div>
+      <div class="field"><label>Contraseña</label><input type="text" id="nu-pass" placeholder="1234" maxlength="10"></div>
+      <button class="btn btn-green btn-sm" onclick="addUsuario()">+ Agregar</button>`;
   } else if(curAdmTab==='eq'){
     const secOpts=['Trituración','Clasificación','Molienda','Bombeo','Lixiviación'].map(s=>`<option>${s}</option>`).join('');
-    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${equipos.length} equipos</div>`+
+    const porDia=config.equiposPorDia||1;
+    panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${equipos.length} equipos — el orden define el día que le toca a cada uno en el ciclo de inspección (${porDia} equipo${porDia!==1?'s':''}/día)</div>`+
       equipos.map((eq,i)=>`<div class="eq-line">
+        <span style="font-size:11px;color:var(--sub);min-width:20px;text-align:right">${i+1}.</span>
+        <span style="display:flex;flex-direction:column;gap:2px">
+          <button class="del-btn" style="padding:0 6px" onclick="moveEquipo(${i},-1)" ${i===0?'disabled':''}>▲</button>
+          <button class="del-btn" style="padding:0 6px" onclick="moveEquipo(${i},1)" ${i===equipos.length-1?'disabled':''}>▼</button>
+        </span>
         <span class="eq-lid">${eq[0]}</span>
         <span class="eq-lnom">${eq[1]}</span>
         <span style="font-size:10px;color:var(--sub);min-width:50px">${eq[2]}</span>
+        <span style="font-size:10px;color:var(--accent);font-weight:700;min-width:38px">Día ${Math.floor(i/porDia)+1}</span>
         <button class="del-btn" onclick="delEquipo(${i})">✕</button>
       </div>`).join('')+
       `<div style="margin-top:14px;font-weight:700;font-size:12px;margin-bottom:6px">+ Agregar equipo</div>
@@ -1191,7 +2137,11 @@ function renderAdmPanel(){
       (admSelectedEq?
         (isShared?`<div style="background:#fef3c7;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:8px">⚠ Ítems compartidos con su grupo.</div>`:'')
         +`<div style="font-size:12px;font-weight:700;margin-bottom:4px">${items.length} ítems</div>`
-        +items.map((it,idx)=>`<div class="item-line"><span>${idx+1}. ${it}</span>
+        +items.map((it,idx)=>`<div class="item-line">
+          <span style="font-size:11px;color:var(--sub);min-width:18px">${idx+1}.</span>
+          <input type="text" value="${it.replace(/"/g,'&quot;')}" ${isShared?'disabled':''}
+            onchange="editItemName('${admSelectedEq}',${idx},this.value)"
+            style="flex:1;border:none;background:transparent;font-size:13px;padding:4px 2px">
           ${!isShared?`<button class="del-btn" onclick="delItem('${admSelectedEq}',${idx})">✕</button>`:''}</div>`).join('')
         +(!isShared?`<div class="add-row"><input type="text" id="new-item-inp" placeholder="Nuevo ítem">
           <button class="btn btn-green btn-sm" onclick="addItem('${admSelectedEq}')">+</button></div>`:'')
@@ -1204,20 +2154,21 @@ function renderAdmPanel(){
       <div class="field"><label>Equipo</label><select id="reinsp-eq">${eqOpts}</select></div>
       <button class="btn btn-primary btn-sm" style="margin-bottom:16px" onclick="startReinsp()">Iniciar reinspección →</button>
       ${recent.length?'<div style="font-size:12px;font-weight:700;margin-bottom:6px">Últimas inspecciones</div>'
-        +recent.map(ins=>`<div class="item-line"><span>${ins.fecha} · <b>${ins.equipoId}</b> · T${ins.turno} · ${ins.tipo}</span></div>`).join('')
+        +recent.map(ins=>`<div class="item-line"><span>${fmtFechaCorta(ins.fecha)} · <b>${ins.equipoId}</b> · T${ins.turno} · ${ins.tipo}</span></div>`).join('')
         :'<div style="color:var(--sub);font-size:13px">Sin inspecciones aún.</div>'}`;
   } else if(curAdmTab==='historial'){
     const sorted=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
     panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:10px">
-      ${sorted.length} inspección(es) en total. Toca 🗑 para borrar (se elimina de todos los dispositivos).</div>`+
+      ${sorted.length} inspección(es) en total. Toca ✏️ para editar o 🗑 para borrar (se elimina de todos los dispositivos).</div>`+
       (sorted.length?sorted.map(ins=>`
       <div class="item-line" style="flex-wrap:wrap;gap:4px">
         <div style="flex:1;min-width:0">
           <span style="font-weight:700;font-size:12px;font-family:monospace">${ins.equipoId}</span>
           <span style="font-size:11px;color:var(--sub);margin-left:4px">${ins.equipoNombre}</span><br>
-          <span style="font-size:11px;color:var(--sub)">${ins.fecha} · T${ins.turno} · ${ins.mecanico}</span>
+          <span style="font-size:11px;color:var(--sub)">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico}</span>
           ${ins.pending?'<span style="font-size:10px;color:var(--amber);margin-left:4px">⏳ pendiente</span>':''}
         </div>
+        <button class="del-btn" style="background:#dbeafe;color:var(--accent);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700;margin-right:4px" onclick="editInspeccionAdmin('${ins.id}')">✏️</button>
         <button class="del-btn" style="background:#fee2e2;color:var(--red);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700" onclick="deleteInspeccion('${ins.id}')">🗑</button>
       </div>`).join('')
       :'<div style="color:var(--sub);font-size:13px;padding:20px 0;text-align:center">Sin inspecciones registradas.</div>');
@@ -1230,7 +2181,7 @@ async function forceDeployUpdate(){
   await persist('config',config);
   const st=document.getElementById('deploy-status');
   if(st){st.textContent='Enviando señal…';st.style.color='var(--sub)';}
-  if(navigator.onLine){
+  if(await isReallyOnline()){
     const ok=await sbPushConfig(config);
     if(st){
       st.textContent=ok?'✅ Señal enviada — los demás dispositivos recargarán en ~5 seg':'⚠ Error al enviar';
@@ -1241,17 +2192,23 @@ async function forceDeployUpdate(){
   }
 }
 
+function recalcCicloSugerido(){
+  const porDia=parseInt(document.getElementById('cfg-porDia').value)||1;
+  const sugerido=Math.ceil(equipos.length/porDia);
+  document.getElementById('cfg-cycle').value=sugerido;
+  document.getElementById('cfg-cycle-hint').textContent=`Sugerido para ${equipos.length} equipos a ${porDia}/día: ${sugerido} días. Puedes ajustarlo a mano si quieres.`;
+}
 async function saveConfig(){
   config.startDate=document.getElementById('cfg-start').value;
+  config.equiposPorDia=parseInt(document.getElementById('cfg-porDia').value)||1;
   config.cycleDays=parseInt(document.getElementById('cfg-cycle').value)||25;
   config.turno1Start=parseInt(document.getElementById('cfg-t1').value)||7;
   config.turno2Start=parseInt(document.getElementById('cfg-t2').value)||19;
   config.adminPin=document.getElementById('cfg-apin').value||'8520';
-  config.reportPin=document.getElementById('cfg-rpin').value||'1234';
   await persist('config',config);
   const st=document.getElementById('cfg-status');
   if(st){st.textContent='Guardando…';st.style.color='var(--sub)';}
-  if(navigator.onLine){
+  if(await isReallyOnline()){
     const ok=await sbPushConfig(config);
     const msg=ok?'✅ Guardada y sincronizada ☁':'⚠ Guardada local (error nube — ver F12)';
     const col=ok?'var(--green)':'var(--amber)';
@@ -1263,15 +2220,33 @@ async function saveConfig(){
     toast(msg,false);
   }
 }
-async function saveMecAdmin(){
-  mechNombres[1]=document.getElementById('adm-t1').value.trim()||'Mecánico T1';
-  mechNombres[2]=document.getElementById('adm-t2').value.trim()||'Mecánico T2';
-  await persist('mec',mechNombres);
-  toast('Nombres guardados');
+async function addUsuario(){
+  const nombre=document.getElementById('nu-nombre').value.trim();
+  const pass=document.getElementById('nu-pass').value.trim();
+  if(!nombre||!pass){toast('Falta nombre o contraseña',false);return;}
+  if(config.usuarios.some(u=>u.nombre.toLowerCase()===nombre.toLowerCase())){toast('Ya existe ese usuario',false);return;}
+  config.usuarios.push({nombre,password:pass});
+  await persist('config',config);
+  if(await isReallyOnline())await sbPushConfig(config);
+  toast('✅ Usuario agregado');
+  renderAdmPanel();
+}
+async function delUsuario(i){
+  if(!confirm('¿Eliminar al usuario '+config.usuarios[i].nombre+'?'))return;
+  config.usuarios.splice(i,1);
+  await persist('config',config);
+  if(await isReallyOnline())await sbPushConfig(config);
+  renderAdmPanel();
 }
 function delEquipo(i){
   if(!confirm('¿Eliminar '+equipos[i][1]+'?'))return;
   equipos.splice(i,1);renderAdmPanel();
+}
+function moveEquipo(i,dir){
+  const j=i+dir;
+  if(j<0||j>=equipos.length)return;
+  [equipos[i],equipos[j]]=[equipos[j],equipos[i]];
+  renderAdmPanel();
 }
 function addEquipo(){
   const id=document.getElementById('ne-id').value.trim().toUpperCase();
@@ -1283,6 +2258,13 @@ function addEquipo(){
   const tc=sec==='Trituración'?'t-trit':sec==='Clasificación'?'t-clas':sec==='Molienda'?'t-mol':sec==='Bombeo'?'t-bom':'t-lix';
   equipos.push([id,nom,sec,tc,area]);
   toast('Equipo agregado ✔');renderAdmPanel();
+}
+function editItemName(eqId,idx,value){
+  const v=value.trim();
+  if(!v){toast('El nombre del ítem no puede quedar vacío',false);renderAdmPanel();return;}
+  if(!catalog[eqId])catalog[eqId]=[...getCatalogItems(eqId)];
+  catalog[eqId][idx]=v;
+  toast('✔ Ítem actualizado');
 }
 function delItem(eqId,idx){
   if(!catalog[eqId])catalog[eqId]=[...getCatalogItems(eqId)];
@@ -1306,6 +2288,13 @@ function startReinsp(){
 // INIT — load from IndexedDB
 // =====================================================================
 async function init(){
+  setupRollHover();
+  try{
+    if(navigator.storage&&navigator.storage.persist){
+      const already=await navigator.storage.persisted();
+      if(!already)await navigator.storage.persist();
+    }
+  }catch(e){console.warn('storage.persist no disponible',e);}
   try{
     await initDB();
     // Load inspecciones
@@ -1323,10 +2312,11 @@ async function init(){
   await fetchRemoteInspecciones(); // jala inspecciones de otros dispositivos
   await syncPending();             // sube lo que quedó pendiente offline
 
-  // Restaurar estado de PINs (sesión del navegador, sobrevive recargas automáticas)
+  // Restaurar sesión de usuario y estado de PIN admin (sobrevive recargas automáticas)
   try{
-    if(sessionStorage.getItem('pin_rep')==='1') pinState.rep.unlocked=true;
-    if(sessionStorage.getItem('pin_adm')==='1') pinState.adm.unlocked=true;
+    if(sessionStorage.getItem('pin_adm')==='1') adminUnlocked=true;
+    const su=sessionStorage.getItem('loggedUser');
+    if(su)session.user=su;
   }catch(_){}
 
   // Restaurar vista activa (para que un auto-reload no mande a "Hoy")
@@ -1335,33 +2325,25 @@ async function init(){
   // No restaurar 'form' porque el formulario necesita contexto que se perdió
   if(restoreView==='form') restoreView='home';
   showView(restoreView);
+  if(session.user)updateAlertsUI();
   // Update turno every minute
   setInterval(()=>{
     if(document.querySelector('#view-home.active'))renderHome();
   },60000);
-  // Sync completo cada 10s: config + inspecciones de otros dispositivos
+  // Sync completo cada 30s: config + inspecciones de otros dispositivos
   setInterval(async()=>{
-    if(!navigator.onLine)return;
+    if(window.updateOnline)window.updateOnline();
     const snapCfg=JSON.stringify(config);
     const snapIns=JSON.stringify(inspecciones.map(i=>i.id+i.savedAt));
-    await syncPending();  // sube pendientes primero
+    await syncPending();  // sube pendientes primero, y también intenta subir la cola de fotos
     await Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]);
     const changed=JSON.stringify(config)!==snapCfg||JSON.stringify(inspecciones.map(i=>i.id+i.savedAt))!==snapIns;
-    // Actualizar badge de sync en header
-    try{
-      const el=document.getElementById('sync-badge');
-      if(el){const d=new Date();el.textContent='⟳ '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');}
-    }catch(_){}
     if(changed){
       renderHome();
       if(document.querySelector('#view-roll.active'))renderRoll();
       if(document.querySelector('#view-reports.active'))renderReports();
-      if(document.querySelector('#view-adm.active')){
-        // re-render historial si está abierto
-        try{renderAdmPanel();}catch(_){}
-      }
     }
-  },10000);
+  },30000);
 }
 // =====================================================================
 // PULL TO REFRESH
@@ -1408,7 +2390,7 @@ async function init(){
         renderHome();
         const v=document.querySelector('.view.active');
         if(v&&v.id==='view-roll')renderRoll();
-        if(v&&v.id==='view-reports')renderRepList();
+        if(v&&v.id==='view-reports')renderRepTabContent();
         toast('✅ Actualizado');
       }catch(e){}
     }
@@ -1468,8 +2450,9 @@ function confirmCancel(){
 // BORRAR INSPECCIÓN (solo admin)
 // =====================================================================
 function deleteInspeccion(id){
+  if(window.checkForUpdate)window.checkForUpdate();
   const ins=inspecciones.find(i=>i.id===id);
-  const label=ins?`${ins.equipoId} · ${ins.fecha} · T${ins.turno}`:'esta inspección';
+  const label=ins?`${ins.equipoId} · ${fmtFechaCorta(ins.fecha)} · T${ins.turno}`:'esta inspección';
   showConfirm(`Se borrará "${label}" en todos los dispositivos. ¿Continuar?`, async()=>{
     // Quitar de memoria
     const idx=inspecciones.findIndex(i=>i.id===id);
@@ -1484,16 +2467,11 @@ function deleteInspeccion(id){
         });
       }catch(e){console.warn('deleteInspeccion IDB',e);}
     }
-    // Quitar de Supabase (o encolar si offline)
-    if(navigator.onLine){
-      try{
-        const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+encodeURIComponent(id),
-          {method:'DELETE',headers:{...SB_H,'Prefer':'return=minimal'}});
-      }catch(e){console.warn('deleteInspeccion SB',e);addPendingDelete(id);}
-    } else {
-      // Sin internet: encolar para borrar en Supabase cuando haya conexión
-      addPendingDelete(id);
-    }
+    // Quitar de Supabase (o encolar si falla)
+    try{
+      const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+encodeURIComponent(id),
+        {method:'DELETE',headers:{...SB_H,'Prefer':'return=minimal'}});
+    }catch(e){console.warn('deleteInspeccion SB',e);addPendingDelete(id);}
     toast('🗑 Inspección eliminada');
     renderAdmPanel();
     renderHome();
