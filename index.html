@@ -206,8 +206,9 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 <div id="app">
   <div id="header">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v21</span></h1>
+    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v25</span></h1>
     <div id="sync-dot" title="En línea"></div>
+    <span id="sync-badge" style="font-size:10px;opacity:.7;color:#fff;font-family:monospace;"></span>
     <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
     <span id="turno-badge">T1 · Día</span>
   </div>
@@ -1338,7 +1339,7 @@ async function init(){
   setInterval(()=>{
     if(document.querySelector('#view-home.active'))renderHome();
   },60000);
-  // Sync completo cada 30s: config + inspecciones de otros dispositivos
+  // Sync completo cada 10s: config + inspecciones de otros dispositivos
   setInterval(async()=>{
     if(!navigator.onLine)return;
     const snapCfg=JSON.stringify(config);
@@ -1346,12 +1347,21 @@ async function init(){
     await syncPending();  // sube pendientes primero
     await Promise.all([fetchRemoteConfig(),fetchRemoteInspecciones()]);
     const changed=JSON.stringify(config)!==snapCfg||JSON.stringify(inspecciones.map(i=>i.id+i.savedAt))!==snapIns;
+    // Actualizar badge de sync en header
+    try{
+      const el=document.getElementById('sync-badge');
+      if(el){const d=new Date();el.textContent='⟳ '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');}
+    }catch(_){}
     if(changed){
       renderHome();
       if(document.querySelector('#view-roll.active'))renderRoll();
       if(document.querySelector('#view-reports.active'))renderReports();
+      if(document.querySelector('#view-adm.active')){
+        // re-render historial si está abierto
+        try{renderAdmPanel();}catch(_){}
+      }
     }
-  },30000);
+  },10000);
 }
 // =====================================================================
 // PULL TO REFRESH
