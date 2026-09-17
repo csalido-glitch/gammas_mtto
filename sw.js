@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v46 (Roll: columna ÁREA oculta en celular para ver más días; resaltado en cruz al pasar el mouse en laptop)
-const CACHE = 'gamas-mrt-v46';
+// Gamas MRT – Service Worker v48 (mejoras: lista regulares, filtro equipo, CSV/PDF, banner vencidos)
+const CACHE = 'gamas-mrt-v48';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
