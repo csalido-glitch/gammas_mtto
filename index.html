@@ -138,6 +138,29 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 .item-estado-r{font-weight:700;color:var(--amber);min-width:22px;text-align:center;}
 .item-estado-m{font-weight:700;color:var(--red);min-width:22px;text-align:center;}
 .cnt-b{color:var(--green);}.cnt-m{color:var(--red);}.cnt-r{color:var(--amber);}
+/* ---- FOTOS ANTES/DESPUÉS ---- */
+.item-fotos{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px 12px 10px;}
+.foto-slot-btn{border-radius:9px;border:1.5px dashed var(--border);background:var(--bg);padding:0;text-align:center;cursor:pointer;position:relative;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:border-color .15s;overflow:hidden;}
+.foto-slot-btn:active{border-color:var(--accent);}
+.foto-slot-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sub);}
+.foto-slot-icon{font-size:18px;line-height:1;}
+.foto-slot-thumb{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:8px;}
+.foto-slot-chip{position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.6);color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.05em;}
+.foto-slot-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);border:none;color:#fff;font-size:11px;border-radius:4px;padding:2px 5px;cursor:pointer;line-height:1;z-index:2;}
+.foto-slot-btn.has-foto{border-style:solid;border-color:var(--border);}
+/* Foto picker modal */
+.foto-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:900;display:flex;align-items:flex-end;justify-content:center;}
+.foto-picker-sheet{background:var(--surface);border-radius:16px 16px 0 0;padding:20px 16px 28px;width:100%;max-width:440px;box-shadow:0 -4px 24px rgba(0,0,0,.15);}
+.foto-picker-title{font-size:11px;color:var(--sub);text-align:center;margin-bottom:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+.foto-picker-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.foto-picker-btn{padding:16px 8px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:26px;cursor:pointer;text-align:center;}
+.foto-picker-btn span{display:block;font-size:11px;color:var(--sub);margin-top:6px;font-weight:600;}
+.foto-picker-cancel{width:100%;padding:12px;border-radius:10px;border:none;background:var(--bg);color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;}
+/* Thumbnails antes/después en reportes */
+.foto-compare-pair{display:flex;gap:4px;margin-left:auto;flex-shrink:0;}
+.foto-compare-thumb{position:relative;width:30px;height:30px;}
+.foto-compare-thumb img{width:30px;height:30px;border-radius:5px;object-fit:cover;cursor:pointer;display:block;}
+.foto-compare-chip{position:absolute;bottom:1px;left:1px;background:rgba(0,0,0,.65);color:#fff;font-size:7px;font-weight:700;padding:0 2px;border-radius:2px;line-height:1.5;letter-spacing:.03em;}
 .malos-box{background:#fee2e2;border-radius:8px;padding:7px 10px;margin-top:8px;font-size:12px;color:#7f1d1d;}
 .malos-box strong{color:#b91c1c;display:block;margin-bottom:3px;}
 .malos-box div{color:#7f1d1d;}
@@ -423,6 +446,18 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   </div>
 </div>
 
+<!-- FOTO PICKER -->
+<div id="foto-picker-overlay" class="foto-picker-overlay" style="display:none" onclick="if(event.target===this)closeFotoMenu()">
+  <div class="foto-picker-sheet">
+    <div class="foto-picker-title">Agregar foto</div>
+    <div class="foto-picker-btns">
+      <button class="foto-picker-btn" onclick="capturePhoto(_fpIdx,_fpSlot,'camera')">📷<span>Tomar foto</span></button>
+      <button class="foto-picker-btn" onclick="capturePhoto(_fpIdx,_fpSlot,'gallery')">🖼️<span>Elegir de galería</span></button>
+    </div>
+    <button class="foto-picker-cancel" onclick="closeFotoMenu()">Cancelar</button>
+  </div>
+</div>
+
 <div id="ptr-indicator">↓</div>
 <div id="toast"></div>
 
@@ -499,7 +534,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     toast('¡App instalada! Búscala en tu pantalla de inicio 🎉');
   });
 
-  // Service Worker v48
+  // Service Worker v49
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
       reg.addEventListener('updatefound',()=>{
@@ -661,7 +696,7 @@ async function attachFotoRetro(insId,itemIdx){
   const item=ins&&ins.items[itemIdx];
   if(!item)return;
   const input=document.createElement('input');
-  input.type='file';input.accept='image/*';input.capture='environment';
+  input.type='file';input.accept='image/*'; // no capture — allows gallery or camera
   input.onchange=async()=>{
     const file=input.files[0];if(!file)return;
     toast('📤 Procesando foto…');
@@ -944,9 +979,20 @@ async function processFotosPendientes(){
       if(ins){
         const it=ins.items[job.itemIdx];
         if(it){
-          delete it.fotoStatus;delete it.fotoId;
-          it.fotoUrl=sbPublicUrl(job.fileNameFull);
-          it.fotoThumbUrl=sbPublicUrl(job.fileNameThumb);
+          if(job.slot==='antes'){
+            delete it.fotoAntesId;
+            it.fotoAntesUrl=sbPublicUrl(job.fileNameFull);
+            it.fotoAntesThumbUrl=sbPublicUrl(job.fileNameThumb);
+          }else if(job.slot==='despues'){
+            delete it.fotoDespuesId;
+            it.fotoDespuesUrl=sbPublicUrl(job.fileNameFull);
+            it.fotoDespuesThumbUrl=sbPublicUrl(job.fileNameThumb);
+          }else{
+            // backward compat: old single-photo queue entries
+            delete it.fotoStatus;delete it.fotoId;
+            it.fotoUrl=sbPublicUrl(job.fileNameFull);
+            it.fotoThumbUrl=sbPublicUrl(job.fileNameThumb);
+          }
           ins.savedAt=Date.now(); // así otros dispositivos detectan el cambio y jalan la URL nueva
           await dbPut('inspecciones',ins);
           const mem=inspecciones.find(i=>i.id===job.insId);
@@ -1063,35 +1109,63 @@ let curAdmTab='config',admSelectedEq=null;
 let currentEq=null,currentTipo='programada';
 let formItemStates={};
 let formItemFotos={};
+let _fpIdx=null,_fpSlot=null;
 let editingInsId=null; // si tiene valor, saveForm() actualiza esa inspección ya existente en vez de crear una nueva
-async function capturePhoto(idx){
+async function capturePhoto(idx,slot,source){
+  closeFotoMenu();
   const online=await isReallyOnline();
   if(!online&&!dispositivoConfiableOffline){
-    toast('⚠ Sin conexión y este dispositivo no guarda bien fotos offline — mejor tómala con la cámara normal de tu celular y adjúntala después',false);
+    toast('⚠ Sin conexión — la foto se guardará en cola',false);
   }
   const input=document.createElement('input');
-  input.type='file';input.accept='image/*';input.capture='environment';
+  input.type='file';input.accept='image/*';
+  if(source==='camera')input.capture='environment';
   input.onchange=async()=>{
     const file=input.files[0];if(!file)return;
     toast('📷 Procesando foto…');
     try{
       const[thumbData,fullData]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
-      formItemFotos[idx]={thumbData,fullData};
+      if(!formItemFotos[idx])formItemFotos[idx]={};
+      formItemFotos[idx][slot]={thumbData,fullData};
       renderFormItemPhoto(idx);
     }catch(e){toast('No se pudo procesar la foto',false);}
   };
   input.click();
 }
-function removePhoto(idx){
-  delete formItemFotos[idx];
+function showFotoMenu(idx,slot){
+  _fpIdx=idx;_fpSlot=slot;
+  document.getElementById('foto-picker-overlay').style.display='flex';
+}
+function closeFotoMenu(){
+  document.getElementById('foto-picker-overlay').style.display='none';
+  _fpIdx=null;_fpSlot=null;
+}
+function removePhoto(idx,slot){
+  if(!formItemFotos[idx])return;
+  if(slot){
+    delete formItemFotos[idx][slot];
+    if(!formItemFotos[idx].antes&&!formItemFotos[idx].despues)delete formItemFotos[idx];
+  }else{
+    delete formItemFotos[idx];
+  }
   renderFormItemPhoto(idx);
 }
 function renderFormItemPhoto(idx){
-  const el=document.getElementById('foto-preview-'+idx);
-  if(!el)return;
-  const f=formItemFotos[idx];
-  el.innerHTML=f?`<img src="${f.thumbData}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;margin-left:4px">
-    <button onclick="removePhoto(${idx})" style="border:none;background:none;color:var(--red);font-size:14px;cursor:pointer;padding:0 4px" title="Quitar foto">✕</button>`:'';
+  const f=formItemFotos[idx]||{};
+  ['antes','despues'].forEach(slot=>{
+    const slotEl=document.getElementById(`foto-slot-${slot}-${idx}`);
+    if(!slotEl)return;
+    const foto=f[slot];
+    if(foto){
+      slotEl.className='foto-slot-btn has-foto';
+      slotEl.innerHTML=`<img class="foto-slot-thumb" src="${foto.thumbData}">
+        <span class="foto-slot-chip">${slot==='antes'?'Antes':'Después'}</span>
+        <button class="foto-slot-del" onclick="event.stopPropagation();removePhoto(${idx},'${slot}')">✕</button>`;
+    }else{
+      slotEl.className='foto-slot-btn';
+      slotEl.innerHTML=`<span class="foto-slot-icon">📷</span><span class="foto-slot-label">${slot==='antes'?'Antes':'Después'}</span>`;
+    }
+  });
 }
 const TODAY=new Date(); // fecha real del dispositivo
 
@@ -1410,8 +1484,14 @@ function openForm(eqId,tipo){
         <button class="item-btn" id="ib-b-${idx}" onclick="setItem(${idx},'b')">✔</button>
         <button class="item-btn" id="ib-r-${idx}" onclick="setItem(${idx},'r')">~</button>
         <button class="item-btn" id="ib-m-${idx}" onclick="setItem(${idx},'m')">✘</button>
-        <button id="foto-btn-${idx}" onclick="capturePhoto(${idx})" style="display:none;border:none;background:none;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="Agregar foto de evidencia">📷</button>
-        <span id="foto-preview-${idx}" style="display:inline-flex;align-items:center"></span>
+      </div>
+    </div>
+    <div class="item-fotos">
+      <div id="foto-slot-antes-${idx}" class="foto-slot-btn" onclick="showFotoMenu(${idx},'antes')">
+        <span class="foto-slot-icon">📷</span><span class="foto-slot-label">Antes</span>
+      </div>
+      <div id="foto-slot-despues-${idx}" class="foto-slot-btn" onclick="showFotoMenu(${idx},'despues')">
+        <span class="foto-slot-icon">📷</span><span class="foto-slot-label">Después</span>
       </div>
     </div>`).join('');
   document.getElementById('form-obs').value='';
@@ -1436,15 +1516,29 @@ function editInspeccionAdmin(id){
     <span style="font-size:11px;color:var(--sub)">${ins.area}</span>`;
   document.getElementById('form-items').innerHTML=ins.items.map((item,idx)=>{
     if(item.estado)formItemStates[idx]=item.estado;
-    const fotoHtml=item.fotoThumbUrl?`<img src="${item.fotoThumbUrl}" style="width:22px;height:22px;border-radius:4px;object-fit:cover">`:'';
+    // Pre-populate existing photos into formItemFotos for backward compat
+    // (existing inspections may have fotoAntesThumbUrl/fotoDespuesThumbUrl or legacy fotoThumbUrl)
+    const antesThumb=item.fotoAntesThumbUrl;
+    const despuesThumb=item.fotoDespuesThumbUrl||item.fotoThumbUrl;
+    if(antesThumb||despuesThumb){
+      formItemFotos[idx]=formItemFotos[idx]||{};
+      if(antesThumb)formItemFotos[idx].antes={thumbData:antesThumb,fullData:item.fotoAntesUrl,existing:true};
+      if(despuesThumb)formItemFotos[idx].despues={thumbData:despuesThumb,fullData:item.fotoDespuesUrl||item.fotoUrl,existing:true};
+    }
     return `<div class="item-row">
       <span class="item-name">${idx+1}. ${item.nombre}</span>
       <div class="item-btns">
         <button class="item-btn${item.estado==='b'?' sel-b':''}" id="ib-b-${idx}" onclick="setItem(${idx},'b')">✔</button>
         <button class="item-btn${item.estado==='r'?' sel-r':''}" id="ib-r-${idx}" onclick="setItem(${idx},'r')">~</button>
         <button class="item-btn${item.estado==='m'?' sel-m':''}" id="ib-m-${idx}" onclick="setItem(${idx},'m')">✘</button>
-        <button id="foto-btn-${idx}" onclick="capturePhoto(${idx})" style="display:${item.estado==='m'?'inline-block':'none'};border:none;background:none;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="Agregar/cambiar foto de evidencia">📷</button>
-        <span id="foto-preview-${idx}" style="display:inline-flex;align-items:center">${fotoHtml}</span>
+      </div>
+    </div>
+    <div class="item-fotos">
+      <div id="foto-slot-antes-${idx}" class="foto-slot-btn${antesThumb?' has-foto':''}" onclick="showFotoMenu(${idx},'antes')">
+        ${antesThumb?`<img class="foto-slot-thumb" src="${antesThumb}"><span class="foto-slot-chip">Antes</span><button class="foto-slot-del" onclick="event.stopPropagation();removePhoto(${idx},'antes')">✕</button>`:'<span class="foto-slot-icon">📷</span><span class="foto-slot-label">Antes</span>'}
+      </div>
+      <div id="foto-slot-despues-${idx}" class="foto-slot-btn${despuesThumb?' has-foto':''}" onclick="showFotoMenu(${idx},'despues')">
+        ${despuesThumb?`<img class="foto-slot-thumb" src="${despuesThumb}"><span class="foto-slot-chip">Después</span><button class="foto-slot-del" onclick="event.stopPropagation();removePhoto(${idx},'despues')">✕</button>`:'<span class="foto-slot-icon">📷</span><span class="foto-slot-label">Después</span>'}
       </div>
     </div>`;
   }).join('');
@@ -1459,9 +1553,6 @@ function setItem(idx,estado){
     const btn=document.getElementById(`ib-${x}-${idx}`);
     if(btn)btn.className='item-btn'+(s===x?' sel-'+x:'');
   });
-  const fotoBtn=document.getElementById('foto-btn-'+idx);
-  if(fotoBtn)fotoBtn.style.display=s==='m'?'inline-block':'none';
-  if(s!=='m'&&formItemFotos[idx])removePhoto(idx);
 }
 async function saveForm(){
   if(window.checkForUpdate)window.checkForUpdate();
@@ -1472,30 +1563,41 @@ async function saveForm(){
   // se intenta encolar (OPFS, con respaldo en Cache Storage) para reintentar solas más tarde.
   // Solo si ni subir ni encolar funcionan, se avisa que la evidencia quedó pendiente manual.
   const hayFotos=Object.keys(formItemFotos).length>0;
-  const fotosParaEncolar=[]; // {idx, fotoId, thumbBlob, fullBlob}
+  const fotosParaEncolar=[]; // {idx, fotoId, thumbBlob, fullBlob, slot, suffix}
   let fotosSinResolver=0;
   if(hayFotos)toast('📤 Subiendo foto(s)…');
   const intentarSubidaYa=hayFotos&&await isReallyOnline();
   for(const idx of Object.keys(formItemFotos)){
-    const f=formItemFotos[idx];
-    let subida=false;
-    const fotoId=makeid();
-    const thumbBlob=await(await fetch(f.thumbData)).blob();
-    const fullBlob=await(await fetch(f.fullData)).blob();
-    if(intentarSubidaYa){
-      try{
-        const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
-        const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
-        if(okThumb&&okFull){
-          itemsData[idx].fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
-          itemsData[idx].fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
-          subida=true;
-        }
-      }catch(e){console.warn('subida de foto falló',e);}
-    }
-    if(!subida){
-      itemsData[idx].fotoId=fotoId; // referencia temporal hasta que la cola la resuelva
-      fotosParaEncolar.push({idx,fotoId,thumbBlob,fullBlob});
+    const slots=formItemFotos[idx];
+    for(const slot of ['antes','despues']){
+      const f=slots[slot];
+      if(!f||f.existing)continue; // skip if no photo or already saved (edit mode)
+      let subida=false;
+      const fotoId=makeid();
+      const suffix=slot==='antes'?'_a':'_d';
+      const thumbBlob=await(await fetch(f.thumbData)).blob();
+      const fullBlob=await(await fetch(f.fullData)).blob();
+      if(intentarSubidaYa){
+        try{
+          const okThumb=await sbUploadFoto(fotoId+suffix+'_thumb.jpg',thumbBlob);
+          const okFull=await sbUploadFoto(fotoId+suffix+'_full.jpg',fullBlob);
+          if(okThumb&&okFull){
+            if(slot==='antes'){
+              itemsData[idx].fotoAntesUrl=sbPublicUrl(fotoId+suffix+'_full.jpg');
+              itemsData[idx].fotoAntesThumbUrl=sbPublicUrl(fotoId+suffix+'_thumb.jpg');
+            }else{
+              itemsData[idx].fotoDespuesUrl=sbPublicUrl(fotoId+suffix+'_full.jpg');
+              itemsData[idx].fotoDespuesThumbUrl=sbPublicUrl(fotoId+suffix+'_thumb.jpg');
+            }
+            subida=true;
+          }
+        }catch(e){console.warn('subida de foto falló',e);}
+      }
+      if(!subida){
+        const qKey=slot==='antes'?'fotoAntesId':'fotoDespuesId';
+        itemsData[idx][qKey]=fotoId;
+        fotosParaEncolar.push({idx,fotoId,thumbBlob,fullBlob,slot,suffix});
+      }
     }
   }
   const ins={
@@ -1511,17 +1613,19 @@ async function saveForm(){
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save failed',e);}
   // Encolar las fotos que no se pudieron subir de inmediato
   for(const fp of fotosParaEncolar){
-    const fileNameThumb=fp.fotoId+'_thumb.jpg', fileNameFull=fp.fotoId+'_full.jpg';
+    const fileNameThumb=fp.fotoId+fp.suffix+'_thumb.jpg', fileNameFull=fp.fotoId+fp.suffix+'_full.jpg';
     const okThumb=await saveToQueueStorage(fileNameThumb,fp.thumbBlob);
     const okFull=await saveToQueueStorage(fileNameFull,fp.fullBlob);
     if(okThumb&&okFull){
       try{
-        await dbPut('fotos',{id:fp.fotoId,insId:ins.id,itemIdx:Number(fp.idx),fileNameThumb,fileNameFull,createdAt:Date.now()});
+        await dbPut('fotos',{id:fp.fotoId,insId:ins.id,itemIdx:Number(fp.idx),slot:fp.slot,suffix:fp.suffix,fileNameThumb,fileNameFull,createdAt:Date.now()});
       }catch(e){console.warn('no se pudo guardar metadata de cola',e);fotosSinResolver++;}
     }else{
-      // Ni subir ni encolar funcionó: se queda como "evidencia pendiente" manual (comportamiento anterior)
-      delete itemsData[fp.idx].fotoId;
-      itemsData[fp.idx].fotoStatus=intentarSubidaYa?'error_subida':'sin_conexion';
+      // Ni subir ni encolar funcionó
+      const qKey=fp.slot==='antes'?'fotoAntesId':'fotoDespuesId';
+      const sKey=fp.slot==='antes'?'fotoAntesStatus':'fotoDespuesStatus';
+      delete itemsData[fp.idx][qKey];
+      itemsData[fp.idx][sKey]=intentarSubidaYa?'error_subida':'sin_conexion';
       await dbPut('inspecciones',ins);
       fotosSinResolver++;
     }
@@ -1543,37 +1647,51 @@ async function saveFormEdit(){
   const ins=inspecciones.find(i=>i.id===editingInsId);
   if(!ins){editingInsId=null;closeForm();return;}
   ins.items.forEach((item,idx)=>{item.estado=formItemStates[idx]||null;});
-  const hayFotos=Object.keys(formItemFotos).length>0;
+  const hayFotos=Object.keys(formItemFotos).some(idx=>{
+    const slots=formItemFotos[idx];
+    return (slots.antes&&!slots.antes.existing)||(slots.despues&&!slots.despues.existing);
+  });
   if(hayFotos){
     toast('📤 Subiendo foto(s)…');
     const online=await isReallyOnline();
     for(const idx of Object.keys(formItemFotos)){
-      const f=formItemFotos[idx];
+      const slots=formItemFotos[idx];
       const item=ins.items[idx];
-      const fotoId=makeid();
-      const thumbBlob=await(await fetch(f.thumbData)).blob();
-      const fullBlob=await(await fetch(f.fullData)).blob();
-      let subida=false;
-      if(online){
-        try{
-          const okThumb=await sbUploadFoto(fotoId+'_thumb.jpg',thumbBlob);
-          const okFull=await sbUploadFoto(fotoId+'_full.jpg',fullBlob);
+      for(const slot of ['antes','despues']){
+        const f=slots[slot];
+        if(!f||f.existing)continue;
+        const fotoId=makeid();
+        const suffix=slot==='antes'?'_a':'_d';
+        const thumbBlob=await(await fetch(f.thumbData)).blob();
+        const fullBlob=await(await fetch(f.fullData)).blob();
+        let subida=false;
+        if(online){
+          try{
+            const okThumb=await sbUploadFoto(fotoId+suffix+'_thumb.jpg',thumbBlob);
+            const okFull=await sbUploadFoto(fotoId+suffix+'_full.jpg',fullBlob);
+            if(okThumb&&okFull){
+              if(slot==='antes'){
+                item.fotoAntesUrl=sbPublicUrl(fotoId+suffix+'_full.jpg');
+                item.fotoAntesThumbUrl=sbPublicUrl(fotoId+suffix+'_thumb.jpg');
+              }else{
+                item.fotoDespuesUrl=sbPublicUrl(fotoId+suffix+'_full.jpg');
+                item.fotoDespuesThumbUrl=sbPublicUrl(fotoId+suffix+'_thumb.jpg');
+              }
+              subida=true;
+            }
+          }catch(e){console.warn('subida de foto (edición) falló',e);}
+        }
+        if(!subida){
+          const okThumb=await saveToQueueStorage(fotoId+suffix+'_thumb.jpg',thumbBlob);
+          const okFull=await saveToQueueStorage(fotoId+suffix+'_full.jpg',fullBlob);
           if(okThumb&&okFull){
-            delete item.fotoStatus;
-            item.fotoUrl=sbPublicUrl(fotoId+'_full.jpg');
-            item.fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
-            subida=true;
+            const qKey=slot==='antes'?'fotoAntesId':'fotoDespuesId';
+            item[qKey]=fotoId;
+            await dbPut('fotos',{id:fotoId,insId:ins.id,itemIdx:Number(idx),slot,suffix,fileNameThumb:fotoId+suffix+'_thumb.jpg',fileNameFull:fotoId+suffix+'_full.jpg',createdAt:Date.now()});
+          }else{
+            const sKey=slot==='antes'?'fotoAntesStatus':'fotoDespuesStatus';
+            item[sKey]=online?'error_subida':'sin_conexion';
           }
-        }catch(e){console.warn('subida de foto (edición) falló',e);}
-      }
-      if(!subida){
-        const okThumb=await saveToQueueStorage(fotoId+'_thumb.jpg',thumbBlob);
-        const okFull=await saveToQueueStorage(fotoId+'_full.jpg',fullBlob);
-        if(okThumb&&okFull){
-          item.fotoId=fotoId;
-          await dbPut('fotos',{id:fotoId,insId:ins.id,itemIdx:Number(idx),fileNameThumb:fotoId+'_thumb.jpg',fileNameFull:fotoId+'_full.jpg',createdAt:Date.now()});
-        }else{
-          item.fotoStatus=online?'error_subida':'sin_conexion';
         }
       }
     }
@@ -1807,11 +1925,18 @@ function renderRepList(){
       const ico=it.estado==='b'?'✔':it.estado==='m'?'✘':'~';
       const bg=it.estado==='b'?'rgba(22,163,74,.07)':it.estado==='m'?'rgba(220,38,38,.07)':'rgba(217,119,6,.07)';
       let fotoHtml='';
-      if(it.fotoThumbUrl){
-        fotoHtml=`<img src="${it.fotoThumbUrl}" style="width:26px;height:26px;border-radius:5px;object-fit:cover;margin-left:auto;cursor:pointer" onclick="event.stopPropagation();window.open('${it.fotoUrl}','_blank')">`;
-      }else if(it.fotoId){
-        fotoHtml=`<span onclick="event.stopPropagation();debugFoto('${ins.id}','${it.fotoId}')" style="font-size:10px;color:var(--sub);margin-left:auto;text-decoration:underline">📷 subiendo…</span>`;
-      }else if(it.fotoStatus==='sin_conexion'||it.fotoStatus==='error_subida'){
+      const antesThumb=it.fotoAntesThumbUrl;
+      const despuesThumb=it.fotoDespuesThumbUrl||(it.fotoThumbUrl);
+      const antesUrl=it.fotoAntesUrl;
+      const despuesUrl=it.fotoDespuesUrl||(it.fotoUrl);
+      if(antesThumb||despuesThumb){
+        fotoHtml='<div class="foto-compare-pair">';
+        if(antesThumb)fotoHtml+=`<div class="foto-compare-thumb"><img src="${antesThumb}" onclick="event.stopPropagation();window.open('${antesUrl}','_blank')" title="Antes"><span class="foto-compare-chip">ANT</span></div>`;
+        if(despuesThumb)fotoHtml+=`<div class="foto-compare-thumb"><img src="${despuesThumb}" onclick="event.stopPropagation();window.open('${despuesUrl}','_blank')" title="Después"><span class="foto-compare-chip">DES</span></div>`;
+        fotoHtml+='</div>';
+      }else if(it.fotoAntesId||it.fotoDespuesId||it.fotoId){
+        fotoHtml=`<span style="font-size:10px;color:var(--sub);margin-left:auto">📷 subiendo…</span>`;
+      }else if(it.fotoAntesStatus==='sin_conexion'||it.fotoAntesStatus==='error_subida'||it.fotoDespuesStatus==='sin_conexion'||it.fotoDespuesStatus==='error_subida'||it.fotoStatus==='sin_conexion'||it.fotoStatus==='error_subida'){
         fotoHtml=`<span onclick="event.stopPropagation();attachFotoRetro('${ins.id}',${ins.items.indexOf(it)})" style="font-size:10px;color:var(--amber);margin-left:auto;text-decoration:underline;cursor:pointer" title="Toca para adjuntar la evidencia">⏳ Evidencia pendiente</span>`;
       }
       return`<div class="item-detail-row" style="background:${bg};border-radius:6px;padding:5px 8px;margin-bottom:2px;border:none">

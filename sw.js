@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v48 (mejoras: conteo regulares/nulos corregido en todos los módulos, banner vencidos hoy en Home)
-const CACHE = 'gamas-mrt-v48';
+// Gamas MRT – Service Worker v49 (antes/después fotos: galería o cámara en todos los ítems)
+const CACHE = 'gamas-mrt-v49';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
