@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v51 (formato fecha watermark dd-Mmm-aa)
-const CACHE = 'gamas-mrt-v51';
+// Gamas MRT – Service Worker v52 (tab Storage admin: stats + respaldo + limpieza bucket)
+const CACHE = 'gamas-mrt-v52';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

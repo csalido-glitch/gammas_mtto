@@ -156,6 +156,14 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 .foto-picker-btn{padding:16px 8px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:26px;cursor:pointer;text-align:center;}
 .foto-picker-btn span{display:block;font-size:11px;color:var(--sub);margin-top:6px;font-weight:600;}
 .foto-picker-cancel{width:100%;padding:12px;border-radius:10px;border:none;background:var(--bg);color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;}
+/* Storage panel */
+.storage-card{background:var(--bg);border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);}
+.storage-card h4{font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+.storage-bar-wrap{background:var(--border);border-radius:6px;height:10px;overflow:hidden;margin:8px 0 4px;}
+.storage-bar-fill{height:100%;border-radius:6px;transition:width .4s;}
+.storage-stat{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:3px;}
+.storage-stat b{color:var(--text);}
+.storage-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:4px;}
 /* Diálogo de reinspección */
 .reinsp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:910;display:flex;align-items:flex-end;justify-content:center;}
 .reinsp-sheet{background:var(--surface);border-radius:16px 16px 0 0;padding:20px 16px 32px;width:100%;max-width:440px;box-shadow:0 -4px 24px rgba(0,0,0,.15);}
@@ -398,6 +406,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
           <button class="adm-tab" data-tab="items" onclick="admTab('items')">Ítems</button>
           <button class="adm-tab" data-tab="reinsp" onclick="admTab('reinsp')">Reinspección</button>
           <button class="adm-tab" data-tab="historial" onclick="admTab('historial')">🗑 Historial</button>
+          <button class="adm-tab" data-tab="storage" onclick="admTab('storage')">📦 Storage</button>
         </div>
         <div id="adm-panel" class="adm-panel"></div>
       </div>
@@ -567,7 +576,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     toast('¡App instalada! Búscala en tu pantalla de inicio 🎉');
   });
 
-  // Service Worker v51
+  // Service Worker v52
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
       reg.addEventListener('updatefound',()=>{
@@ -2424,7 +2433,179 @@ function renderAdmPanel(){
         <button class="del-btn" style="background:#fee2e2;color:var(--red);border:none;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700" onclick="deleteInspeccion('${ins.id}')">🗑</button>
       </div>`).join('')
       :'<div style="color:var(--sub);font-size:13px;padding:20px 0;text-align:center">Sin inspecciones registradas.</div>');
+  } else if(curAdmTab==='storage'){
+    panel.innerHTML=`
+      <div class="storage-card" id="sb-stats-card">
+        <h4>☁ Supabase Storage — bucket evidencias_gammas</h4>
+        <div id="sb-stats-body" style="color:var(--sub);font-size:13px">Consultando…</div>
+      </div>
+      <div class="storage-card">
+        <h4>📦 Cola local pendiente</h4>
+        <div id="local-queue-body" style="color:var(--sub);font-size:13px">Consultando…</div>
+      </div>
+      <div class="storage-card">
+        <h4>🗄 Respaldar y liberar espacio</h4>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:10px">
+          Descarga un respaldo JSON con todas las inspecciones del período (incluyendo URLs de fotos) y luego elimina los archivos de imagen del bucket para liberar espacio. <b>Las inspecciones y sus datos siguen intactos</b> — solo se borran los archivos de imagen del servidor.
+        </div>
+        <div class="field" style="margin-bottom:8px">
+          <label style="font-size:12px">Respaldar y limpiar fotos anteriores a:</label>
+          <input type="month" id="clean-before-month" style="font-size:13px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);width:100%">
+        </div>
+        <div id="clean-preview" style="font-size:12px;color:var(--sub);min-height:16px;margin-bottom:10px"></div>
+        <button class="btn btn-primary btn-sm" style="width:100%" onclick="previewClean()">Ver qué se limpiaría</button>
+        <button class="btn btn-ghost btn-sm" id="do-clean-btn" style="width:100%;margin-top:8px;display:none;color:var(--red);border-color:var(--red)" onclick="doBackupAndClean()">📥 Descargar respaldo y eliminar fotos</button>
+      </div>`;
+    loadStorageStats();
+    loadLocalQueueStats();
   }
+}
+// =====================================================================
+// STORAGE STATS
+// =====================================================================
+async function loadStorageStats(){
+  const card=document.getElementById('sb-stats-body');
+  if(!card)return;
+  const online=await isReallyOnline();
+  if(!online){card.innerHTML='<span style="color:var(--amber)">Sin conexión — datos no disponibles.</span>';return;}
+  try{
+    let allFiles=[],offset=0,pageSize=1000,done=false;
+    while(!done){
+      const r=await fetch(`${SB_URL}/storage/v1/object/list/${SB_BUCKET}`,{
+        method:'POST',
+        headers:{...SB_H,'Content-Type':'application/json'},
+        body:JSON.stringify({prefix:'',limit:pageSize,offset,sortBy:{column:'created_at',order:'desc'}})
+      });
+      if(!r.ok){card.innerHTML=`<span style="color:var(--red)">Error al consultar storage (${r.status})</span>`;return;}
+      const page=await r.json();
+      allFiles=allFiles.concat(page);
+      if(page.length<pageSize)done=true; else offset+=pageSize;
+    }
+    const totalBytes=allFiles.reduce((s,f)=>s+(f.metadata?.size||0),0);
+    const totalMB=(totalBytes/1048576).toFixed(2);
+    const totalFiles=allFiles.length;
+    // Supabase free tier: 1 GB = 1024 MB
+    const limitMB=1024;
+    const pct=Math.min(100,Math.round(totalBytes/1048576/limitMB*100));
+    const barColor=pct<60?'var(--green)':pct<85?'var(--amber)':'var(--red)';
+    // Thumbs vs full
+    const thumbs=allFiles.filter(f=>f.name&&f.name.includes('_thumb')).length;
+    const fulls=totalFiles-thumbs;
+    card.innerHTML=`
+      <div class="storage-bar-wrap"><div class="storage-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:10px">
+        <b style="color:${barColor}">${totalMB} MB usados</b>
+        <span>límite estimado: ${limitMB} MB (free tier)</span>
+      </div>
+      <div class="storage-stat"><span>Total archivos</span><b>${totalFiles}</b></div>
+      <div class="storage-stat"><span>⮡ Fotos completas</span><b>${fulls}</b></div>
+      <div class="storage-stat"><span>⮡ Miniaturas (thumb)</span><b>${thumbs}</b></div>
+      <div class="storage-stat"><span>Espacio restante aprox.</span><b>${(limitMB-totalMB).toFixed(0)} MB</b></div>
+      <div style="margin-top:10px;font-size:10px;color:var(--sub)">⚠ El límite de 1 GB corresponde al plan gratuito de Supabase. Si usas plan Pro el límite real es mayor. <button onclick="loadStorageStats()" style="border:none;background:none;color:var(--accent);font-size:10px;cursor:pointer;text-decoration:underline">Actualizar</button></div>`;
+  }catch(e){card.innerHTML=`<span style="color:var(--red)">Error: ${e.message}</span>`;}
+}
+async function loadLocalQueueStats(){
+  const card=document.getElementById('local-queue-body');
+  if(!card)return;
+  try{
+    const cola=await dbGetAll('fotos');
+    if(!cola.length){card.innerHTML='<span style="color:var(--green)">✔ Cola vacía — todas las fotos están sincronizadas.</span>';return;}
+    const pendBytes=inspecciones.reduce((s,ins)=>{
+      return s+(ins.items||[]).reduce((ss,it)=>{
+        const hasPending=it.fotoAntesId||it.fotoDespuesId||it.fotoId;
+        return ss+(hasPending?250*1024:0); // estimado ~250 KB por foto pendiente
+      },0);
+    },0);
+    card.innerHTML=`<div class="storage-stat"><span>Archivos pendientes de subir</span><b>${cola.length}</b></div>
+      <div class="storage-stat"><span>Tamaño estimado en cola</span><b>~${(pendBytes/1048576).toFixed(1)} MB</b></div>
+      <div style="margin-top:6px"><button class="btn btn-primary btn-sm" onclick="processFotosPendientes().then(()=>loadLocalQueueStats())">Intentar subir ahora</button></div>`;
+  }catch(e){card.innerHTML=`<span style="color:var(--red)">Error leyendo cola: ${e.message}</span>`;}
+}
+let _cleanPreviewData=null;
+function previewClean(){
+  const monthVal=document.getElementById('clean-before-month').value; // 'YYYY-MM'
+  const preview=document.getElementById('clean-preview');
+  const btn=document.getElementById('do-clean-btn');
+  if(!monthVal){preview.textContent='Selecciona un mes de corte.';btn.style.display='none';return;}
+  const cutoff=monthVal+'-01'; // fotos de inspecciones anteriores a este mes
+  const affected=inspecciones.filter(ins=>{
+    if(!ins.fecha||ins.fecha>=cutoff)return false;
+    return (ins.items||[]).some(it=>it.fotoAntesUrl||it.fotoDespuesUrl||it.fotoUrl||it.fotoAntesThumbUrl||it.fotoDespuesThumbUrl||it.fotoThumbUrl);
+  });
+  const totalFotos=affected.reduce((s,ins)=>{
+    return s+(ins.items||[]).reduce((ss,it)=>{
+      let c=0;
+      if(it.fotoAntesUrl||it.fotoAntesThumbUrl)c+=2;
+      if(it.fotoDespuesUrl||it.fotoDespuesThumbUrl)c+=2;
+      if(it.fotoUrl||it.fotoThumbUrl)c+=2; // backward compat
+      return ss+c;
+    },0);
+  },0);
+  _cleanPreviewData={cutoff,affected,totalFotos};
+  if(!affected.length){
+    preview.innerHTML='<span style="color:var(--green)">✔ No hay fotos anteriores a ese mes.</span>';
+    btn.style.display='none';return;
+  }
+  preview.innerHTML=`Se respaldarán y eliminarán fotos de <b>${affected.length}</b> inspección(es) (<b>~${totalFotos}</b> archivos) anteriores a <b>${monthVal}</b>.`;
+  btn.style.display='block';
+}
+async function doBackupAndClean(){
+  if(!_cleanPreviewData){toast('Primero haz clic en "Ver qué se limpiaría"',false);return;}
+  const{cutoff,affected}=_cleanPreviewData;
+  const btn=document.getElementById('do-clean-btn');
+  btn.disabled=true;btn.textContent='Procesando…';
+  // 1. Descargar respaldo JSON
+  const backup={exportDate:new Date().toISOString(),cutoff,inspecciones:affected};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`respaldo_fotos_hasta_${cutoff}.json`;
+  a.click();URL.revokeObjectURL(a.href);
+  toast('📥 Respaldo descargado — iniciando limpieza…');
+  await new Promise(r=>setTimeout(r,800));
+  // 2. Recopilar nombres de archivos a eliminar del bucket
+  const toDelete=[];
+  affected.forEach(ins=>{
+    (ins.items||[]).forEach(it=>{
+      // Extraer filename del URL público
+      const extractName=url=>{
+        if(!url)return null;
+        const m=url.match(/evidencias_gammas\/(.+)$/);
+        return m?m[1]:null;
+      };
+      [it.fotoAntesUrl,it.fotoAntesThumbUrl,it.fotoDespuesUrl,it.fotoDespuesThumbUrl,it.fotoUrl,it.fotoThumbUrl]
+        .map(extractName).filter(Boolean).forEach(n=>{if(!toDelete.includes(n))toDelete.push(n);});
+    });
+  });
+  // 3. Eliminar de Supabase en lotes de 100
+  let deleted=0,errors=0;
+  for(let i=0;i<toDelete.length;i+=100){
+    const batch=toDelete.slice(i,i+100);
+    try{
+      const r=await fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}`,{
+        method:'DELETE',headers:{...SB_H,'Content-Type':'application/json'},
+        body:JSON.stringify({prefixes:batch})
+      });
+      if(r.ok){deleted+=batch.length;}else{errors+=batch.length;console.warn('delete batch error',r.status);}
+    }catch(e){errors+=batch.length;console.warn('delete batch exception',e);}
+  }
+  // 4. Limpiar URLs de fotos en inspecciones locales (los datos de inspección quedan)
+  affected.forEach(ins=>{
+    (ins.items||[]).forEach(it=>{
+      delete it.fotoAntesUrl;delete it.fotoAntesThumbUrl;
+      delete it.fotoDespuesUrl;delete it.fotoDespuesThumbUrl;
+      delete it.fotoUrl;delete it.fotoThumbUrl;
+      it.fotoArchivada=cutoff; // marca para saber que existió pero fue limpiada
+    });
+    dbPut('inspecciones',ins);
+  });
+  _cleanPreviewData=null;
+  btn.disabled=false;btn.textContent='📥 Descargar respaldo y eliminar fotos';
+  btn.style.display='none';
+  document.getElementById('clean-preview').innerHTML=
+    `<span style="color:var(--green)">✔ ${deleted} archivo(s) eliminado(s)${errors?` · ${errors} con error (ya no existían o sin permiso)`:''} — espacio liberado.</span>`;
+  setTimeout(()=>loadStorageStats(),1500);
+  toast(`🗑 Limpieza lista: ${deleted} archivos eliminados`);
 }
 async function forceDeployUpdate(){
   const v=new Date().toISOString();
