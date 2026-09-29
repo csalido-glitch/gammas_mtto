@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v52 (tab Storage admin: stats + respaldo + limpieza bucket)
-const CACHE = 'gamas-mrt-v52';
+// Gamas MRT – Service Worker v53 (fix sync: sbUpdate para ediciones — PATCH a Supabase)
+const CACHE = 'gamas-mrt-v53';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

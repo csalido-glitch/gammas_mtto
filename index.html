@@ -576,7 +576,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     toast('¡App instalada! Búscala en tu pantalla de inicio 🎉');
   });
 
-  // Service Worker v52
+  // Service Worker v53
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
       reg.addEventListener('updatefound',()=>{
@@ -710,15 +710,28 @@ function addWatermark(dataUrl, equipoId, equipoNombre, fecha, quien){
 }
 
 // --- INSPECCIONES ---
-async function sbInsert(ins){
-  const row={id:ins.id,equipo_id:ins.equipoId,equipo_nombre:ins.equipoNombre,
+function _sbRow(ins){
+  return{id:ins.id,equipo_id:ins.equipoId,equipo_nombre:ins.equipoNombre,
     seccion:ins.seccion,area:ins.area,tipo:ins.tipo,turno:ins.turno,
     mecanico:ins.mecanico,fecha:ins.fecha,items:ins.items,
     observaciones:ins.observaciones,saved_at:ins.savedAt};
+}
+async function sbInsert(ins){
+  // Solo para registros NUEVOS — usa ignore-duplicates para seguridad
   try{
     const r=await fetch(SB_URL+'/rest/v1/inspecciones?on_conflict=id',{
-      method:'POST',headers:{...SB_H,'Prefer':'resolution=ignore-duplicates'},body:JSON.stringify(row)});
+      method:'POST',headers:{...SB_H,'Prefer':'resolution=ignore-duplicates'},body:JSON.stringify(_sbRow(ins))});
     return r.ok;
+  }catch(e){return false;}
+}
+async function sbUpdate(ins){
+  // Para ediciones de registros YA existentes — PATCH para que llegue a todos los dispositivos
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+ins.id,{
+      method:'PATCH',headers:{...SB_H,'Prefer':'return=minimal'},body:JSON.stringify(_sbRow(ins))});
+    if(r.ok)return true;
+    // Si por alguna razón no existía aún, insertar
+    return sbInsert(ins);
   }catch(e){return false;}
 }
 
@@ -790,7 +803,7 @@ async function attachFotoRetro(insId,itemIdx){
           item.fotoThumbUrl=sbPublicUrl(fotoId+'_thumb.jpg');
           ins.savedAt=Date.now(); // para que otros dispositivos detecten el cambio
           await dbPut('inspecciones',ins);
-          if(!ins.pending)await sbInsert(ins);
+          if(!ins.pending)await sbUpdate(ins);
           toast('✔ Evidencia adjuntada');
           subida=true;
         }
@@ -1071,7 +1084,7 @@ async function processFotosPendientes(){
           await dbPut('inspecciones',ins);
           const mem=inspecciones.find(i=>i.id===job.insId);
           if(mem){mem.items[job.itemIdx]=it;mem.savedAt=ins.savedAt;}
-          if(!ins.pending)await sbInsert(ins);
+          if(!ins.pending)await sbUpdate(ins);
         }
       }
       await deleteFromQueueStorage(job.fileNameThumb);
@@ -1818,7 +1831,7 @@ async function saveFormEdit(){
   ins.observaciones=document.getElementById('form-obs').value.trim();
   ins.savedAt=Date.now(); // para que el cambio se propague a otros dispositivos
   try{await dbPut('inspecciones',ins);}catch(e){console.warn('DB save (edición) falló',e);}
-  if(await isReallyOnline())await sbInsert(ins);
+  if(await isReallyOnline())await sbUpdate(ins);
   toast('✔ Inspección actualizada');
   editingInsId=null;formItemFotos={};
   closeForm();
