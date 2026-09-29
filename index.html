@@ -156,6 +156,16 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 .foto-picker-btn{padding:16px 8px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);font-size:26px;cursor:pointer;text-align:center;}
 .foto-picker-btn span{display:block;font-size:11px;color:var(--sub);margin-top:6px;font-weight:600;}
 .foto-picker-cancel{width:100%;padding:12px;border-radius:10px;border:none;background:var(--bg);color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px;}
+/* Diálogo de reinspección */
+.reinsp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:910;display:flex;align-items:flex-end;justify-content:center;}
+.reinsp-sheet{background:var(--surface);border-radius:16px 16px 0 0;padding:20px 16px 32px;width:100%;max-width:440px;box-shadow:0 -4px 24px rgba(0,0,0,.15);}
+.reinsp-title{font-size:13px;font-weight:700;text-align:center;margin-bottom:4px;color:var(--text);}
+.reinsp-sub{font-size:11px;color:var(--sub);text-align:center;margin-bottom:16px;}
+.reinsp-opt{display:flex;align-items:flex-start;gap:14px;padding:14px 12px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);cursor:pointer;margin-bottom:10px;text-align:left;}
+.reinsp-opt:active{border-color:var(--accent);}
+.reinsp-opt-icon{font-size:26px;flex-shrink:0;line-height:1;margin-top:2px;}
+.reinsp-opt-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.reinsp-opt-desc{font-size:11px;color:var(--sub);}
 /* Thumbnails antes/después en reportes */
 .foto-compare-pair{display:flex;gap:4px;margin-left:auto;flex-shrink:0;}
 .foto-compare-thumb{position:relative;width:30px;height:30px;}
@@ -458,6 +468,29 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
   </div>
 </div>
 
+<!-- REINSPECCIÓN DIALOG -->
+<div id="reinsp-overlay" class="reinsp-overlay" style="display:none" onclick="if(event.target===this)closeReinspDialog()">
+  <div class="reinsp-sheet">
+    <div class="reinsp-title">Reinspección</div>
+    <div class="reinsp-sub" id="reinsp-eq-label"></div>
+    <button class="reinsp-opt" id="reinsp-btn-despues" onclick="confirmReinspDespues()">
+      <span class="reinsp-opt-icon">📷</span>
+      <div>
+        <div class="reinsp-opt-title">Agregar fotos "Después"</div>
+        <div class="reinsp-opt-desc">Carga evidencias a la última inspección ya registrada — sin crear un registro nuevo.</div>
+      </div>
+    </button>
+    <button class="reinsp-opt" id="reinsp-btn-nueva" onclick="confirmReinspNueva()">
+      <span class="reinsp-opt-icon">📋</span>
+      <div>
+        <div class="reinsp-opt-title">Nueva reinspección completa</div>
+        <div class="reinsp-opt-desc">Crea un registro nuevo, evaluando todos los ítems desde cero.</div>
+      </div>
+    </button>
+    <button class="foto-picker-cancel" onclick="closeReinspDialog()">Cancelar</button>
+  </div>
+</div>
+
 <div id="ptr-indicator">↓</div>
 <div id="toast"></div>
 
@@ -534,7 +567,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
     toast('¡App instalada! Búscala en tu pantalla de inicio 🎉');
   });
 
-  // Service Worker v49
+  // Service Worker v51
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
       reg.addEventListener('updatefound',()=>{
@@ -639,6 +672,34 @@ function compressImage(file,maxSize,quality){
   });
 }
 
+// Quema equipo, fecha y mecánico en la imagen como rótulo permanente
+function addWatermark(dataUrl, equipoId, equipoNombre, fecha, quien){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      canvas.width=img.width;canvas.height=img.height;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0);
+      const barH=Math.max(20,Math.round(img.height*0.07));
+      const fs=Math.max(10,Math.round(barH*0.48));
+      const pad=Math.round(barH*0.25);
+      ctx.fillStyle='rgba(0,0,0,0.62)';
+      ctx.fillRect(0,img.height-barH*2,img.width,barH*2);
+      ctx.fillStyle='#fff';
+      ctx.font=`bold ${fs}px sans-serif`;
+      ctx.textBaseline='middle';
+      ctx.fillText(`${equipoId} – ${equipoNombre}`,pad,img.height-barH*1.5);
+      ctx.fillStyle='rgba(255,255,255,.82)';
+      ctx.font=`${fs}px sans-serif`;
+      ctx.fillText(`${fecha} • ${quien}`,pad,img.height-barH*0.5);
+      resolve(canvas.toDataURL('image/jpeg',0.88));
+    };
+    img.onerror=()=>resolve(dataUrl); // fallback sin watermark si algo falla
+    img.src=dataUrl;
+  });
+}
+
 // --- INSPECCIONES ---
 async function sbInsert(ins){
   const row={id:ins.id,equipo_id:ins.equipoId,equipo_nombre:ins.equipoNombre,
@@ -701,7 +762,11 @@ async function attachFotoRetro(insId,itemIdx){
     const file=input.files[0];if(!file)return;
     toast('📤 Procesando foto…');
     try{
-      const[thumbData,fullData]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      const[thumbRaw2,fullRaw2]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      const[thumbData,fullData]=await Promise.all([
+        addWatermark(thumbRaw2,ins.equipoId,ins.equipoNombre,fmtWatermarkDate(ins.fecha),ins.mecanico),
+        addWatermark(fullRaw2,ins.equipoId,ins.equipoNombre,fmtWatermarkDate(ins.fecha),ins.mecanico)
+      ]);
       const thumbBlob=await(await fetch(thumbData)).blob();
       const fullBlob=await(await fetch(fullData)).blob();
       const fotoId=makeid();
@@ -1124,7 +1189,14 @@ async function capturePhoto(idx,slot,source){
     const file=input.files[0];if(!file)return;
     toast('📷 Procesando foto…');
     try{
-      const[thumbData,fullData]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      const[thumbRaw,fullRaw]=await Promise.all([compressImage(file,150,0.6),compressImage(file,1000,0.6)]);
+      const eqId=(currentEq&&currentEq[0])||'';
+      const eqNom=(currentEq&&currentEq[1])||'';
+      const wmDate=fmtWatermarkDate(todayStr());const wmQuien=getMecNombre();
+      const[thumbData,fullData]=await Promise.all([
+        addWatermark(thumbRaw,eqId,eqNom,wmDate,wmQuien),
+        addWatermark(fullRaw,eqId,eqNom,wmDate,wmQuien)
+      ]);
       if(!formItemFotos[idx])formItemFotos[idx]={};
       formItemFotos[idx][slot]={thumbData,fullData};
       renderFormItemPhoto(idx);
@@ -1204,6 +1276,13 @@ function dateStr(d){
 }
 function todayStr(){return dateStr(TODAY);}
 const MESES_CORTOS=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+// Convierte 'YYYY-MM-DD' → 'dd-Mmm-aa'  (ej. '2026-09-29' → '29-Sep-26')
+function fmtWatermarkDate(fechaStr){
+  const[y,m,d]=fechaStr.split('-');
+  const mes=MESES_CORTOS[parseInt(m,10)-1]||m;
+  const mesC=mes.charAt(0).toUpperCase()+mes.slice(1);
+  return `${d}-${mesC}-${y.slice(2)}`;
+}
 function fmtDate(d){
   return `${String(d.getDate()).padStart(2,'0')}-${MESES_CORTOS[d.getMonth()]}-${String(d.getFullYear()).slice(2)}`;
 }
@@ -1453,12 +1532,42 @@ async function saveMecNames(){
 // =====================================================================
 // FORM
 // =====================================================================
+// ---- REINSPECCIÓN DIALOG ----
+let _reinspEqId=null,_reinspLastInsId=null;
 function openForm(eqId,tipo){
   if(!session.user){
     toast('🔒 Inicia sesión para poder inspeccionar',false);
-    showView('home'); // renderHome() ya muestra la pantalla de login si no hay sesión
+    showView('home');
     return;
   }
+  const eq=equipos.find(e=>e[0]===eqId);if(!eq)return;
+  if(tipo==='reinspeccion'){
+    // Buscar la última inspección de este equipo para ofrecer la opción "Agregar Después"
+    const last=[...inspecciones].filter(i=>i.equipoId===eqId).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0))[0];
+    if(last){
+      _reinspEqId=eqId;_reinspLastInsId=last.id;
+      document.getElementById('reinsp-eq-label').textContent=`${eq[0]} – ${eq[1]}`;
+      document.getElementById('reinsp-overlay').style.display='flex';
+      return;
+    }
+  }
+  _openFormDirect(eqId,tipo);
+}
+function closeReinspDialog(){
+  document.getElementById('reinsp-overlay').style.display='none';
+  _reinspEqId=null;_reinspLastInsId=null;
+}
+function confirmReinspDespues(){
+  const id=_reinspLastInsId;
+  closeReinspDialog();
+  if(id)editInspeccionAdmin(id,true); // true = modo "agregar después"
+}
+function confirmReinspNueva(){
+  const eqId=_reinspEqId;
+  closeReinspDialog();
+  if(eqId)_openFormDirect(eqId,'reinspeccion');
+}
+function _openFormDirect(eqId,tipo){
   const eq=equipos.find(e=>e[0]===eqId);if(!eq)return;
   editingInsId=null;
   currentEq=eq;currentTipo=tipo;formItemStates={};formItemFotos={};
@@ -1497,7 +1606,7 @@ function openForm(eqId,tipo){
   document.getElementById('form-obs').value='';
   showView('form');
 }
-function editInspeccionAdmin(id){
+function editInspeccionAdmin(id, addDespuesMode=false){
   const ins=inspecciones.find(i=>i.id===id);
   if(!ins){toast('No se encontró esa inspección',false);return;}
   editingInsId=id;formItemStates={};formItemFotos={};
@@ -1507,7 +1616,8 @@ function editInspeccionAdmin(id){
   document.getElementById('form-title').textContent=ins.equipoNombre;
   document.getElementById('form-color-bar').style.background=col;
   const tag=document.getElementById('form-tipo-tag');
-  tag.textContent='✏️ EDICIÓN';tag.className='tag tag-venc';
+  if(addDespuesMode){tag.textContent='📷 AGREGAR DESPUÉS';tag.className='tag tag-extra';}
+  else{tag.textContent='✏️ EDICIÓN';tag.className='tag tag-venc';}
   document.getElementById('form-meta').innerHTML=`
     <span class="tag ${Number(ins.turno)===1?'tag-t1':'tag-t2'}">T${ins.turno}</span>
     <span class="eq-id">${ins.equipoId}</span>

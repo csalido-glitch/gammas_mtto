@@ -1,5 +1,5 @@
-// Gamas MRT – Service Worker v49 (antes/después fotos: galería o cámara en todos los ítems)
-const CACHE = 'gamas-mrt-v49';
+// Gamas MRT – Service Worker v51 (formato fecha watermark dd-Mmm-aa)
+const CACHE = 'gamas-mrt-v51';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
