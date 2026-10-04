@@ -277,7 +277,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 <div id="app">
   <div id="header">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v25</span></h1>
+    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v26</span></h1>
     <div id="sync-dot" title="En línea"></div>
     <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
     <span id="turno-badge">T1 · Día</span>
@@ -1193,7 +1193,7 @@ let mechNombres={1:'Mecánico Turno 1',2:'Mecánico Turno 2'};
 let repPinBuf='',repUnlocked=false;
 let admPinBuf='',admUnlocked=false;
 let curAdmTab='config',admSelectedEq=null;
-let currentEq=null,currentTipo='programada';
+let currentEq=null,currentTipo='programada',currentFechaProg=null;
 let formItemStates={};
 let formItemFotos={};
 let _fpIdx=null,_fpSlot=null;
@@ -1332,7 +1332,27 @@ function isScheduled(eqIdx,date){
 function getTodayScheduled(){return equipos.filter((_,i)=>isScheduled(i,TODAY));}
 function isDoneToday(eqId){
   const ts=todayStr();
-  return inspecciones.some(ins=>ins.equipoId===eqId&&ins.fecha===ts&&ins.tipo!=='reinspeccion');
+  return inspecciones.some(ins=>ins.equipoId===eqId&&ins.tipo!=='reinspeccion'&&(ins.fecha===ts||(ins.fechaProgramada===ts)));
+}
+// Devuelve lista de {eq, fechaProg} de inspecciones programadas en días PASADOS no realizadas
+function getAtrasadasPendientes(){
+  const resultado=[];
+  const rangeStart=new Date(TODAY);rangeStart.setDate(rangeStart.getDate()-30); // máx 30 días atrás
+  for(let d=new Date(rangeStart);d<TODAY;d.setDate(d.getDate()+1)){
+    const ds=dateStr(d);
+    equipos.forEach((eq,gi)=>{
+      if(!isScheduled(gi,d))return;
+      const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&(ins.fecha===ds||ins.fechaProgramada===ds));
+      if(!done)resultado.push({eq,fechaProg:ds});
+    });
+  }
+  // Agrupar por equipo: solo mostrar la fecha más antigua pendiente por equipo
+  const porEquipo=new Map();
+  resultado.forEach(r=>{
+    const prev=porEquipo.get(r.eq[0]);
+    if(!prev||r.fechaProg<prev.fechaProg)porEquipo.set(r.eq[0],r);
+  });
+  return [...porEquipo.values()].sort((a,b)=>a.fechaProg.localeCompare(b.fechaProg));
 }
 function getEquiposSinInspeccionReciente(){
   const umbral=Math.max(config.cycleDays*2,14);
@@ -1353,19 +1373,18 @@ function updateAlertsUI(){
   // Banner 1: inspecciones pendientes de HOY
   const sched=getTodayScheduled();
   const pendientesHoy=sched.filter(eq=>!isDoneToday(eq[0]));
+  const atrasadasBanner=getAtrasadasPendientes();
   let html='';
+  if(atrasadasBanner.length){
+    html+=`<div class="alert-banner" style="border-left:4px solid #DC2626;background:rgba(220,38,38,.08)" onclick="showView('home')">
+      <div class="alert-banner-title" style="color:#B91C1C">⏰ ${atrasadasBanner.length} inspección${atrasadasBanner.length!==1?'es':''} atrasada${atrasadasBanner.length!==1?'s':''} sin registrar</div>
+      <div class="alert-banner-sub">${atrasadasBanner.slice(0,3).map(r=>r.eq[0]+' · '+fmtFechaCorta(r.fechaProg)).join(', ')}${atrasadasBanner.length>3?' y '+(atrasadasBanner.length-3)+' más':''}. Toca para registrar.</div>
+    </div>`;
+  }
   if(pendientesHoy.length){
     html+=`<div class="alert-banner alert-banner-warn" onclick="showView('home')">
       <div class="alert-banner-title">🕐 ${pendientesHoy.length} inspección${pendientesHoy.length!==1?'es':''} pendiente${pendientesHoy.length!==1?'s':''} hoy</div>
       <div class="alert-banner-sub">${pendientesHoy.slice(0,3).map(eq=>eq[0]+' · '+eq[1]).join(', ')}${pendientesHoy.length>3?' y '+(pendientesHoy.length-3)+' más':''}.</div>
-    </div>`;
-  }
-  // Banner 2: equipos sin inspección reciente
-  if(sinReciente.length){
-    const top=sinReciente[0];
-    html+=`<div class="alert-banner" onclick="goToAlertsDetail()">
-      <div class="alert-banner-title">⚠ ${sinReciente.length} equipo${sinReciente.length!==1?'s':''} sin inspección reciente</div>
-      <div class="alert-banner-sub">${top.eq[0]} · ${top.eq[1]} — ${top.dias===null?'nunca inspeccionado':top.dias+' días sin revisión'}${sinReciente.length>1?' y '+(sinReciente.length-1)+' más':''}. Toca para ver detalle.</div>
     </div>`;
   }
   banner.innerHTML=html;
@@ -1500,7 +1519,8 @@ function renderHome(){
   document.getElementById('turno-badge').style.background=t===1?'rgba(37,99,235,.35)':'rgba(124,58,237,.35)';
   document.getElementById('mec-name').textContent=getMecNombre();
   const sched=getTodayScheduled();
-  if(!sched.length){
+  const atrasadas=getAtrasadasPendientes();
+  if(!sched.length&&!atrasadas.length){
     const ds=todayStr(),start=getStartDate();
     const msg=TODAY<start
       ? `El programa arranca el <strong>13 de septiembre</strong>. A partir de esa fecha aparecerán los equipos aquí.`
@@ -1508,25 +1528,49 @@ function renderHome(){
     body.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">${msg}</div>`;
     return;
   }
-  let html=`<div class="section-head">📅 ${fmtDate(TODAY)} — ${sched.length} equipo${sched.length!==1?'s':''} programados</div>`;
-  sched.forEach(eq=>{
-    const done=isDoneToday(eq[0]);
-    const col=tipoColor(eq[3]);
-    html+=`<div class="card eq-card${done?' done':''}" style="border-left:4px solid ${col}">
-      <div class="eq-header">
-        <span class="eq-id">${eq[0]}</span>
-        <span class="eq-nombre">${eq[1]}</span>
-        ${done?'<span style="color:var(--green);font-size:18px">✔</span>':''}
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span class="eq-area">${eq[4]}</span>
-        ${done
-          ?'<span class="tag tag-comp">Completado</span>'
-          :`<button class="btn btn-primary btn-sm" onclick="openForm('${eq[0]}','programada')">Iniciar →</button>`
-        }
-      </div>
+  let html='';
+  // ── Sección: Atrasadas pendientes ────────────────────────────────
+  if(atrasadas.length){
+    html+=`<div class="section-head" style="background:rgba(220,38,38,.1);color:#B91C1C;border-left:3px solid #DC2626;">
+      ⏰ ${atrasadas.length} inspección${atrasadas.length!==1?'es':''} atrasada${atrasadas.length!==1?'s':''} — Programadas en días anteriores
     </div>`;
-  });
+    atrasadas.forEach(({eq,fechaProg})=>{
+      const col=tipoColor(eq[3]);
+      html+=`<div class="card eq-card" style="border-left:4px solid #DC2626;opacity:0.95">
+        <div class="eq-header">
+          <span class="eq-id" style="color:#DC2626">${eq[0]}</span>
+          <span class="eq-nombre">${eq[1]}</span>
+          <span style="font-size:10px;color:#D97706;font-weight:700">ATRASADA</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="eq-area">${eq[4]} · <span style="color:#D97706">Tocaba: ${fmtFechaCorta(fechaProg)}</span></span>
+          <button class="btn btn-sm" style="background:#DC2626;color:#fff" onclick="openForm('${eq[0]}','atrasada','${fechaProg}')">Registrar →</button>
+        </div>
+      </div>`;
+    });
+  }
+  // ── Sección: Hoy ─────────────────────────────────────────────────
+  if(sched.length){
+    html+=`<div class="section-head">📅 ${fmtDate(TODAY)} — ${sched.length} equipo${sched.length!==1?'s':''} programados hoy</div>`;
+    sched.forEach(eq=>{
+      const done=isDoneToday(eq[0]);
+      const col=tipoColor(eq[3]);
+      html+=`<div class="card eq-card${done?' done':''}" style="border-left:4px solid ${col}">
+        <div class="eq-header">
+          <span class="eq-id">${eq[0]}</span>
+          <span class="eq-nombre">${eq[1]}</span>
+          ${done?'<span style="color:var(--green);font-size:18px">✔</span>':''}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="eq-area">${eq[4]}</span>
+          ${done
+            ?'<span class="tag tag-comp">Completado</span>'
+            :`<button class="btn btn-primary btn-sm" onclick="openForm('${eq[0]}','programada')">Iniciar →</button>`
+          }
+        </div>
+      </div>`;
+    });
+  }
   body.innerHTML=html;
 }
 
@@ -1556,7 +1600,7 @@ async function saveMecNames(){
 // =====================================================================
 // ---- REINSPECCIÓN DIALOG ----
 let _reinspEqId=null,_reinspLastInsId=null;
-function openForm(eqId,tipo){
+function openForm(eqId,tipo,fechaProg=null){
   if(!session.user){
     toast('🔒 Inicia sesión para poder inspeccionar',false);
     showView('home');
@@ -1573,7 +1617,7 @@ function openForm(eqId,tipo){
       return;
     }
   }
-  _openFormDirect(eqId,tipo);
+  _openFormDirect(eqId,tipo,fechaProg);
 }
 function closeReinspDialog(){
   document.getElementById('reinsp-overlay').style.display='none';
@@ -1589,10 +1633,10 @@ function confirmReinspNueva(){
   closeReinspDialog();
   if(eqId)_openFormDirect(eqId,'reinspeccion');
 }
-function _openFormDirect(eqId,tipo){
+function _openFormDirect(eqId,tipo,fechaProg=null){
   const eq=equipos.find(e=>e[0]===eqId);if(!eq)return;
   editingInsId=null;
-  currentEq=eq;currentTipo=tipo;formItemStates={};formItemFotos={};
+  currentEq=eq;currentTipo=tipo;currentFechaProg=fechaProg;formItemStates={};formItemFotos={};
   const items=getCatalogItems(eqId);
   const col=tipoColor(eq[3]);
   document.getElementById('form-title').textContent=eq[1];
@@ -1600,9 +1644,15 @@ function _openFormDirect(eqId,tipo){
   const tag=document.getElementById('form-tipo-tag');
   if(tipo==='extra'){tag.textContent='EXTRA';tag.className='tag tag-extra';}
   else if(tipo==='reinspeccion'){tag.textContent='REINSP.';tag.className='tag tag-venc';}
+  else if(tipo==='atrasada'){tag.textContent='ATRASADA';tag.className='tag tag-venc';}
   else{tag.textContent='PROG.';tag.className='tag tag-prog';}
   const t=getTurno();
+  const retBanner=fechaProg&&fechaProg!==todayStr()
+    ?`<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:11px;color:#92400E;">
+        ⚠ <b>Inspección atrasada</b> — Programada: <b>${fmtFechaCorta(fechaProg)}</b> · Realizando hoy: <b>${fmtFechaCorta(todayStr())}</b>
+      </div>`:'';
   document.getElementById('form-meta').innerHTML=`
+    ${retBanner}
     <span class="tag ${t===1?'tag-t1':'tag-t2'}">T${t} ${t===1?'Día':'Noche'}</span>
     <span class="eq-id">${eq[0]}</span>
     <span style="font-size:11px;color:var(--sub)">${fmtDate(TODAY)}</span>
@@ -1736,6 +1786,7 @@ async function saveForm(){
     id:makeid(),equipoId:currentEq[0],equipoNombre:currentEq[1],
     seccion:currentEq[2],area:currentEq[4],tipo:currentTipo,
     turno:getTurno(),mecanico:getMecNombre(),fecha:todayStr(),
+    fechaProgramada:currentFechaProg||null,
     items:itemsData,
     observaciones:document.getElementById('form-obs').value.trim(),
     savedAt:Date.now(),
@@ -1924,7 +1975,7 @@ function renderRoll(){
         days.forEach((d,di)=>{
           const ds=dateStr(d);const isToday=ds===todStr;
           const sched=isScheduled(gi,d);
-          const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&ins.fecha===ds);
+          const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&(ins.fecha===ds||(ins.fechaProgramada===ds)));
           const venc=sched&&d<TODAY&&!done;
           let cell='';
           if(sched){
@@ -1934,7 +1985,7 @@ function renderRoll(){
             else if(done)
               cell=`<span class="${pc}" style="opacity:.4">✔</span>`;
             else if(venc)
-              cell=`<span class="${pc}" style="outline:2px solid var(--red);outline-offset:-2px">!</span>`;
+              cell=`<span class="${pc}" onclick="session.user?openForm('${eq[0]}','atrasada','${ds}'):toast('🔒 Inicia sesión primero',false)" style="cursor:pointer;outline:2px solid var(--red);outline-offset:-2px;color:var(--red)" title="Tocaba ${fmtFechaCorta(ds)} — toca para registrar hoy">!</span>`;
             else
               cell=`<span class="${pc}">●</span>`;
           }
@@ -2081,10 +2132,10 @@ function renderRepList(){
       <div class="rep-header">
         <span class="rep-id">${ins.equipoId}</span>
         <span class="rep-nombre">${ins.equipoNombre}</span>
-        <span class="tag ${ins.tipo==='extra'?'tag-extra':ins.tipo==='reinspeccion'?'tag-venc':'tag-prog'}">${ins.tipo.toUpperCase()}</span>
+        <span class="tag ${ins.tipo==='extra'?'tag-extra':(ins.tipo==='reinspeccion'||ins.tipo==='atrasada')?'tag-venc':'tag-prog'}">${ins.tipo.toUpperCase()}</span>
         <span class="rep-chevron">▾</span>
       </div>
-      <div class="rep-meta">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico} · ${ins.area}</div>
+      <div class="rep-meta">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico} · ${ins.area}${ins.fechaProgramada&&ins.fechaProgramada!==ins.fecha?` · <span style="color:#D97706">Prog: ${fmtFechaCorta(ins.fechaProgramada)}</span>`:''}</div>
       <div class="rep-counts">
         <span class="cnt-b">✔ ${b} Buenos</span>
         <span class="cnt-r">~ ${r} Regulares</span>
