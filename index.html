@@ -277,7 +277,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 <div id="app">
   <div id="header">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v27</span></h1>
+    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v28</span></h1>
     <div id="sync-dot" title="En línea"></div>
     <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
     <span id="turno-badge">T1 · Día</span>
@@ -1354,13 +1354,26 @@ function getAtrasadasPendientes(){
       if(!done)resultado.push({eq,fechaProg:ds});
     });
   }
-  // Agrupar por equipo: solo mostrar la fecha más antigua pendiente por equipo
-  const porEquipo=new Map();
+  // Agrupar por equipo: recopilar TODAS las fechas pendientes por equipo (más antigua primero)
+  const pendingByEquipo=new Map();
   resultado.forEach(r=>{
-    const prev=porEquipo.get(r.eq[0]);
-    if(!prev||r.fechaProg<prev.fechaProg)porEquipo.set(r.eq[0],r);
+    if(!pendingByEquipo.has(r.eq[0]))pendingByEquipo.set(r.eq[0],{eq:r.eq,dates:[]});
+    pendingByEquipo.get(r.eq[0]).dates.push(r.fechaProg);
   });
-  return [...porEquipo.values()].sort((a,b)=>a.fechaProg.localeCompare(b.fechaProg));
+  pendingByEquipo.forEach(v=>v.dates.sort());
+  // Fallback legacy: registros con tipo==='atrasada' (sin fecha en tipo, de v26)
+  // cada uno cubre la fecha pendiente más antigua de ese equipo
+  const legacyPorEquipo=new Map();
+  inspecciones.forEach(ins=>{
+    if(ins.tipo==='atrasada')legacyPorEquipo.set(ins.equipoId,(legacyPorEquipo.get(ins.equipoId)||0)+1);
+  });
+  const final=[];
+  pendingByEquipo.forEach((v,eqId)=>{
+    const skip=legacyPorEquipo.get(eqId)||0;
+    const remaining=v.dates.slice(skip);
+    if(remaining.length>0)final.push({eq:v.eq,fechaProg:remaining[0]});
+  });
+  return final.sort((a,b)=>a.fechaProg.localeCompare(b.fechaProg));
 }
 function getEquiposSinInspeccionReciente(){
   const umbral=Math.max(config.cycleDays*2,14);
@@ -1949,6 +1962,29 @@ function setupRollHover(){
     curRow=null;curCol=null;
   });
 }
+// Pre-computa set de "eqId::ds" cubiertos por atrasadas legacy (tipo==='atrasada' sin fecha codificada)
+function buildLegacyCoveredKeys(){
+  const covered=new Set();
+  const legacyPorEquipo=new Map();
+  inspecciones.forEach(ins=>{
+    if(ins.tipo==='atrasada')legacyPorEquipo.set(ins.equipoId,(legacyPorEquipo.get(ins.equipoId)||0)+1);
+  });
+  if(!legacyPorEquipo.size)return covered;
+  const start=new Date(TODAY);start.setDate(start.getDate()-30);
+  legacyPorEquipo.forEach((count,eqId)=>{
+    const gi=equipos.findIndex(e=>e[0]===eqId);
+    if(gi===-1)return;
+    const pending=[];
+    for(let d=new Date(start);d<TODAY;d.setDate(d.getDate()+1)){
+      const ds=dateStr(d);
+      if(!isScheduled(gi,d))continue;
+      if(!inspecciones.some(ins=>ins.equipoId===eqId&&(ins.fecha===ds||insFechaProg(ins)===ds)))
+        pending.push(ds);
+    }
+    pending.sort().slice(0,count).forEach(ds=>covered.add(eqId+'::'+ds));
+  });
+  return covered;
+}
 function renderRoll(){
   const secFil=document.getElementById('roll-sec').value;
   const areaFil=document.getElementById('roll-area').value;
@@ -1967,6 +2003,7 @@ function renderRoll(){
   days.forEach(d=>{if(d.getMonth()!==cm){if(cs)months[months.length-1].span=cs;months.push({label:d.toLocaleDateString('es-MX',{month:'long',year:'numeric'}),span:0});cm=d.getMonth();cs=0;}cs++;});
   if(months.length)months[months.length-1].span=cs;
   const todStr=todayStr();
+  const legacyCovered=buildLegacyCoveredKeys();
   const sections=[...new Set(eqF.map(e=>e[2]))];
   let rows='';
   sections.forEach(sec=>{
@@ -1984,7 +2021,7 @@ function renderRoll(){
         days.forEach((d,di)=>{
           const ds=dateStr(d);const isToday=ds===todStr;
           const sched=isScheduled(gi,d);
-          const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&(ins.fecha===ds||insFechaProg(ins)===ds));
+          const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&(ins.fecha===ds||insFechaProg(ins)===ds))||legacyCovered.has(eq[0]+'::'+ds);
           const venc=sched&&d<TODAY&&!done;
           let cell='';
           if(sched){
