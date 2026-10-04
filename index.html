@@ -277,7 +277,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 <div id="app">
   <div id="header">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v26</span></h1>
+    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v27</span></h1>
     <div id="sync-dot" title="En línea"></div>
     <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
     <span id="turno-badge">T1 · Día</span>
@@ -710,6 +710,13 @@ function addWatermark(dataUrl, equipoId, equipoNombre, fecha, quien){
 }
 
 // --- INSPECCIONES ---
+// Helpers para inspecciones atrasadas (tipo puede ser 'atrasada' o 'atrasada|YYYY-MM-DD')
+function insEsAtrasada(ins){return ins.tipo==='atrasada'||!!(ins.tipo&&ins.tipo.startsWith('atrasada|'));}
+function insFechaProg(ins){
+  if(ins.fechaProgramada)return ins.fechaProgramada;
+  if(ins.tipo&&ins.tipo.startsWith('atrasada|'))return ins.tipo.split('|')[1];
+  return null;
+}
 function _sbRow(ins){
   return{id:ins.id,equipo_id:ins.equipoId,equipo_nombre:ins.equipoNombre,
     seccion:ins.seccion,area:ins.area,tipo:ins.tipo,turno:ins.turno,
@@ -888,7 +895,8 @@ async function fetchRemoteInspecciones(){
       const ins={id:row.id,equipoId:row.equipo_id,equipoNombre:row.equipo_nombre,
         seccion:row.seccion,area:row.area,tipo:row.tipo,turno:row.turno,
         mecanico:row.mecanico,fecha:row.fecha,items:row.items,
-        observaciones:row.observaciones,savedAt:new Date(row.saved_at).getTime()||0,pending:false};
+        observaciones:row.observaciones,savedAt:new Date(row.saved_at).getTime()||0,pending:false,
+        fechaProgramada:row.tipo&&row.tipo.startsWith('atrasada|')?row.tipo.split('|')[1]:null};
       const idx=inspecciones.findIndex(i=>i.id===ins.id);
       if(idx===-1){
         inspecciones.push(ins);await dbPut('inspecciones',ins);
@@ -1332,7 +1340,7 @@ function isScheduled(eqIdx,date){
 function getTodayScheduled(){return equipos.filter((_,i)=>isScheduled(i,TODAY));}
 function isDoneToday(eqId){
   const ts=todayStr();
-  return inspecciones.some(ins=>ins.equipoId===eqId&&ins.tipo!=='reinspeccion'&&(ins.fecha===ts||(ins.fechaProgramada===ts)));
+  return inspecciones.some(ins=>ins.equipoId===eqId&&ins.tipo!=='reinspeccion'&&(ins.fecha===ts||insFechaProg(ins)===ts));
 }
 // Devuelve lista de {eq, fechaProg} de inspecciones programadas en días PASADOS no realizadas
 function getAtrasadasPendientes(){
@@ -1342,7 +1350,7 @@ function getAtrasadasPendientes(){
     const ds=dateStr(d);
     equipos.forEach((eq,gi)=>{
       if(!isScheduled(gi,d))return;
-      const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&(ins.fecha===ds||ins.fechaProgramada===ds));
+      const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&(ins.fecha===ds||insFechaProg(ins)===ds));
       if(!done)resultado.push({eq,fechaProg:ds});
     });
   }
@@ -1784,7 +1792,8 @@ async function saveForm(){
   }
   const ins={
     id:makeid(),equipoId:currentEq[0],equipoNombre:currentEq[1],
-    seccion:currentEq[2],area:currentEq[4],tipo:currentTipo,
+    seccion:currentEq[2],area:currentEq[4],
+    tipo:currentTipo==='atrasada'&&currentFechaProg?'atrasada|'+currentFechaProg:currentTipo,
     turno:getTurno(),mecanico:getMecNombre(),fecha:todayStr(),
     fechaProgramada:currentFechaProg||null,
     items:itemsData,
@@ -1975,7 +1984,7 @@ function renderRoll(){
         days.forEach((d,di)=>{
           const ds=dateStr(d);const isToday=ds===todStr;
           const sched=isScheduled(gi,d);
-          const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&(ins.fecha===ds||(ins.fechaProgramada===ds)));
+          const done=inspecciones.some(ins=>ins.equipoId===eq[0]&&(ins.fecha===ds||insFechaProg(ins)===ds));
           const venc=sched&&d<TODAY&&!done;
           let cell='';
           if(sched){
@@ -2132,10 +2141,10 @@ function renderRepList(){
       <div class="rep-header">
         <span class="rep-id">${ins.equipoId}</span>
         <span class="rep-nombre">${ins.equipoNombre}</span>
-        <span class="tag ${ins.tipo==='extra'?'tag-extra':(ins.tipo==='reinspeccion'||ins.tipo==='atrasada')?'tag-venc':'tag-prog'}">${ins.tipo.toUpperCase()}</span>
+        <span class="tag ${ins.tipo==='extra'?'tag-extra':(ins.tipo==='reinspeccion'||insEsAtrasada(ins))?'tag-venc':'tag-prog'}">${insEsAtrasada(ins)?'ATRASADA':ins.tipo.toUpperCase()}</span>
         <span class="rep-chevron">▾</span>
       </div>
-      <div class="rep-meta">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico} · ${ins.area}${ins.fechaProgramada&&ins.fechaProgramada!==ins.fecha?` · <span style="color:#D97706">Prog: ${fmtFechaCorta(ins.fechaProgramada)}</span>`:''}</div>
+      <div class="rep-meta">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico} · ${ins.area}${insFechaProg(ins)&&insFechaProg(ins)!==ins.fecha?` · <span style="color:#D97706">Prog: ${fmtFechaCorta(insFechaProg(ins))}</span>`:''}</div>
       <div class="rep-counts">
         <span class="cnt-b">✔ ${b} Buenos</span>
         <span class="cnt-r">~ ${r} Regulares</span>
