@@ -119,25 +119,40 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 #rep-content{display:none;}
 #rep-filters{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);}
 #rep-filters select{flex:1;min-width:100px;}
-#rep-list{padding:4px 0;}
-.rep-card{border-left:4px solid var(--border);cursor:pointer;}
-.rep-card:active{opacity:.85;}
-.rep-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;}
-.rep-id{font-size:10px;font-weight:700;font-family:monospace;background:var(--bg);padding:2px 5px;border-radius:4px;}
-.rep-nombre{font-weight:700;font-size:13px;flex:1;}
-.rep-meta{font-size:11px;color:var(--sub);margin-bottom:8px;}
-.rep-counts{display:flex;gap:6px;font-size:11px;font-weight:700;}
-.rep-chevron{font-size:14px;color:var(--sub);transition:transform .2s;margin-left:4px;}
-.rep-card.expanded .rep-chevron{transform:rotate(180deg);}
-.rep-items-detail{display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:8px;}
-.rep-card.expanded .rep-items-detail{display:block;}
+#rep-list{padding:0;}
+/* ---- TABLA COMPACTA DE REPORTES ---- */
+.rep-table-wrap{overflow-x:auto;margin:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.07);}
+.rep-thead{display:grid;grid-template-columns:4px 68px 1fr 76px 88px 70px 22px;align-items:center;padding:0 10px;border-bottom:1px solid var(--border);background:var(--bg);min-width:520px;}
+.rep-th{padding:7px 5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);white-space:nowrap;}
+.rep-row{display:grid;grid-template-columns:4px 68px 1fr 76px 88px 70px 22px;align-items:center;padding:0 10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;min-width:520px;}
+.rep-row:last-of-type{border-bottom:none;}
+.rep-row:hover{background:color-mix(in srgb,var(--accent) 5%,var(--surface));}
+.rep-row.expanded{background:color-mix(in srgb,var(--accent) 6%,var(--surface));}
+.rep-cell{padding:8px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;}
+.rep-color-bar{width:4px;height:32px;border-radius:2px;flex-shrink:0;}
+.rep-id{font-size:11px;font-weight:700;font-family:monospace;color:var(--text);}
+.rep-nombre-wrap{min-width:0;}
+.rep-nombre{font-weight:600;font-size:12px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rep-area{font-size:10px;color:var(--sub);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rep-chevron{font-size:12px;color:var(--sub);transition:transform .2s;text-align:center;user-select:none;}
+.rep-row.expanded .rep-chevron{transform:rotate(180deg);}
+/* Conteos B/M inline */
+.rep-brm{display:flex;gap:4px;align-items:center;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;}
+.cnt-b{color:var(--green);}.cnt-m{color:var(--red);}.cnt-r{color:var(--amber);}
+/* Panel de detalle expandible */
+.rep-detail-panel{display:none;padding:10px 14px 12px 20px;background:var(--bg);border-bottom:1px solid var(--border);min-width:520px;}
+.rep-detail-panel.open{display:block;}
+.rep-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px 14px;margin-bottom:8px;}
+.rep-detail-item{display:flex;flex-direction:column;gap:1px;}
+.rep-detail-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);}
+.rep-detail-val{font-size:12px;color:var(--text);}
+/* Items detalle */
 .item-detail-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .item-detail-row:last-child{border-bottom:none;}
 .item-detail-name{flex:1;color:var(--text);}
 .item-estado-b{font-weight:700;color:var(--green);min-width:22px;text-align:center;}
 .item-estado-r{font-weight:700;color:var(--amber);min-width:22px;text-align:center;}
 .item-estado-m{font-weight:700;color:var(--red);min-width:22px;text-align:center;}
-.cnt-b{color:var(--green);}.cnt-m{color:var(--red);}.cnt-r{color:var(--amber);}
 /* ---- FOTOS ANTES/DESPUÉS ---- */
 .item-fotos{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px 12px 10px;}
 .foto-slot-btn{border-radius:9px;border:1.5px dashed var(--border);background:var(--bg);padding:0;text-align:center;cursor:pointer;position:relative;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:border-color .15s;overflow:hidden;}
@@ -277,7 +292,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 <div id="app">
   <div id="header">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v28</span></h1>
+    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v29</span></h1>
     <div id="sync-dot" title="En línea"></div>
     <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
     <span id="turno-badge">T1 · Día</span>
@@ -2141,7 +2156,7 @@ function renderRepList(){
     el.innerHTML=`<div style="text-align:center;color:var(--sub);padding:40px 20px;font-size:13px;">Sin inspecciones${sec||turno||estado||busca?' con esos filtros':' registradas aún'}.</div>`;
     return;
   }
-  el.innerHTML=data.map((ins,i)=>{
+  const rows=data.map((ins,i)=>{
     const items_s=(ins.items||[]);
     const b=items_s.filter(it=>it&&it.estado==='b').length;
     const m=items_s.filter(it=>it&&it.estado==='m').length;
@@ -2149,6 +2164,9 @@ function renderRepList(){
     const malos=items_s.filter(it=>it&&it.estado==='m');
     const eq=equipos.find(e=>e[0]===ins.equipoId);
     const col=eq?tipoColor(eq[3]):'var(--accent)';
+    const tagCls=ins.tipo==='extra'?'tag-extra':(ins.tipo==='reinspeccion'||insEsAtrasada(ins))?'tag-venc':'tag-prog';
+    const tagTxt=insEsAtrasada(ins)?'ATRASADA':ins.tipo.toUpperCase();
+    const fechaProg=insFechaProg(ins);
     const itemsHtml=ins.items.map(it=>{
       const cls=it.estado==='b'?'item-estado-b':it.estado==='m'?'item-estado-m':'item-estado-r';
       const ico=it.estado==='b'?'✔':it.estado==='m'?'✘':'~';
@@ -2174,25 +2192,41 @@ function renderRepList(){
         ${fotoHtml}
       </div>`;
     }).join('');
-    return`<div class="card rep-card" style="border-left-color:${col}" onclick="toggleRepCard(this)">
-      <div class="rep-header">
-        <span class="rep-id">${ins.equipoId}</span>
-        <span class="rep-nombre">${ins.equipoNombre}</span>
-        <span class="tag ${ins.tipo==='extra'?'tag-extra':(ins.tipo==='reinspeccion'||insEsAtrasada(ins))?'tag-venc':'tag-prog'}">${insEsAtrasada(ins)?'ATRASADA':ins.tipo.toUpperCase()}</span>
-        <span class="rep-chevron">▾</span>
-      </div>
-      <div class="rep-meta">${fmtFechaCorta(ins.fecha)} · T${ins.turno} · ${ins.mecanico} · ${ins.area}${insFechaProg(ins)&&insFechaProg(ins)!==ins.fecha?` · <span style="color:#D97706">Prog: ${fmtFechaCorta(insFechaProg(ins))}</span>`:''}</div>
-      <div class="rep-counts">
-        <span class="cnt-b">✔ ${b} Buenos</span>
-        <span class="cnt-r">~ ${r} Regulares</span>
-        <span class="cnt-m">✘ ${m} Malos</span>
+    const uid='rep'+i;
+    return`<div class="rep-row" id="${uid}" onclick="toggleRepCard(this,'${uid}det')">
+      <div class="rep-cell" style="padding-left:0"><div class="rep-color-bar" style="background:${col}"></div></div>
+      <div class="rep-cell"><span class="rep-id">${ins.equipoId}</span></div>
+      <div class="rep-cell rep-nombre-wrap"><span class="rep-nombre">${ins.equipoNombre}</span><span class="rep-area">${ins.area}</span></div>
+      <div class="rep-cell"><span class="tag ${tagCls}" style="font-size:10px">${tagTxt}</span></div>
+      <div class="rep-cell" style="color:var(--sub);font-size:11px;white-space:nowrap">${fmtFechaCorta(ins.fecha)} · T${ins.turno}</div>
+      <div class="rep-cell" style="color:var(--sub);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ins.mecanico}</div>
+      <div class="rep-cell rep-chevron">▾</div>
+    </div>
+    <div class="rep-detail-panel" id="${uid}det">
+      <div class="rep-detail-grid">
+        <div class="rep-detail-item"><span class="rep-detail-label">Mecánico</span><span class="rep-detail-val">${ins.mecanico}</span></div>
+        <div class="rep-detail-item"><span class="rep-detail-label">Área</span><span class="rep-detail-val">${ins.area}</span></div>
+        ${fechaProg&&fechaProg!==ins.fecha?`<div class="rep-detail-item"><span class="rep-detail-label">Prog.</span><span class="rep-detail-val" style="color:var(--amber)">${fmtFechaCorta(fechaProg)}</span></div>`:''}
+        <div class="rep-detail-item"><span class="rep-detail-label">Resultados</span><span class="rep-detail-val"><span class="cnt-b">✔${b}B</span> <span class="cnt-r">~${r}R</span> <span class="cnt-m">✘${m}M</span></span></div>
       </div>
       ${malos.length?`<div class="malos-box"><strong>⚠ Ítems en mal estado:</strong>${malos.map(it=>`<div>• ${it.nombre}</div>`).join('')}</div>`:''}
       ${ins.observaciones?`<div class="obs-box">💬 ${ins.observaciones}</div>`:''}
-      <div class="rep-items-detail">${itemsHtml}</div>
-      <button onclick="event.stopPropagation();openForm('${ins.equipoId}','reinspeccion')" style="margin-top:10px;width:100%;padding:9px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer">🔄 Reinspeccionar este equipo</button>
+      <details style="margin-top:8px"><summary style="font-size:11px;color:var(--sub);cursor:pointer;user-select:none">Ver todos los ítems (${items_s.length})</summary><div style="margin-top:6px">${itemsHtml}</div></details>
+      <button onclick="event.stopPropagation();openForm('${ins.equipoId}','reinspeccion')" style="margin-top:8px;padding:7px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer">🔄 Reinspeccionar este equipo</button>
     </div>`;
   }).join('');
+  el.innerHTML=`<div class="rep-table-wrap">
+    <div class="rep-thead">
+      <div></div>
+      <div class="rep-th">ID</div>
+      <div class="rep-th">Equipo</div>
+      <div class="rep-th">Tipo</div>
+      <div class="rep-th">Fecha · T</div>
+      <div class="rep-th">Mecánico</div>
+      <div class="rep-th"></div>
+    </div>
+    ${rows}
+  </div>`;
 }
 
 // --- ir desde Ranking/Reincidencias al listado filtrado por ese equipo ---
@@ -2948,8 +2982,19 @@ async function init(){
 // =====================================================================
 // EXPANDIR CARD REPORTE
 // =====================================================================
-function toggleRepCard(el){
-  el.classList.toggle('expanded');
+function toggleRepCard(rowEl,detId){
+  const det=document.getElementById(detId);
+  const wasOpen=rowEl.classList.contains('expanded');
+  // Cierra todos los abiertos
+  document.querySelectorAll('.rep-row.expanded').forEach(r=>{
+    r.classList.remove('expanded');
+    const d=document.getElementById(r.id+'det');
+    if(d)d.classList.remove('open');
+  });
+  if(!wasOpen){
+    rowEl.classList.add('expanded');
+    if(det)det.classList.add('open');
+  }
 }
 
 // =====================================================================
