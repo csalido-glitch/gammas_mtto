@@ -292,7 +292,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 <div id="app">
   <div id="header">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v29</span></h1>
+    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v30</span></h1>
     <div id="sync-dot" title="En línea"></div>
     <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
     <span id="turno-badge">T1 · Día</span>
@@ -788,9 +788,10 @@ async function syncPending(){
     const ok=await sbInsert(ins);
     if(ok){
       ins.pending=false;
+      ins.syncedAt=Date.now();
       await dbPut('inspecciones',ins);
       const memIdx=inspecciones.findIndex(i=>i.id===ins.id);
-      if(memIdx!==-1) inspecciones[memIdx].pending=false;
+      if(memIdx!==-1){inspecciones[memIdx].pending=false;inspecciones[memIdx].syncedAt=ins.syncedAt;}
       synced++;
     }
   }
@@ -921,10 +922,17 @@ async function fetchRemoteInspecciones(){
       }
     }
     // Quitar localmente las que ya no existen en Supabase (borradas desde otro dispositivo)
+    // IMPORTANTE: período de gracia de 5 min para evitar condición de carrera:
+    // si sbInsert acaba de confirmar (syncedAt reciente) pero la query de Supabase
+    // aún no retorna el registro, NO borrar — podría ser un registro recién subido.
     const remoteIds=new Set(rows.map(r=>r.id));
+    const GRACE=5*60*1000; // 5 minutos
     for(let i=inspecciones.length-1;i>=0;i--){
       const ins=inspecciones[i];
       if(!ins.pending && !remoteIds.has(ins.id) && !pendingDelIds.includes(ins.id)){
+        // Respetar período de gracia si fue confirmado recientemente
+        const refTime=ins.syncedAt||ins.savedAt||0;
+        if((Date.now()-refTime)<GRACE) continue;
         inspecciones.splice(i,1);
         await dbDel('inspecciones',ins.id);
       }
@@ -1856,7 +1864,7 @@ async function saveForm(){
     toast('📦 Foto guardada en cola — se subirá sola en cuanto haya señal');
   }
   sbInsert(ins).then(ok=>{
-    if(ok){ins.pending=false;dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
+    if(ok){ins.pending=false;ins.syncedAt=Date.now();dbPut('inspecciones',ins);toast('✔ Inspección guardada y enviada a la nube ☁');}
     else{toast('✔ Guardada localmente — subiendo en segundo plano…');}
   }).catch(()=>{toast('✔ Guardada localmente — subiendo en segundo plano…');});
   if(fotosParaEncolar.length)processFotosPendientes();
