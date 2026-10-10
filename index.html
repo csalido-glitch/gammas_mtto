@@ -292,7 +292,7 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 <div id="app">
   <div id="header">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v30</span></h1>
+    <h1>Gamas Mtto – MRT <span style="font-size:9px;opacity:.6;font-weight:400">v31</span></h1>
     <div id="sync-dot" title="En línea"></div>
     <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema" style="background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;line-height:1;">☀️</button>
     <span id="turno-badge">T1 · Día</span>
@@ -2571,8 +2571,17 @@ function renderAdmPanel(){
         :'<div style="color:var(--sub);font-size:13px">Sin inspecciones aún.</div>'}`;
   } else if(curAdmTab==='historial'){
     const sorted=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
+    // Detectar duplicados: mismo equipo_id + fecha + turno
+    const seen=new Map();
+    const dupIds=new Set();
+    for(const ins of sorted){
+      const key=ins.equipoId+'|'+ins.fecha+'|'+ins.turno;
+      if(seen.has(key)){dupIds.add(ins.id);}else{seen.set(key,ins.id);}
+    }
     panel.innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:10px">
-      ${sorted.length} inspección(es) en total. Toca ✏️ para editar o 🗑 para borrar (se elimina de todos los dispositivos).</div>`+
+      ${sorted.length} inspección(es) en total. Toca ✏️ para editar o 🗑 para borrar (se elimina de todos los dispositivos).
+      ${dupIds.size>0?`<br><span style="color:var(--red);font-weight:700">⚠ ${dupIds.size} duplicado(s) detectado(s).</span> <button onclick="limpiarDuplicados()" style="margin-left:8px;background:var(--red);color:#fff;border:none;border-radius:6px;padding:3px 10px;cursor:pointer;font-size:11px;font-weight:700">🗑 Borrar duplicados</button>`:''}
+    </div>`+
       (sorted.length?sorted.map(ins=>`
       <div class="item-line" style="flex-wrap:wrap;gap:4px">
         <div style="flex:1;min-width:0">
@@ -3043,6 +3052,40 @@ function confirmCancel(){
 }
 
 // =====================================================================
+// LIMPIAR DUPLICADOS — mantiene el más reciente por equipo+fecha+turno
+// =====================================================================
+async function limpiarDuplicados(){
+  const sorted=[...inspecciones].sort((a,b)=>b.savedAt-a.savedAt);
+  const seen=new Map();
+  const toDelete=[];
+  for(const ins of sorted){
+    const key=ins.equipoId+'|'+ins.fecha+'|'+ins.turno;
+    if(seen.has(key)){toDelete.push(ins.id);}else{seen.set(key,ins.id);}
+  }
+  if(!toDelete.length){toast('No hay duplicados');return;}
+  showConfirm(`Se borrarán ${toDelete.length} registro(s) duplicado(s). ¿Continuar?`, async()=>{
+    let ok=0;
+    for(const id of toDelete){
+      // Quitar de memoria
+      const idx=inspecciones.findIndex(i=>i.id===id);
+      if(idx!==-1)inspecciones.splice(idx,1);
+      // Quitar de IndexedDB
+      try{await dbDel('inspecciones',id);}catch(e){}
+      // Quitar de Supabase
+      try{
+        const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+encodeURIComponent(id),
+          {method:'DELETE',headers:{...SB_H,'Prefer':'return=minimal'}});
+        if(!r.ok)addPendingDelete(id);
+      }catch(e){addPendingDelete(id);}
+      ok++;
+    }
+    toast(`🗑 ${ok} duplicado(s) eliminado(s)`);
+    renderAdmPanel();
+    renderHome();
+  });
+}
+
+// =====================================================================
 // BORRAR INSPECCIÓN (solo admin)
 // =====================================================================
 function deleteInspeccion(id){
@@ -3067,6 +3110,11 @@ function deleteInspeccion(id){
     try{
       const r=await fetch(SB_URL+'/rest/v1/inspecciones?id=eq.'+encodeURIComponent(id),
         {method:'DELETE',headers:{...SB_H,'Prefer':'return=minimal'}});
+      if(!r.ok){
+        // Supabase rechazó el delete → encolar para reintento y marcar localmente
+        addPendingDelete(id);
+        console.warn('deleteInspeccion SB status',r.status);
+      }
     }catch(e){console.warn('deleteInspeccion SB',e);addPendingDelete(id);}
     toast('🗑 Inspección eliminada');
     renderAdmPanel();
