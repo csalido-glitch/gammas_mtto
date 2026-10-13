@@ -332,6 +332,14 @@ function portadaDiesel(){try{sessionStorage.setItem('mtto-area','dsl');}catch(e)
   var a=null;try{a=sessionStorage.getItem('mtto-area');}catch(e){}
   if(a==='mec')document.getElementById('portada').classList.add('oculta');
 })();
+function portadaVolver(){try{sessionStorage.removeItem('mtto-area');}catch(e){}document.getElementById('portada').classList.remove('oculta');window.scrollTo(0,0);}
+document.addEventListener('DOMContentLoaded',function(){
+  var h=document.getElementById('header');if(!h||document.getElementById('p-volver'))return;
+  var v=document.createElement('a');v.id='p-volver';v.href='#';v.title='Volver a la portada';v.textContent='‹';
+  v.style.cssText='color:#fff;text-decoration:none;font-size:26px;line-height:1;padding:0 6px 2px 0;font-weight:300;';
+  v.onclick=function(e){e.preventDefault();portadaVolver();};
+  h.insertBefore(v,h.firstChild);
+});
 </script>
 <div id="app">
   <div id="header">

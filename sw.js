@@ -1,5 +1,5 @@
 // Gamas MRT – Service Worker
-const CACHE = 'gamas-mrt-v32';
+const CACHE = 'gamas-mrt-v33';
 const ASSETS = ['./', './index.html', './diesel.html', './portada_mecanico.jpg', './portada_diesel.jpg'];
 
 self.addEventListener('install', e => {
