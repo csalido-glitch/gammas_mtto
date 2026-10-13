@@ -1,0 +1,1314 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#B45309">
+<title>Mtto Diésel – MRT</title>
+<style>
+:root{
+  --bg:#f4f5f7;--surface:#fff;--border:#e0e3e8;--text:#1a1d23;
+  --sub:#6b7280;--accent:#B45309;--green:#16a34a;--red:#dc2626;--amber:#d97706;
+  --lig:#2563eb;--pes:#C0392B;--gen:#0E7C7B;
+  --nav-h:58px;--header-h:48px;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#111318;--surface:#1e2028;--border:#2d3140;--text:#e8eaf0;--sub:#9ca3af;}
+}
+[data-theme="dark"]{--bg:#111318;--surface:#1e2028;--border:#2d3140;--text:#e8eaf0;--sub:#9ca3af;}
+[data-theme="light"]{--bg:#f4f5f7;--surface:#fff;--border:#e0e3e8;--text:#1a1d23;--sub:#6b7280;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+#app{display:flex;flex-direction:column;height:100%;}
+#header{height:var(--header-h);background:var(--accent);color:#fff;display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0;}
+#header a{color:#fff;text-decoration:none;font-size:22px;line-height:1;padding:0 4px;}
+#header h1{font-size:15px;font-weight:700;flex:1;}
+#header h1 small{font-size:9px;opacity:.65;font-weight:400;}
+#sync-dot{width:9px;height:9px;border-radius:50%;background:#9ca3af;}
+#sync-dot.ok{background:#4ade80;}#sync-dot.bad{background:#fca5a5;}
+#theme-btn{background:none;border:none;cursor:pointer;color:#fff;font-size:18px;padding:4px 6px;}
+#views{flex:1;overflow:hidden;position:relative;}
+.view{position:absolute;inset:0;overflow-y:auto;display:none;padding-bottom:calc(var(--nav-h) + 8px);}
+.view.active{display:block;}
+#nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;flex-shrink:0;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;color:var(--sub);cursor:pointer;font-size:10px;font-weight:600;}
+.nav-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.nav-btn.active{color:var(--accent);}
+.card{background:var(--surface);border-radius:12px;padding:12px 14px;margin:6px 12px;box-shadow:0 1px 3px rgba(0,0,0,.07);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;border:none;cursor:pointer;}
+.btn:active{opacity:.75;}.btn:disabled{opacity:.45;cursor:default;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-green{background:var(--green);color:#fff;}
+.btn-ghost{background:var(--border);color:var(--text);}.btn-sm{padding:6px 10px;font-size:12px;border-radius:8px;}
+.w100{width:100%;}
+input[type=text],input[type=number],input[type=date],input[type=password],select{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;background:var(--bg);color:var(--text);outline:none;}
+input:focus,select:focus{border-color:var(--accent);}
+label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-bottom:3px;}
+.field{margin-bottom:12px;}
+.hint{font-size:11px;color:var(--sub);margin-top:3px;}
+.two{display:flex;gap:8px;}.two>*{flex:1;}
+.vacio{padding:40px 24px;text-align:center;color:var(--sub);font-size:13px;line-height:1.6;}
+.vacio b{display:block;font-size:15px;color:var(--text);margin-bottom:6px;}
+/* ADMIN */
+#adm-gate{padding:24px 20px;max-width:300px;margin:40px auto;text-align:center;}
+#adm-gate h3{font-size:15px;margin-bottom:12px;}
+#adm-err{color:var(--red);font-size:12px;min-height:16px;margin-top:6px;}
+#adm-content{display:none;}
+#adm-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);padding:0 8px;position:sticky;top:0;z-index:5;}
+.adm-tab{padding:10px 12px;font-size:12px;font-weight:700;color:var(--sub);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.adm-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+#adm-panel{padding:12px 14px 90px;}
+.line{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.line .n{font-size:11px;color:var(--sub);min-width:22px;text-align:right;}
+.line input[type=text]{padding:6px 8px;font-size:12.5px;border-width:1px;background:transparent;}
+.mv{display:flex;flex-direction:column;gap:1px;}
+.ib{border:1px solid var(--border);background:var(--surface);color:var(--sub);border-radius:6px;font-size:10px;line-height:1;padding:3px 6px;cursor:pointer;}
+.ib:disabled{opacity:.3;cursor:default;}
+.del{background:#fee2e2;color:var(--red);border:none;border-radius:7px;padding:5px 9px;cursor:pointer;font-size:12px;font-weight:700;}
+.eid{font-family:monospace;font-weight:700;font-size:11px;min-width:46px;}
+.dia{font-size:10px;color:var(--accent);font-weight:700;min-width:38px;text-align:right;}
+.dia.fuera{color:var(--sub);font-weight:600;}
+.chip{display:inline-block;width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+.c-Ligero{background:var(--lig);}.c-Pesado{background:var(--pes);}.c-Generador{background:var(--gen);}
+.grp{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--sub);margin:14px 0 4px;}
+.seg{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.seg button{padding:7px 12px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--text);font-size:12px;font-weight:600;cursor:pointer;}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.sub-h{font-weight:700;font-size:12px;margin:16px 0 6px;}
+.eqbox{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.eqbox .r{display:flex;gap:4px;align-items:center;}
+.tgl{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:3px;white-space:nowrap;}
+#savebar{position:fixed;left:0;right:0;bottom:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);padding:8px 12px;display:none;gap:8px;align-items:center;z-index:20;box-shadow:0 -4px 12px rgba(0,0,0,.08);}
+#savebar.show{display:flex;}
+#savebar span{flex:1;font-size:12px;font-weight:700;color:var(--amber);}
+#toast{position:fixed;bottom:calc(var(--nav-h) + 70px);left:50%;transform:translateX(-50%);background:#1a1d23;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;}
+/* ---------- Paso 3 ---------- */
+#views{max-width:760px;width:100%;margin:0 auto;}
+#mec-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+#mec-bar b{flex:1;font-size:14px;}
+#mec-bar button{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;}
+.turno{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.22);color:#fff;}
+.login{padding:28px 20px;max-width:340px;margin:20px auto;}
+.login h3{font-size:16px;margin-bottom:4px;}
+.login p{font-size:12.5px;color:var(--sub);margin-bottom:16px;line-height:1.5;}
+.sh{padding:12px 14px 4px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--sub);letter-spacing:.6px;}
+.eq-card{border-left:4px solid var(--border);cursor:pointer;}
+.eq-card.Ligero{border-left-color:var(--lig);}.eq-card.Pesado{border-left-color:var(--pes);}.eq-card.Generador{border-left-color:var(--gen);}
+.eq-card.done{opacity:.5;cursor:default;}
+.eq-h{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.eq-h .eid{font-size:11px;background:var(--bg);padding:2px 6px;border-radius:5px;}
+.eq-h b{flex:1;font-size:13px;}
+.eq-s{font-size:11.5px;color:var(--sub);}
+.tag{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+.t-prog{background:#dbeafe;color:#1d4ed8;}.t-comp{background:#dcfce7;color:#15803d;}.t-no{background:#fee2e2;color:#b91c1c;}
+.t-extra{background:#ede9fe;color:#6d28d9;}.t-pend{background:#fef3c7;color:#92400e;}
+#btn-extra{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 24px);margin:10px 12px;padding:12px;border-radius:12px;border:2px dashed var(--border);background:none;color:var(--sub);font-weight:700;font-size:13px;cursor:pointer;}
+/* formulario */
+#form-top{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;}
+#form-top button{background:none;border:none;cursor:pointer;color:var(--accent);font-size:22px;line-height:1;}
+#form-top b{flex:1;font-size:14px;}
+#form-meta{display:flex;gap:6px;flex-wrap:wrap;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+.grp-it{padding:10px 14px 4px;font-size:10.5px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;}
+.it-row{display:flex;flex-direction:column;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--surface);}
+.it-top{display:flex;align-items:center;gap:8px;}
+.it-top span{flex:1;font-size:13px;}
+.it-btns{display:flex;gap:4px;}
+.it-btn{width:36px;height:34px;border-radius:8px;border:1.5px solid var(--border);background:none;cursor:pointer;font-size:15px;color:var(--text);}
+.it-btn.sB{background:#dcfce7;border-color:var(--green);}.it-btn.sM{background:#fee2e2;border-color:var(--red);}.it-btn.sR{background:#fef3c7;border-color:var(--amber);}
+.it-row input{margin-top:6px;}
+.fotos{display:flex;gap:8px;padding:12px 14px;}
+.foto{flex:1;border:1.5px dashed var(--border);border-radius:10px;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:var(--sub);cursor:pointer;position:relative;overflow:hidden;background:var(--surface);}
+.foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.foto .q{position:absolute;right:4px;top:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:6px;font-size:11px;padding:2px 6px;cursor:pointer;z-index:2;}
+.pad{padding:10px 14px;}
+textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;background:var(--bg);color:var(--text);outline:none;resize:vertical;min-height:64px;font-family:inherit;}
+/* roll */
+#roll-top{display:flex;gap:8px;align-items:center;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+#roll-top b{flex:1;font-size:13px;text-align:center;}
+.roll-wrap{overflow:auto;}
+table.roll{border-collapse:collapse;font-size:10.5px;}
+.roll th,.roll td{border:1px solid var(--border);height:26px;white-space:nowrap;text-align:center;min-width:26px;}
+.roll th{background:var(--surface);font-weight:700;}
+.roll th.hoy{background:var(--accent);color:#fff;}
+.roll td.hoy{background:rgba(180,83,9,.07);}
+.roll .u1{position:sticky;left:0;background:var(--surface);text-align:left;padding:0 6px;min-width:150px;max-width:150px;overflow:hidden;text-overflow:ellipsis;z-index:2;}
+.roll .u1 .eid{font-size:10px;margin-right:4px;}
+.pip{display:inline-block;width:19px;height:15px;border-radius:4px;font-size:9.5px;font-weight:800;line-height:15px;color:#fff;}
+.p-ok{background:var(--green);}.p-late{background:var(--amber);}.p-no{background:var(--red);}.p-pr{background:#93c5fd;color:#1e3a8a;}.p-x{background:#7c3aed;}
+.ley{display:flex;flex-wrap:wrap;gap:12px;padding:10px 14px;font-size:11px;color:var(--sub);}
+/* ---------- Paso 4 ---------- */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;}
+.tabs div{flex:1;text-align:center;padding:11px 0;font-size:12.5px;font-weight:700;color:var(--sub);cursor:pointer;}
+.tabs div.on{color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent);}
+.rfil{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);}
+.rfil select,.rfil input{flex:1 1 140px;padding:7px 9px;font-size:12px;}
+.kpi{display:flex;gap:8px;padding:10px 12px;}
+.kpi div{flex:1;background:var(--surface);border-radius:10px;padding:8px 10px;font-size:10.5px;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.kpi b{display:block;font-size:18px;color:var(--text);}
+.rep{display:grid;grid-template-columns:4px 74px 1fr 64px 14px;align-items:center;gap:8px;padding:9px 12px 9px 0;border-bottom:1px solid var(--border);background:var(--surface);font-size:12px;cursor:pointer;}
+.rep.ab{background:var(--bg);}
+.rep .c{align-self:stretch;min-height:32px;}
+.rep .fo{font-family:monospace;font-weight:700;font-size:11px;}
+.rep .eq{min-width:0;}.rep .eq b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.rep .eq small{color:var(--sub);font-size:11px;}
+.rep .fe{font-size:11px;color:var(--sub);text-align:right;}
+.det{background:var(--bg);padding:10px 14px 12px 18px;font-size:12.5px;line-height:1.6;border-bottom:1px solid var(--border);}
+.det b{color:var(--sub);font-weight:600;}
+.req{margin-top:6px;padding:6px 9px;border-radius:8px;background:#fef3c7;color:#92400e;font-size:12px;}
+#btn-srv{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 24px);margin:10px 12px 0;padding:13px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:14px;cursor:pointer;}
+.it-fotos{padding:8px 0 0;}
+.it-fotos .foto{min-height:76px;}
+.aviso{display:flex;flex-direction:column;gap:2px;margin:8px 12px 0;padding:9px 12px;border-radius:10px;font-size:12px;}
+.aviso b{font-size:12.5px;}.aviso span{color:var(--sub);}
+.aviso.rojo{background:rgba(220,38,38,.09);border-left:4px solid #DC2626;}.aviso.rojo b{color:#B91C1C;}
+.aviso.ambar{background:rgba(217,119,6,.1);border-left:4px solid #D97706;}.aviso.ambar b{color:#92400E;}
+.sh.rojo{color:#B91C1C;}
+#btn-share{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 24px);margin:0 12px 14px;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-weight:700;font-size:13px;cursor:pointer;}
+.it-btn{font-weight:800;}
+#foto-menu{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:120;}
+.fm-box{background:var(--surface);width:100%;max-width:420px;border-radius:16px 16px 0 0;padding:16px;display:flex;flex-direction:column;gap:8px;}
+.fm-box b{font-size:14px;margin-bottom:4px;}
+.tabs{overflow-x:auto;}.tabs div{flex:1 0 auto;padding:11px 12px;white-space:nowrap;}
+.bar-row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px;}
+.bar-l{width:92px;flex-shrink:0;color:var(--sub);}.bar-t{flex:1;height:10px;background:var(--bg);border-radius:5px;overflow:hidden;}
+.bar-f{height:100%;background:var(--red);border-radius:5px;}.bar-v{width:44px;text-align:right;font-weight:700;}
+#rep-badge{display:none;position:absolute;top:8px;right:calc(50% - 16px);width:9px;height:9px;border-radius:50%;background:var(--red);}
+.srvbox{margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(124,58,237,.08);border-left:3px solid #7c3aed;}
+.srvq{margin:10px 12px;padding:12px 14px;border-radius:12px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.07);}
+.srvq h4{font-size:13px;margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <a href="./" onclick="try{sessionStorage.removeItem('mtto-area')}catch(e){}" title="Volver a la portada">‹</a>
+    <h1>Mtto Diésel – MRT <small>d9</small></h1>
+    <span class="turno" id="turno-badge">T1</span>
+    <div id="sync-dot" title="Sin conexión"></div>
+    <button id="theme-btn" onclick="toggleTheme()" title="Cambiar tema">☀️</button>
+  </div>
+  <div id="views">
+    <div class="view active" id="view-home"></div>
+    <div class="view" id="view-form"></div>
+    <div class="view" id="view-roll"></div>
+    <div class="view" id="view-reports"></div>
+    <div class="view" id="view-sform"></div>
+    <div class="view" id="view-admin">
+      <div id="adm-gate">
+        <h3>Admin de Mtto Diésel</h3>
+        <div class="field"><input type="password" id="adm-pin" placeholder="Contraseña de administrador" onkeydown="if(event.key==='Enter')admLogin()"></div>
+        <button class="btn btn-primary w100" onclick="admLogin()">Entrar</button>
+        <div id="adm-err"></div>
+      </div>
+      <div id="adm-content">
+        <div id="adm-tabs">
+          <button class="adm-tab active" data-tab="config" onclick="admTab('config')">Configuración</button>
+          <button class="adm-tab" data-tab="usuarios" onclick="admTab('usuarios')">Usuarios</button>
+          <button class="adm-tab" data-tab="equipos" onclick="admTab('equipos')">Equipos</button>
+          <button class="adm-tab" data-tab="items" onclick="admTab('items')">Ítems</button>
+          <button class="adm-tab" data-tab="servicios" onclick="admTab('servicios')">Servicios</button>
+          <button class="adm-tab" data-tab="reinsp" onclick="admTab('reinsp')">Reinspección</button>
+          <button class="adm-tab" data-tab="historial" onclick="admTab('historial')">🗑 Historial</button>
+          <button class="adm-tab" data-tab="storage" onclick="admTab('storage')">📦 Storage</button>
+        </div>
+        <div id="adm-panel"></div>
+      </div>
+    </div>
+  </div>
+  <div id="savebar"><span>Cambios sin guardar</span>
+    <button class="btn btn-ghost btn-sm" onclick="descartar()">Descartar</button>
+    <button class="btn btn-primary btn-sm" id="btn-save" onclick="guardar()">Guardar en Supabase</button></div>
+  <nav id="nav">
+    <button class="nav-btn active" data-view="home" onclick="showView('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Hoy</button>
+    <button class="nav-btn" data-view="roll" onclick="showView('roll')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Roll</button>
+    <button class="nav-btn" data-view="reports" onclick="showView('reports')" style="position:relative"><span id="rep-badge"></span><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Reportes</button>
+    <button class="nav-btn" data-view="admin" onclick="showView('admin')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Admin</button>
+  </nav>
+</div>
+<div id="foto-menu" onclick="if(event.target===this)cerrarFotoMenu()"><div class="fm-box"><b>Agregar foto</b>
+  <button class="btn btn-primary w100" onclick="elegirFoto('camara')">📷 Tomar con la cámara</button>
+  <button class="btn btn-ghost w100" onclick="elegirFoto('galeria')">🖼 Elegir de la galería</button>
+  <button class="btn w100" style="background:none;color:var(--sub)" onclick="cerrarFotoMenu()">Cancelar</button></div></div>
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   MTTO DIÉSEL · Paso 2 · Admin
+   Archivo aparte de Gammas. Usa el mismo proyecto de Supabase pero SOLO
+   la tabla diesel_config (clave 'global'). Todo lo que guarda en el
+   navegador lleva prefijo dsl- para no tocar nada de Gammas.
+   ===================================================================== */
+const VERSION='d1';
+const SB_URL='https://ewgcufflruljsemexded.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3Z2N1ZmZscnVsanNlbWV4ZGVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5OTkwNDgsImV4cCI6MjEwNDU3NTA0OH0.K3agZNVCCYbp6qDNLQjZKvCv_jTbVDvdSAAdtSErKBM';
+const SB_H={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+const CATS=['Ligero','Pesado','Generador'];
+const PREF={Ligero:'EL',Pesado:'EP',Generador:'GE'};
+const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+let cfg=null;          // configuración vigente (lo guardado)
+let draft=null;        // copia que se edita en Admin
+let remoteAt=null;     // updated_at de lo que se cargó
+let curTab='config', curCat='Ligero';
+
+const $=id=>document.getElementById(id);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k));}catch(_){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(_){}}
+function fmtFecha(iso){const p=String(iso||'').split('-').map(Number);return p.length===3&&p[0]?`${p[2]}-${MES[p[1]-1]}-${String(p[0]).slice(2)}`:'—';}
+function toast(msg,ok=true){const el=$('toast');el.textContent=msg;el.style.background=ok?'#16a34a':'#dc2626';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400);}
+function setDot(ok){const d=$('sync-dot');d.className=ok?'ok':'bad';d.title=ok?'En línea':'Sin conexión';}
+
+/* ---------- tema (lee la misma preferencia que Gammas) ---------- */
+function applyTheme(t){if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');
+  const dark=t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches);$('theme-btn').textContent=dark?'🌙':'☀️';}
+function toggleTheme(){const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  const nx=cur==='dark'?'light':'dark';try{localStorage.setItem('gamas-theme',nx);}catch(_){}applyTheme(nx);}
+applyTheme((()=>{try{return localStorage.getItem('gamas-theme');}catch(_){return null;}})());
+
+/* ---------- Supabase: solo diesel_config ---------- */
+async function sbLeerConfig(){
+  const r=await fetch(SB_URL+'/rest/v1/diesel_config?key=eq.global&select=value,updated_at',{headers:SB_H,cache:'no-store'});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const rows=await r.json();
+  if(!rows.length)throw new Error('No existe la fila global en diesel_config');
+  return rows[0];
+}
+async function sbGuardarConfig(value){
+  const now=new Date().toISOString();
+  const r=await fetch(SB_URL+'/rest/v1/diesel_config?key=eq.global',{method:'PATCH',
+    headers:{...SB_H,'Prefer':'return=representation'},body:JSON.stringify({value,updated_at:now})});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const rows=await r.json();
+  if(!rows.length)throw new Error('No se actualizó ninguna fila');
+  return rows[0].updated_at;
+}
+async function cargar(){
+  const cache=lsGet('dsl-config');
+  if(cache&&cache.value){cfg=cache.value;remoteAt=cache.updated_at;}
+  try{
+    const row=await sbLeerConfig();
+    cfg=row.value;remoteAt=row.updated_at;lsSet('dsl-config',row);setDot(true);
+  }catch(e){
+    setDot(false);
+    if(!cfg){toast('No se pudo leer la configuración de Diésel',false);console.warn(e);}
+  }
+  if(cfg&&!dirty())draft=clone(cfg);
+  if(typeof revisarDeploy==='function')revisarDeploy();
+  if(isAdmin()&&!(curTab==='storage'||curTab==='reinsp'))renderAdmin();
+  if(typeof pintarActual==='function'&&!FORM)pintarActual();
+}
+
+/* ---------- navegación ---------- */
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.toggle('active',el.id==='view-'+v));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
+  if(v==='admin')renderAdmin();
+  if(v==='home')renderHome();
+  if(v==='form')renderForm();
+  if(v==='roll')renderRoll();
+  if(v==='reports')renderReports();
+  if(v==='sform')renderSForm();
+  $('nav').style.display=(v==='form'||v==='sform')?'none':'flex';
+  $('savebar').classList.toggle('show',v==='admin'&&dirty());
+}
+
+/* ---------- admin: acceso ---------- */
+function isAdmin(){try{return sessionStorage.getItem('dsl-admin')==='1';}catch(_){return false;}}
+function admLogin(){
+  if(!cfg){$('adm-err').textContent='Todavía no se carga la configuración. Revisa la conexión.';return;}
+  if($('adm-pin').value===String(cfg.adminPin)){
+    try{sessionStorage.setItem('dsl-admin','1');}catch(_){}
+    $('adm-pin').value='';$('adm-err').textContent='';renderAdmin();
+  }else $('adm-err').textContent='Contraseña incorrecta';
+}
+function renderAdmin(){
+  const ok=isAdmin();
+  $('adm-gate').style.display=ok?'none':'block';
+  $('adm-content').style.display=ok?'block':'none';
+  if(ok&&draft)renderPanel();
+}
+function admTab(t){curTab=t;document.querySelectorAll('.adm-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));renderPanel();}
+
+/* ---------- borrador y guardado ---------- */
+function dirty(){return !!(cfg&&draft&&JSON.stringify(cfg)!==JSON.stringify(draft));}
+function marcar(){$('savebar').classList.toggle('show',dirty());}
+function descartar(){if(!confirm('¿Descartar los cambios sin guardar?'))return;draft=clone(cfg);marcar();renderPanel();}
+async function guardar(){
+  const err=validar();if(err){toast(err,false);return;}
+  const b=$('btn-save');b.disabled=true;b.textContent='Guardando…';
+  try{
+    // Si alguien más guardó mientras tanto, se avisa antes de pisarlo.
+    const actual=await sbLeerConfig();
+    if(remoteAt&&actual.updated_at&&new Date(actual.updated_at)>new Date(remoteAt)){
+      if(!confirm('Alguien más guardó cambios en Admin de Diésel después de que abriste esta pantalla.\n\n¿Guardar de todos modos y reemplazar lo suyo?')){b.disabled=false;b.textContent='Guardar en Supabase';return;}
+    }
+    draft._deployV=draft._deployV||VERSION;
+    const at=await sbGuardarConfig(draft);
+    cfg=clone(draft);remoteAt=at;lsSet('dsl-config',{value:cfg,updated_at:at});setDot(true);
+    toast('✔ Guardado en Supabase');marcar();renderPanel();
+  }catch(e){setDot(false);toast('No se pudo guardar: '+e.message,false);}
+  b.disabled=false;b.textContent='Guardar en Supabase';
+}
+function validar(){
+  const d=draft;
+  if(!d.startDate)return 'Falta la fecha de arranque';
+  if(!(d.cycleDays>=1))return 'El ciclo debe ser de al menos 1 día';
+  if(!(d.equiposPorDia>=1))return 'Debe haber al menos 1 equipo por día';
+  if(!String(d.adminPin||'').trim())return 'La contraseña de administrador no puede ir vacía';
+  const ids=d.equipos.map(e=>e.id.trim().toUpperCase());
+  const dup=ids.find((x,i)=>ids.indexOf(x)!==i);if(dup)return 'ID repetido: '+dup;
+  if(d.equipos.some(e=>!e.id.trim()||!e.nombre.trim()))return 'Hay un equipo sin ID o sin nombre';
+  if(d.usuarios.some(u=>!u.nombre.trim()||!String(u.password).trim()))return 'Hay un usuario sin nombre o sin contraseña';
+  return null;
+}
+
+/* ---------- ciclo: qué día le toca a cada equipo ---------- */
+function diasDeEquipos(d){
+  const m={};let k=0;const pd=Math.max(1,d.equiposPorDia|0);
+  d.equipos.forEach(e=>{if(e.enCiclo!==false){m[e.id]=Math.floor(k/pd)+1;k++;}});
+  return {m,total:k,diasNecesarios:Math.ceil(k/pd)};
+}
+
+/* ---------- paneles ---------- */
+function set(path,val){ // path tipo 'equipos.3.nombre'
+  const ks=path.split('.');let o=draft;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks[ks.length-1]]=val;marcar();}
+function histToggle(){return `<div class="seg">${[['revisiones','Revisiones'],['servicios','Folios de servicio']].map(([k,t])=>`<button class="${histTab===k?'on':''}" onclick="histTab='${k}';renderPanel()">${t}</button>`).join('')}</div>`;}
+function renderPanel(){
+  const p=$('adm-panel');const d=draft;if(!d){p.innerHTML='';return;}
+  if(curTab==='config'){
+    const c=diasDeEquipos(d);
+    const aviso=c.diasNecesarios>d.cycleDays?`<div class="hint" style="color:var(--red)">⚠ Con ${d.equiposPorDia} por día, los ${c.total} equipos del ciclo necesitan ${c.diasNecesarios} días: no caben en ${d.cycleDays}.</div>`:`<div class="hint">${c.total} equipos en ciclo ÷ ${d.equiposPorDia} por día = ${c.diasNecesarios} días ocupados de ${d.cycleDays}.</div>`;
+    p.innerHTML=`
+      <div class="field"><label>Fecha de arranque del ciclo</label><input type="date" value="${esc(d.startDate)}" onchange="set('startDate',this.value);renderPanel()"><div class="hint">${fmtFecha(d.startDate)}</div></div>
+      <div class="two">
+        <div class="field"><label>Equipos por día</label><input type="number" min="1" max="40" value="${d.equiposPorDia}" onchange="set('equiposPorDia',parseInt(this.value)||1);renderPanel()"></div>
+        <div class="field"><label>Ciclo (días)</label><input type="number" min="1" max="90" value="${d.cycleDays}" onchange="set('cycleDays',parseInt(this.value)||1);renderPanel()"></div>
+      </div>${aviso}
+      <div class="two" style="margin-top:12px">
+        <div class="field"><label>Turno 1 inicia (hora)</label><input type="number" min="0" max="23" value="${d.turno1Start}" onchange="set('turno1Start',parseInt(this.value)||0)"></div>
+        <div class="field"><label>Turno 2 inicia (hora)</label><input type="number" min="0" max="23" value="${d.turno2Start}" onchange="set('turno2Start',parseInt(this.value)||0)"></div>
+      </div>
+      <div class="field"><label>Folio inicial de servicios</label><input type="number" min="1" value="${d.folioInicial||1}" onchange="set('folioInicial',parseInt(this.value)||1)"><div class="hint">Se usa al arrancar; después Supabase numera solo.</div></div>
+      <div class="field"><label>Contraseña de administrador Diésel</label><input type="text" maxlength="20" value="${esc(d.adminPin)}" onchange="set('adminPin',this.value.trim())"></div>
+      <div class="hint">Última vez guardado: ${remoteAt?new Date(remoteAt).toLocaleString('es-MX'):'—'}</div>
+      <div class="hint" style="margin:16px 0 6px">Fuerza que todos los celulares recarguen y tomen el código más nuevo.</div>
+      <button class="btn btn-ghost w100" onclick="forzarActualizacion()">🚀 Forzar actualización en todos los dispositivos</button>`;
+  }
+  else if(curTab==='usuarios'){
+    p.innerHTML=`<div class="hint" style="margin-bottom:6px">${d.usuarios.length} usuario(s). Son los que podrán capturar en Diésel.</div>`+
+      d.usuarios.map((u,i)=>`<div class="line">
+        <div class="eqbox">
+          <input type="text" value="${esc(u.nombre)}" placeholder="Nombre" onchange="set('usuarios.${i}.nombre',this.value.trim())">
+          <div class="r"><input type="text" value="${esc(u.puesto||'')}" placeholder="Puesto" onchange="set('usuarios.${i}.puesto',this.value.trim())" style="flex:2">
+          <input type="text" value="${esc(u.password)}" placeholder="Contraseña" maxlength="12" onchange="set('usuarios.${i}.password',this.value.trim())" style="flex:1;font-family:monospace"></div>
+        </div>
+        <button class="del" onclick="delUsuario(${i})">✕</button></div>`).join('')+
+      `<div class="sub-h">＋ Agregar usuario</div>
+      <div class="field"><input type="text" id="nu-nom" placeholder="Nombre completo"></div>
+      <div class="two"><div class="field"><input type="text" id="nu-puesto" placeholder="Puesto"></div><div class="field"><input type="text" id="nu-pass" placeholder="Contraseña" maxlength="12"></div></div>
+      <button class="btn btn-green btn-sm" onclick="addUsuario()">＋ Agregar</button>`;
+  }
+  else if(curTab==='equipos'){
+    const c=diasDeEquipos(d);
+    let html=`<div class="hint" style="margin-bottom:4px">${d.equipos.length} equipos · ${c.total} en ciclo · ${d.equiposPorDia} por día. El orden define el día que le toca a cada uno.</div>`;
+    let ultimaCat=null;
+    d.equipos.forEach((e,i)=>{
+      if(e.categoria!==ultimaCat){html+=`<div class="grp"><span class="chip c-${esc(e.categoria)}"></span> ${esc(e.categoria)}</div>`;ultimaCat=e.categoria;}
+      html+=`<div class="line">
+        <span class="n">${i+1}.</span>
+        <span class="mv"><button class="ib" onclick="moveEq(${i},-1)" ${i===0?'disabled':''}>▲</button><button class="ib" onclick="moveEq(${i},1)" ${i===d.equipos.length-1?'disabled':''}>▼</button></span>
+        <div class="eqbox">
+          <div class="r"><span class="eid">${esc(e.id)}</span><input type="text" value="${esc(e.nombre)}" onchange="set('equipos.${i}.nombre',this.value.trim())"></div>
+          <div class="r"><input type="text" value="${esc(e.responsable||'')}" placeholder="Responsable / departamento" onchange="set('equipos.${i}.responsable',this.value.trim())">
+          <label class="tgl"><input type="checkbox" ${e.enCiclo!==false?'checked':''} onchange="set('equipos.${i}.enCiclo',this.checked);renderPanel()">ciclo</label></div>
+        </div>
+        <span class="dia ${c.m[e.id]?'':'fuera'}">${c.m[e.id]?'Día '+c.m[e.id]:'Fuera'}</span>
+        <button class="del" onclick="delEq(${i})">✕</button></div>`;
+    });
+    html+=`<div class="sub-h">＋ Agregar equipo</div>
+      <div class="seg" id="ne-cat">${CATS.map(k=>`<button class="${k===curCat?'on':''}" onclick="curCat='${k}';renderPanel()">${k}</button>`).join('')}</div>
+      <div class="two"><div class="field"><label>ID</label><input type="text" id="ne-id" value="${sugerirId(curCat)}"></div>
+      <div class="field" style="flex:2"><label>Nombre</label><input type="text" id="ne-nom" placeholder="Ej. M-207 Hilux 2026"></div></div>
+      <div class="field"><label>Responsable / departamento</label><input type="text" id="ne-resp" placeholder="Opcional"></div>
+      <button class="btn btn-green btn-sm" onclick="addEq()">＋ Agregar</button>
+      <div class="hint">Se agrega al final de su categoría.</div>`;
+    p.innerHTML=html;
+  }
+  else if(curTab==='items'){
+    const its=d.items[curCat]||(d.items[curCat]=[]);
+    p.innerHTML=`<div class="seg">${CATS.map(k=>`<button class="${k===curCat?'on':''}" onclick="curCat='${k}';renderPanel()">${k}</button>`).join('')}</div>
+      <div class="hint" style="margin-bottom:6px">${its.length} ítems del checklist quincenal para equipo ${curCat.toLowerCase()}.</div>`+
+      its.map((t,i)=>`<div class="line"><span class="n">${i+1}.</span>
+        <span class="mv"><button class="ib" onclick="moveIt(${i},-1)" ${i===0?'disabled':''}>▲</button><button class="ib" onclick="moveIt(${i},1)" ${i===its.length-1?'disabled':''}>▼</button></span>
+        <input type="text" value="${esc(t)}" onchange="draft.items['${curCat}'][${i}]=this.value.trim();marcar()">
+        <button class="del" onclick="delIt(${i})">✕</button></div>`).join('')+
+      `<div class="two" style="margin-top:10px"><input type="text" id="ni" placeholder="Nuevo ítem" style="flex:3" onkeydown="if(event.key==='Enter')addIt()"><button class="btn btn-green btn-sm" style="flex:1" onclick="addIt()">＋</button></div>`;
+  }
+  else if(curTab==='reinsp'){p.innerHTML=reinspPanel();pintarReinsp();}
+  else if(curTab==='storage'){p.innerHTML=storagePanel();cargarStorage();}
+  else if(curTab==='historial'&&histTab==='servicios'){
+    const lst=[...servicios].sort((a,b)=>(b.fecha.localeCompare(a.fecha))||(b.savedAt-a.savedAt));
+    p.innerHTML=histToggle()+`<div class="hint" style="margin-bottom:8px">${lst.length} folio(s). ✏️ corrige · 🗑 borra de todos los dispositivos.</div>`+
+      (lst.length?lst.map(s=>`<div class="line" style="align-items:flex-start">
+        <div style="flex:1;min-width:0"><span class="eid">${folioTxt(s)}</span> <span style="font-size:12px">${esc(s.equipoId)} · ${esc(s.equipoNombre)}</span><br>
+        <span class="hint">${fmtFecha(s.fecha)} · ${esc(s.servicio)} · ${esc(s.realiza)}${s.pending?' · ⏳ pendiente':''}${s.editado?' · ✏️ editado '+fmtFecha(String(s.editado.at).slice(0,10)):''}</span></div>
+        <button class="ib" style="font-size:13px;padding:5px 9px" onclick="editarServicio('${s.id}')">✏️</button>
+        <button class="del" onclick="borrarServicio('${s.id}')">🗑</button></div>`).join('')
+      :'<div class="vacio">Sin folios registrados.</div>');
+  }
+  else if(curTab==='historial'){
+    const lst=[...revisiones].sort((a,b)=>(b.fecha.localeCompare(a.fecha))||(b.savedAt-a.savedAt));
+    p.innerHTML=histToggle()+`<button class="btn btn-ghost btn-sm" style="margin-bottom:8px" onclick="limpiarDuplicados()">🧹 Limpiar duplicados</button><div class="hint" style="margin-bottom:8px">${lst.length} revisión(es). ✏️ corrige (queda marcada como editada por Admin) · 🗑 borra de todos los dispositivos.</div>`+
+      (lst.length?lst.map(r=>`<div class="line" style="align-items:flex-start">
+        <div style="flex:1;min-width:0"><span class="eid">${esc(r.equipoId)}</span> <span style="font-size:12px">${esc(r.equipoNombre)}</span><br>
+        <span class="hint">${fmtFecha(r.fecha)} · T${r.turno} · ${esc(r.mecanico)} · ${tipoLbl(r)}${r.pending?' · ⏳ pendiente':''}${r.editado?' · ✏️ editada '+fmtFecha(String(r.editado.at).slice(0,10)):''}</span></div>
+        <button class="ib" style="font-size:13px;padding:5px 9px" onclick="editarRevision('${r.id}')">✏️</button>
+        <button class="del" onclick="borrarRevision('${r.id}')">🗑</button></div>`).join('')
+      :'<div class="vacio">Sin revisiones registradas.</div>');
+  }
+  else if(curTab==='servicios'){
+    p.innerHTML=`<div class="hint" style="margin-bottom:6px">Tipos de servicio que aparecen al registrar un folio.</div>`+
+      d.servicios.map((t,i)=>`<div class="line"><span class="n">${i+1}.</span>
+        <span class="mv"><button class="ib" onclick="moveSv(${i},-1)" ${i===0?'disabled':''}>▲</button><button class="ib" onclick="moveSv(${i},1)" ${i===d.servicios.length-1?'disabled':''}>▼</button></span>
+        <input type="text" value="${esc(t)}" onchange="set('servicios.${i}',this.value.trim())">
+        <button class="del" onclick="delSv(${i})">✕</button></div>`).join('')+
+      `<div class="two" style="margin-top:10px"><input type="text" id="ns" placeholder="Nuevo tipo de servicio" style="flex:3" onkeydown="if(event.key==='Enter')addSv()"><button class="btn btn-green btn-sm" style="flex:1" onclick="addSv()">＋</button></div>`;
+  }
+}
+
+/* ---------- acciones ---------- */
+function swap(a,i,j){if(j<0||j>=a.length)return false;[a[i],a[j]]=[a[j],a[i]];return true;}
+function delUsuario(i){if(!confirm('¿Eliminar a '+draft.usuarios[i].nombre+'?'))return;draft.usuarios.splice(i,1);marcar();renderPanel();}
+function addUsuario(){
+  const n=$('nu-nom').value.trim(),pu=$('nu-puesto').value.trim(),pw=$('nu-pass').value.trim();
+  if(!n||!pw){toast('Escribe nombre y contraseña',false);return;}
+  if(draft.usuarios.some(u=>u.nombre.toLowerCase()===n.toLowerCase())){toast('Ya existe ese usuario',false);return;}
+  draft.usuarios.push({nombre:n,puesto:pu,password:pw});marcar();renderPanel();
+}
+function sugerirId(cat){
+  const pf=PREF[cat];let max=0;
+  draft.equipos.forEach(e=>{const m=new RegExp('^'+pf+'-(\\d+)$').exec(e.id);if(m)max=Math.max(max,+m[1]);});
+  return pf+'-'+String(max+1).padStart(2,'0');
+}
+function moveEq(i,dir){if(swap(draft.equipos,i,i+dir)){marcar();renderPanel();}}
+function delEq(i){if(!confirm('¿Eliminar '+draft.equipos[i].id+' · '+draft.equipos[i].nombre+'?'))return;draft.equipos.splice(i,1);marcar();renderPanel();}
+function addEq(){
+  const id=$('ne-id').value.trim().toUpperCase(),nom=$('ne-nom').value.trim(),resp=$('ne-resp').value.trim();
+  if(!id||!nom){toast('Escribe ID y nombre',false);return;}
+  if(draft.equipos.some(e=>e.id.toUpperCase()===id)){toast('Ese ID ya existe',false);return;}
+  let pos=-1;draft.equipos.forEach((e,k)=>{if(e.categoria===curCat)pos=k;});
+  const nuevo={id,nombre:nom,categoria:curCat,responsable:resp,enCiclo:true};
+  if(pos<0)draft.equipos.push(nuevo);else draft.equipos.splice(pos+1,0,nuevo);
+  marcar();renderPanel();toast('Equipo agregado (falta guardar)');
+}
+function moveIt(i,dir){if(swap(draft.items[curCat],i,i+dir)){marcar();renderPanel();}}
+function delIt(i){if(!confirm('¿Eliminar el ítem "'+draft.items[curCat][i]+'"?'))return;draft.items[curCat].splice(i,1);marcar();renderPanel();}
+function addIt(){const v=$('ni').value.trim();if(!v){toast('Escribe el ítem',false);return;}draft.items[curCat].push(v);marcar();renderPanel();}
+function moveSv(i,dir){if(swap(draft.servicios,i,i+dir)){marcar();renderPanel();}}
+function delSv(i){if(!confirm('¿Eliminar "'+draft.servicios[i]+'"?'))return;draft.servicios.splice(i,1);marcar();renderPanel();}
+function addSv(){const v=$('ns').value.trim();if(!v){toast('Escribe el tipo de servicio',false);return;}draft.servicios.push(v);marcar();renderPanel();}
+
+window.addEventListener('beforeunload',e=>{if(dirty()){e.preventDefault();e.returnValue='';}});
+/* =====================================================================
+   PASO 3 · Hoy, revisión quincenal y Roll
+   Base local propia (IndexedDB "diesel-mrt") y tabla diesel_revisiones.
+   Nada de esto lee ni escribe lo de Gammas.
+   ===================================================================== */
+const SB_BUCKET='evidencias_gammas';      // mismo bucket, carpeta diesel/
+const DIA=86400000;
+let revisiones=[];                          // memoria, fuente de verdad en la corrida
+let FORM=null;                              // revisión que se está capturando
+let cicloVer=null, rollCat='';
+
+/* ---------- fechas ---------- */
+function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function parseISO(s){const p=String(s).split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function addDays(s,n){const d=parseISO(s);d.setDate(d.getDate()+n);return dateStr(d);}
+function diffDays(a,b){return Math.round((parseISO(b)-parseISO(a))/DIA);}
+function todayStr(){return dateStr(new Date());}
+function getTurno(){const h=new Date().getHours();const c=cfg||{turno1Start:7,turno2Start:19};return(h>=c.turno1Start&&h<c.turno2Start)?1:2;}
+
+/* ---------- ciclo ---------- */
+function cicloDe(fecha){ // número de ciclo (0,1,2…) al que pertenece una fecha
+  const i=diffDays(cfg.startDate,fecha);return i<0?null:Math.floor(i/cfg.cycleDays);}
+function inicioCiclo(c){return addDays(cfg.startDate,c*cfg.cycleDays);}
+function fechaProgramada(eqId,c){
+  const dia=diasDeEquipos(cfg).m[eqId];
+  if(!dia||dia>cfg.cycleDays)return null;
+  return addDays(inicioCiclo(c),dia-1);
+}
+function fechaProgDe(r){
+  if(r.tipo==='normal')return r.fecha;
+  if(r.tipo&&r.tipo.startsWith('atrasada|'))return r.tipo.split('|')[1];
+  return null;
+}
+function revDe(eqId,fp){return revisiones.find(r=>r.equipoId===eqId&&r.tipo!=='reinspeccion'&&(fechaProgDe(r)===fp||r.fecha===fp));}
+function equiposCiclo(){return cfg.equipos.filter(e=>e.enCiclo!==false&&diasDeEquipos(cfg).m[e.id]);}
+
+/* ---------- sesión del mecánico ---------- */
+function usuario(){try{return sessionStorage.getItem('dsl-user')||null;}catch(_){return null;}}
+function doLogin(){
+  const n=$('lg-user').value,p=$('lg-pass').value;
+  const u=(cfg.usuarios||[]).find(x=>x.nombre===n);
+  if(!u||String(u.password)!==p){$('lg-err').textContent='Nombre o contraseña incorrectos';return;}
+  try{sessionStorage.setItem('dsl-user',n);}catch(_){}
+  renderHome();
+}
+function logout(){if(FORM&&!confirm('Hay una revisión abierta sin guardar. ¿Salir de todos modos?'))return;
+  FORM=null;try{sessionStorage.removeItem('dsl-user');}catch(_){}showView('home');}
+
+/* ---------- IndexedDB propia ---------- */
+let _db=null;
+function idb(){
+  if(_db)return Promise.resolve(_db);
+  return new Promise((res,rej)=>{
+    const rq=indexedDB.open('diesel-mrt',2);
+    rq.onupgradeneeded=()=>{const d=rq.result;
+      if(!d.objectStoreNames.contains('revisiones'))d.createObjectStore('revisiones',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('fotos'))d.createObjectStore('fotos',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('servicios'))d.createObjectStore('servicios',{keyPath:'id'});};
+    rq.onsuccess=()=>{_db=rq.result;res(_db);};rq.onerror=()=>rej(rq.error);
+  });
+}
+async function dbOp(store,mode,fn){const d=await idb();return new Promise((res,rej)=>{const tx=d.transaction(store,mode);const st=tx.objectStore(store);const r=fn(st);tx.oncomplete=()=>res(r&&r.result);tx.onerror=()=>rej(tx.error);});}
+const dbPut=(s,v)=>dbOp(s,'readwrite',st=>st.put(v)).catch(e=>console.warn('dbPut',e));
+const dbDel=(s,k)=>dbOp(s,'readwrite',st=>st.delete(k)).catch(e=>console.warn('dbDel',e));
+const dbAll=s=>dbOp(s,'readonly',st=>st.getAll()).catch(()=>[]);
+
+/* ---------- Supabase: diesel_revisiones ---------- */
+function _row(r){return{id:r.id,equipo_id:r.equipoId,equipo_nombre:r.equipoNombre,categoria:r.categoria,tipo:r.tipo,
+  turno:r.turno,mecanico:r.mecanico,fecha:r.fecha,km_horometro:r.kmHorometro,operador:r.operador,items:r.items,
+  observaciones:r.observaciones,necesidades:r.necesidades,fotos:r.fotos,apoyo:r.apoyo||null,editado:r.editado||null,saved_at:new Date(r.savedAt).toISOString()};}
+function _desdeRow(w){return{id:w.id,equipoId:w.equipo_id,equipoNombre:w.equipo_nombre,categoria:w.categoria,tipo:w.tipo,
+  turno:w.turno,mecanico:w.mecanico,fecha:w.fecha,kmHorometro:w.km_horometro,operador:w.operador,items:w.items||[],
+  observaciones:w.observaciones,necesidades:w.necesidades,fotos:w.fotos||{},apoyo:w.apoyo||'',editado:w.editado||null,savedAt:new Date(w.saved_at).getTime()||0,pending:false};}
+async function sbUpsert(r){
+  try{const x=await fetch(SB_URL+'/rest/v1/diesel_revisiones?on_conflict=id',{method:'POST',
+    headers:{...SB_H,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(_row(r))});return x.ok;}
+  catch(e){return false;}
+}
+let _sync=false;
+function pendDel(){return lsGet('dsl-pending-del')||[];}
+async function sbDelete(id){try{const x=await fetch(SB_URL+'/rest/v1/diesel_revisiones?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:SB_H});return x.ok;}catch(e){return false;}}
+async function syncPending(){
+  if(_sync)return;_sync=true;
+  try{
+    const pd=pendDel();const resto=[];
+    for(const id of pd){if(!(await sbDelete(id)))resto.push(id);}
+    if(pd.length!==resto.length)lsSet('dsl-pending-del',resto);for(const r of revisiones.filter(x=>x.pending)){
+    if(await sbUpsert(r)){r.pending=false;r.syncedAt=Date.now();await dbPut('revisiones',r);setDot(true);}
+    else{setDot(false);break;}
+  }}finally{_sync=false;}
+  pintarActual();
+}
+async function fetchRemote(){
+  try{
+    const x=await fetch(SB_URL+'/rest/v1/diesel_revisiones?select=*&order=saved_at.desc&limit=5000',{headers:SB_H,cache:'no-store'});
+    if(!x.ok)throw new Error('HTTP '+x.status);
+    const rows=await x.json();setDot(true);
+    const ids=new Set(),pd=pendDel();
+    for(const w of rows){const r=_desdeRow(w);ids.add(r.id);if(pd.includes(r.id))continue;
+      const i=revisiones.findIndex(z=>z.id===r.id);
+      if(i<0){revisiones.push(r);await dbPut('revisiones',r);}
+      else if(!revisiones[i].pending&&r.savedAt>revisiones[i].savedAt){revisiones[i]=r;await dbPut('revisiones',r);}
+    }
+    // borradas en otro dispositivo (con 5 min de gracia, igual que el fix v30 de Gammas)
+    for(let i=revisiones.length-1;i>=0;i--){const r=revisiones[i];
+      if(!r.pending&&!ids.has(r.id)&&Date.now()-(r.syncedAt||r.savedAt||0)>5*60000){revisiones.splice(i,1);await dbDel('revisiones',r.id);}}
+  }catch(e){setDot(false);}
+  pintarActual();
+}
+
+/* ---------- fotos: comprimir, rotular, subir (o encolar) ---------- */
+function leerImagen(file,max,q){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(new Error('No se pudo leer'));
+  fr.onload=e=>{const im=new Image();im.onerror=()=>rej(new Error('No se pudo abrir la imagen'));im.onload=()=>{
+    let w=im.width,h=im.height;if(w>h){if(w>max){h=Math.round(h*max/w);w=max;}}else if(h>max){w=Math.round(w*max/h);h=max;}
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);res(c.toDataURL('image/jpeg',q));};im.src=e.target.result;};fr.readAsDataURL(file);});}
+function rotular(dataUrl,l1,l2){return new Promise(res=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;
+  const x=c.getContext('2d');x.drawImage(im,0,0);const bh=Math.max(20,Math.round(im.height*.07)),fs=Math.max(10,Math.round(bh*.48)),pd=Math.round(bh*.25);
+  x.fillStyle='rgba(0,0,0,.62)';x.fillRect(0,im.height-bh*2,im.width,bh*2);x.fillStyle='#fff';x.font=`bold ${fs}px sans-serif`;x.textBaseline='middle';
+  x.fillText(l1,pd,im.height-bh*1.5);x.fillStyle='rgba(255,255,255,.85)';x.font=`${fs}px sans-serif`;x.fillText(l2,pd,im.height-bh*.5);res(c.toDataURL('image/jpeg',.88));};
+  im.onerror=()=>res(dataUrl);im.src=dataUrl;});}
+function aBlob(d){const [h,b]=d.split(',');const bin=atob(b);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:'image/jpeg'});}
+async function subir(path,dataUrl){const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),15000);
+  try{const r=await fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}/${path}`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'image/jpeg','x-upsert':'true'},body:aBlob(dataUrl),signal:ctrl.signal});return r.ok;}
+  catch(e){return false;}finally{clearTimeout(t);}}
+const urlPub=p=>`${SB_URL}/storage/v1/object/public/${SB_BUCKET}/${p}`;
+let _fotos=false;
+async function processFotos(){
+  if(_fotos)return;_fotos=true;
+  try{for(const j of await dbAll('fotos')){
+    const base=j.item!=null?`diesel/${j.insId}_i${j.item}_${j.slot}`:`diesel/${j.insId}_${j.slot}`;
+    if(!(await subir(base+'_full.jpg',j.full)&&await subir(base+'_thumb.jpg',j.thumb)))break;
+    const esSrv=j.kind==='srv',arr=esSrv?servicios:revisiones;
+    const r=arr.find(x=>x.id===j.insId);
+    const ok={url:urlPub(base+'_full.jpg'),thumb:urlPub(base+'_thumb.jpg'),status:'ok'};
+    if(r&&j.item!=null&&r.items&&r.items[j.item]){r.items[j.item].f=r.items[j.item].f||{};r.items[j.item].f[j.slot]=ok;r.pending=true;r.savedAt=Date.now();await dbPut(esSrv?'servicios':'revisiones',r);}
+    else if(r){r.fotos=r.fotos||{};r.fotos[j.slot]=ok;
+      r.pending=true;r.savedAt=Date.now();await dbPut(esSrv?'servicios':'revisiones',r);}
+    await dbDel('fotos',j.id);
+  }}finally{_fotos=false;}
+  await syncPending();await syncServicios();
+}
+
+/* ---------- HOY ---------- */
+function pintarActual(){
+  try{if(cfg)$('rep-badge').style.display=getSinReciente().length?'block':'none';}catch(_){}
+  const v=document.querySelector('.view.active');if(!v)return;
+  if(v.id==='view-home')renderHome();else if(v.id==='view-roll')renderRoll();else if(v.id==='view-reports')renderReports();
+  else if(v.id==='view-content'){}
+  if(isAdmin()&&v.id==='view-admin'&&curTab==='historial')renderPanel();
+}
+function card(e,tag,onclick,extra){
+  return `<div class="card eq-card ${esc(e.categoria)}${onclick?'':' done'}" ${onclick?`onclick="${onclick}"`:''}>
+    <div class="eq-h"><span class="eid">${esc(e.id)}</span><b>${esc(e.nombre)}</b>${tag}</div>
+    ${e.responsable?`<div class="eq-s">Responsable: ${esc(e.responsable)}</div>`:''}${extra||''}</div>`;
+}
+function tipoLbl(r){return r.tipo==='extra'?'Extra':r.tipo==='reinspeccion'?'Reinspección':r.tipo==='normal'?'En fecha':'Atrasada';}
+function tipoTag(r){return r.tipo==='extra'?'<span class="tag t-extra">Extra</span>':r.tipo==='reinspeccion'?'<span class="tag t-no">Reinsp.</span>':r.tipo==='normal'?'<span class="tag t-comp">En fecha</span>':'<span class="tag t-pend">Atrasada</span>';}
+function programadosEn(d){const c=cicloDe(d);if(c===null)return [];return equiposCiclo().filter(e=>fechaProgramada(e.id,c)===d);}
+/* Igual que Gammas: revisa los últimos 30 días y deja SOLO la fecha más antigua pendiente de cada equipo */
+function getAtrasadas(){
+  const hoy=todayStr(),m=new Map();
+  for(let i=30;i>=1;i--){const d=addDays(hoy,-i);
+    for(const e of programadosEn(d))if(!revDe(e.id,d)&&!m.has(e.id))m.set(e.id,{e,fp:d});}
+  return [...m.values()].sort((a,b)=>a.fp.localeCompare(b.fp));
+}
+function getSinReciente(){
+  const umbral=Math.max(cfg.cycleDays*2,14);
+  return equiposCiclo().map(e=>{const p=revisiones.filter(r=>r.equipoId===e.id);
+    if(!p.length)return{e,dias:null};const u=Math.max(...p.map(r=>r.savedAt));return{e,dias:Math.floor((Date.now()-u)/DIA)};})
+    .filter(x=>x.dias===null||x.dias>=umbral).sort((a,b)=>(b.dias??1e9)-(a.dias??1e9));
+}
+function pintarTurno(){const t=getTurno(),b=$('turno-badge');b.textContent=t===1?'T1 · Día':'T2 · Noche';b.style.background=t===1?'rgba(37,99,235,.45)':'rgba(124,58,237,.45)';}
+function renderHome(){
+  const v=$('view-home');pintarTurno();
+  if(!cfg){v.innerHTML='<div class="vacio"><b>Cargando…</b>Leyendo la configuración de Diésel.</div>';return;}
+  const u=usuario();
+  if(!u){
+    v.innerHTML=`<div class="login"><h3>Mtto Diésel</h3><p>Entra con tu nombre y contraseña. Toda revisión queda registrada a nombre de quien la hace.</p>
+      <div class="field"><label>Nombre</label><select id="lg-user"><option value="">— Selecciona tu nombre —</option>${cfg.usuarios.map(x=>`<option>${esc(x.nombre)}</option>`).join('')}</select></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="lg-pass" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-primary w100" onclick="doLogin()">Entrar</button><div id="lg-err" style="color:var(--red);font-size:12px;margin-top:8px;min-height:16px"></div></div>`;
+    return;
+  }
+  const hoy=todayStr(),c=cicloDe(hoy);
+  let h=`<div id="mec-bar"><b>${esc(u)}</b><button onclick="logout()">Salir</button></div>`;
+  const deHoy=c===null?[]:programadosEn(hoy);
+  const pend=deHoy.filter(e=>!revDe(e.id,hoy));
+  const atr=c===null&&diffDays(cfg.startDate,hoy)<0?[]:getAtrasadas();
+  // avisos (igual que Gammas)
+  if(atr.length)h+=`<div class="aviso rojo"><b>⏰ ${atr.length} ${atr.length!==1?'revisiones':'revisión'} atrasada${atr.length!==1?'s':''} sin registrar</b>
+    <span>${atr.slice(0,3).map(x=>esc(x.e.id)+' · '+fmtFecha(x.fp)).join(', ')}${atr.length>3?' y '+(atr.length-3)+' más':''}. Toca el equipo abajo para registrarla.</span></div>`;
+  if(pend.length)h+=`<div class="aviso ambar"><b>🕐 ${pend.length} ${pend.length!==1?'revisiones':'revisión'} pendiente${pend.length!==1?'s':''} hoy</b>
+    <span>${pend.slice(0,3).map(e=>esc(e.id)+' · '+esc(e.nombre)).join(', ')}${pend.length>3?' y '+(pend.length-3)+' más':''}.</span></div>`;
+  if(c===null){v.innerHTML=h+`<div class="vacio"><b>El ciclo aún no arranca</b>Empieza el ${fmtFecha(cfg.startDate)}. Se cambia en Admin → Configuración.</div>`;return;}
+  if(atr.length){h+=`<div class="sh rojo">⏰ No se presentaron · ${atr.length} · programadas en días anteriores</div>`;
+    h+=atr.map(x=>card(x.e,`<span class="tag t-no">Tocaba ${fmtFecha(x.fp)}</span>`,`abrirForm('${x.e.id}','atrasada|${x.fp}')`)).join('');}
+  h+=`<div class="sh">📅 Programados hoy · ${fmtFecha(hoy)} · ${deHoy.length} equipo${deHoy.length!==1?'s':''}</div>`;
+  h+=deHoy.length?deHoy.map(e=>{const r=revDe(e.id,hoy);
+    const sv=r&&servicios.find(x=>x.revisionId===r.id);
+    return r?card(e,`<span class="tag t-comp">${r.pending?'⏳ ':'✔ '}Completado</span>${sv?` <span class="tag t-extra">🔧 ${folioTxt(sv)}</span>`:''}`,null,`<div class="eq-s">${esc(r.mecanico)} · T${r.turno}${sv?' · servicio '+esc(sv.servicio):''}</div>`)
+            :card(e,'<span class="tag t-prog">Iniciar →</span>',`abrirForm('${e.id}','normal')`);}).join('')
+     :'<div class="card eq-s">Hoy no hay equipos programados.</div>';
+  const ini=inicioCiclo(c),fin=addDays(ini,cfg.cycleDays-1);
+  const hechas=revisiones.filter(r=>r.fecha>=ini&&r.fecha<=fin).sort((a,b)=>b.savedAt-a.savedAt);
+  h+=`<div class="sh">Revisadas en esta quincena · ${hechas.length} · ${fmtFecha(ini)} al ${fmtFecha(fin)}</div>`;
+  h+=hechas.length?hechas.map(r=>{const e=cfg.equipos.find(x=>x.id===r.equipoId)||{id:r.equipoId,nombre:r.equipoNombre,categoria:r.categoria};
+    const sv=servicios.find(x=>x.revisionId===r.id);
+    return card(e,tipoTag(r)+(sv?` <span class="tag t-extra">🔧 ${folioTxt(sv)}</span>`:''),null,`<div class="eq-s">${fmtFecha(r.fecha)} · T${r.turno} · ${esc(r.mecanico)}${sv?' · '+esc(sv.servicio):''}${r.pending?' · ⏳ pendiente de subir':''}</div>`);}).join('')
+    :'<div class="card eq-s">Todavía no hay revisiones en esta quincena.</div>';
+  h+=`<button id="btn-extra" onclick="pedirExtra()">＋ Revisión extra (fuera de programa)</button><div id="extra-box"></div>
+    <button id="btn-share" onclick="compartirTurno()">📤 Compartir resumen del turno</button>`;
+  v.innerHTML=h;
+}
+function pedirExtra(){
+  $('extra-box').innerHTML=`<div class="card"><div class="field"><label>Equipo</label><select id="ex-eq">${cfg.equipos.map(e=>`<option value="${esc(e.id)}">${esc(e.id)} · ${esc(e.nombre)}</option>`).join('')}</select></div>
+    <button class="btn btn-primary w100" onclick="abrirForm($('ex-eq').value,'extra')">Iniciar revisión extra</button></div>`;
+}
+
+/* ---------- FORMULARIO DE REVISIÓN ---------- */
+function abrirForm(eqId,tipo){
+  if(!usuario()){toast('Primero inicia sesión',false);return;}
+  const e=cfg.equipos.find(x=>x.id===eqId);if(!e)return;
+  const its=(cfg.items[e.categoria]||[]);
+  FORM={srv:{on:false,servicio:'',desc:'',fotos:{}},eq:e,tipo,items:its.map(n=>({n,e:'',c:''})),km:'',operador:'',apoyo:'',obs:'',nec:'',fotos:{antes:null,despues:null}};
+  showView('form');
+}
+function renderForm(){
+  const v=$('view-form');if(!FORM){v.innerHTML='';return;}
+  const f=FORM,e=f.eq;
+  const tTag=f.despues?'<span class="tag t-extra">📷 Agregar Después</span>':f.tipo==='normal'?'<span class="tag t-prog">Programado</span>':f.tipo==='extra'?'<span class="tag t-extra">Extra</span>':f.tipo==='reinspeccion'?'<span class="tag t-no">Reinspección</span>':`<span class="tag t-no">Atrasada</span>`;
+  const fpA=f.tipo&&f.tipo.startsWith('atrasada|')?f.tipo.split('|')[1]:null;
+  const banner=fpA&&!f.edit?`<div class="aviso ambar" style="margin:8px 14px 0"><b>⚠ Revisión atrasada</b><span>Programada: <b>${fmtFecha(fpA)}</b> · Realizando hoy: <b>${fmtFecha(todayStr())}</b></span></div>`:'';
+  v.innerHTML=`<div id="form-top"><button onclick="cerrarForm()">‹</button><b>${esc(e.id)} · ${esc(e.nombre)}</b></div>${banner}
+    <div id="form-meta">${tTag}<span class="tag" style="background:#dbeafe;color:#1e40af">T${getTurno()} ${getTurno()===1?'Día':'Noche'}</span>
+      <span class="tag" style="background:var(--bg);color:var(--sub)">${fmtFecha(todayStr())}</span>
+      <span class="tag" style="background:var(--bg);color:var(--sub)">${esc(f.edit?(revisiones.find(x=>x.id===f.edit)||{}).mecanico:usuario())}</span>${f.edit?'<span class="tag t-pend">✏️ Editando como Admin</span>':''}</div>
+    <div class="pad two"><div><label>${e.categoria==='Ligero'?'Kilometraje':'Horómetro'} *</label><input type="number" inputmode="decimal" id="f-km" value="${esc(f.km)}" oninput="FORM.km=this.value"></div>
+      <div><label>Operador</label><input type="text" id="f-op" value="${esc(f.operador)}" oninput="FORM.operador=this.value"></div></div>
+    <div class="pad" style="padding-top:0"><label>Apoyo externo</label><input type="text" list="dl-apoyo2" placeholder="Ej. Personal Liumaq (opcional)" value="${esc(f.apoyo||'')}" oninput="FORM.apoyo=this.value">
+      <datalist id="dl-apoyo2">${apoyosConocidos().map(a=>`<option value="${esc(a)}">`).join('')}</datalist></div>
+    <div class="grp-it">Checklist · ${esc(e.categoria)} · ✔ bueno · ~ regular · ✘ malo</div>
+    ${f.items.map((it,i)=>`<div class="it-row"><div class="it-top"><span>${esc(it.n)}</span><div class="it-btns">
+      ${['B','R','M'].map(k=>`<button class="it-btn ${it.e===k?'s'+k:''}" title="${k==='B'?'Bueno':k==='R'?'Regular':'Malo'}" onclick="marcarIt(${i},'${k}')">${k==='B'?'✔':k==='R'?'~':'✘'}</button>`).join('')}</div></div>
+      ${it.e==='M'||it.e==='R'?`<input type="text" placeholder="¿Qué se encontró?" value="${esc(it.c)}" oninput="FORM.items[${i}].c=this.value">`:''}
+      ${it.e==='M'?`<div class="fotos it-fotos">${['antes','despues'].map(sl=>{const src=(it.nf&&it.nf[sl])||(it.f&&it.f[sl]&&it.f[sl].thumb);
+        return `<div class="foto" onclick="pedirFoto(f=>tomarFotoIt(${i},'${sl}',f))">${src?`<img src="${src}"><button class="q" onclick="event.stopPropagation();quitarFotoIt(${i},'${sl}')">✕</button>`:`📷<span>${sl==='antes'?'Antes':'Después'}${it.f&&it.f[sl]&&it.f[sl].status==='pendiente'?' (pendiente de subir)':''}</span>`}</div>`;}).join('')}</div>`:''}</div>`).join('')}
+    ${srvSeccion(f)}
+    <div class="pad"><label>Comentarios generales</label><textarea oninput="FORM.obs=this.value">${esc(f.obs)}</textarea></div>
+    <div class="pad"><label>Necesidades a requisitar</label><textarea oninput="FORM.nec=this.value" placeholder="Refacciones o material que hay que pedir">${esc(f.nec)}</textarea></div>
+    <div class="pad"><div id="f-err" style="color:var(--red);font-size:12px;min-height:16px;margin-bottom:6px"></div>
+      <button class="btn btn-green w100" id="f-save" onclick="guardarRevision()">Guardar revisión</button></div>`;
+}
+async function borrarRevision(id){
+  const r=revisiones.find(x=>x.id===id);if(!r)return;
+  const lig=servicios.find(x=>x.revisionId===id);
+  if(!confirm(`¿Borrar la revisión de ${r.equipoId} del ${fmtFecha(r.fecha)} (${r.mecanico})?${lig?`\n\nTambién se borra su servicio ligado ${folioTxt(lig)}.`:''}\n\nSe elimina de todos los dispositivos.`))return;
+  if(lig){servicios=servicios.filter(x=>x.id!==lig.id);await dbDel('servicios',lig.id);for(const j of await dbAll('fotos'))if(j.insId===lig.id)await dbDel('fotos',j.id);
+    if(!(await sbDeleteSrv(lig.id))){const pd=pendDelSrv();if(!pd.includes(lig.id))pd.push(lig.id);lsSet('dsl-pending-del-srv',pd);}}
+  revisiones=revisiones.filter(x=>x.id!==id);await dbDel('revisiones',id);
+  for(const j of await dbAll('fotos'))if(j.insId===id)await dbDel('fotos',j.id);
+  if(!(await sbDelete(id))){const pd=pendDel();if(!pd.includes(id))pd.push(id);lsSet('dsl-pending-del',pd);toast('Borrada aquí; se borrará en Supabase al reconectar',false);}
+  else toast('✔ Revisión borrada');
+  renderPanel();
+}
+function editarRevision(id,despues){
+  const r=revisiones.find(x=>x.id===id);if(!r)return;
+  const e=cfg.equipos.find(x=>x.id===r.equipoId)||{id:r.equipoId,nombre:r.equipoNombre,categoria:r.categoria};
+  FORM={edit:r.id,eq:e,tipo:r.tipo,items:(r.items||[]).map(i=>({n:i.n,e:i.e,c:i.c||'',f:i.f?JSON.parse(JSON.stringify(i.f)):null,nf:{}})),km:r.kmHorometro==null?'':String(r.kmHorometro),
+    operador:r.operador||'',apoyo:r.apoyo||'',obs:r.observaciones||'',nec:r.necesidades||'',fotos:{antes:null,despues:null},exist:JSON.parse(JSON.stringify(r.fotos||{})),volver:'admin',despues:!!despues};
+  showView('form');
+}
+function marcarIt(i,k){FORM.items[i].e=FORM.items[i].e===k?'':k;renderForm();}
+async function tomarFoto(slot,inp){
+  const file=inp.files&&inp.files[0];if(!file)return;
+  try{FORM.fotos[slot]=await leerImagen(file,1000,.8);renderForm();}catch(e){toast(e.message,false);}
+}
+function quitarFoto(s){FORM.fotos[s]=null;if(FORM.exist)delete FORM.exist[s];renderForm();}
+async function tomarFotoIt(i,sl,file){if(!file)return;
+  try{const it=FORM.items[i];it.nf=it.nf||{};it.nf[sl]=await leerImagen(file,1000,.8);renderForm();}catch(e){toast(e.message,false);}}
+function quitarFotoIt(i,sl){const it=FORM.items[i];if(it.nf)delete it.nf[sl];if(it.f)delete it.f[sl];renderForm();}
+function cerrarForm(){if(FORM&&(FORM.items.some(i=>i.e)||FORM.km)&&!confirm('¿Salir sin guardar la revisión?'))return;const v=FORM&&FORM.volver;FORM=null;showView(v||'home');}
+async function guardarRevision(){
+  const f=FORM,e=f.eq;
+  const falta=f.items.filter(i=>!i.e).length;
+  if(falta){$('f-err').textContent=`Faltan ${falta} punto(s) del checklist por calificar (✔ ~ ✘). Todos son obligatorios.`;return;}
+  if(String(f.km).trim()===''){$('f-err').textContent=(e.categoria==='Ligero'?'Falta el kilometraje.':'Falta el horómetro.');return;}
+  if(f.srv&&f.srv.on&&!f.srv.servicio){$('f-err').textContent='Elige el tipo de servicio que se le hizo.';return;}
+  if(f.srv&&f.srv.on&&!f.srv.desc.trim()){$('f-err').textContent='Describe el servicio que se le hizo.';return;}
+  const b=$('f-save');b.disabled=true;b.textContent='Guardando…';
+  const orig=f.edit?revisiones.find(x=>x.id===f.edit):null;
+  if(f.edit&&!orig){toast('La revisión ya no existe',false);FORM=null;showView('admin');return;}
+  const id=orig?orig.id:'dsl-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+  const quien=orig?orig.mecanico:usuario(),hoy=orig?orig.fecha:todayStr();
+  const r={id,equipoId:e.id,equipoNombre:e.nombre,categoria:e.categoria,tipo:f.tipo,turno:orig?orig.turno:getTurno(),mecanico:quien,fecha:hoy,
+    kmHorometro:Number(f.km),operador:f.operador.trim(),apoyo:(f.apoyo||'').trim(),items:f.items.map(i=>{const o={n:i.n,e:i.e,c:i.c.trim()};if(i.e==='M'&&i.f){const k={};for(const sl of ['antes','despues'])if(i.f[sl]&&!(i.nf&&i.nf[sl]))k[sl]=i.f[sl];if(Object.keys(k).length)o.f=k;}return o;}),
+    observaciones:f.obs.trim(),necesidades:f.nec.trim(),fotos:orig?(f.exist||{}):{},savedAt:Date.now(),pending:true,
+    editado:orig?{por:'Admin',at:new Date().toISOString()}:null};
+  for(let k=0;k<f.items.length;k++){const it=f.items[k];if(it.e!=='M'||!it.nf)continue;
+    for(const sl of ['antes','despues'])if(it.nf[sl]){
+      const full=await rotular(it.nf[sl],`${e.id} – ${it.n}`,`${fmtFecha(hoy)} • ${quien} • ${sl==='antes'?'Antes':'Después'}`);
+      r.items[k].f=r.items[k].f||{};r.items[k].f[sl]={status:'pendiente'};
+      await dbPut('fotos',{id:`${id}_i${k}_${sl}`,kind:'rev',insId:id,item:k,slot:sl,full,thumb:await hacerThumb(full)});
+    }}
+  if(orig)revisiones[revisiones.indexOf(orig)]=r;else revisiones.push(r);
+  await dbPut('revisiones',r);
+  let conSrv=false;
+  if(!orig&&f.srv&&f.srv.on){conSrv=true;
+    const sid='srv-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+    const sv={id:sid,folio:null,revisionId:r.id,fecha:hoy,categoria:e.categoria,equipoId:e.id,equipoNombre:e.nombre,servicio:f.srv.servicio,turno:r.turno,
+      kmHorometro:r.kmHorometro,realiza:quien,operador:r.operador,apoyo:r.apoyo,descripcion:f.srv.desc.trim(),comentarios:'',necesidades:'',fotos:{},savedAt:Date.now(),pending:true,editado:null};
+    for(const sl of ['antes','despues'])if(f.srv.fotos[sl]){
+      const full=await rotular(f.srv.fotos[sl],`${e.id} – ${e.nombre}`,`${fmtFecha(hoy)} • ${quien} • ${f.srv.servicio} • ${sl==='antes'?'Antes':'Después'}`);
+      sv.fotos[sl]={status:'pendiente'};await dbPut('fotos',{id:sid+'_'+sl,kind:'srv',insId:sid,slot:sl,full,thumb:await hacerThumb(full)});}
+    servicios.push(sv);await dbPut('servicios',sv);}
+  const volver=f.volver||'home';FORM=null;toast(orig?'✔ Revisión corregida':conSrv?'✔ Revisión y servicio guardados':'✔ Revisión guardada');showView(volver);
+  syncPending().then(syncServicios).then(processFotos);
+}
+
+/* ---------- ROLL ---------- */
+function renderRoll(){
+  const v=$('view-roll');
+  if(!cfg){v.innerHTML='<div class="vacio"><b>Cargando…</b></div>';return;}
+  const hoy=todayStr(),cHoy=cicloDe(hoy);
+  if(cicloVer===null)cicloVer=Math.max(0,cHoy===null?0:cHoy);
+  const ini=inicioCiclo(cicloVer),dias=[...Array(cfg.cycleDays)].map((_,i)=>addDays(ini,i));
+  const eqs=equiposCiclo().filter(e=>!rollCat||e.categoria===rollCat);
+  let h=`<div id="roll-top"><button class="btn btn-ghost btn-sm" onclick="cicloVer=Math.max(0,cicloVer-1);renderRoll()" ${cicloVer===0?'disabled':''}>‹</button>
+    <b>Ciclo ${cicloVer+1} · ${fmtFecha(ini)} al ${fmtFecha(dias[dias.length-1])}</b>
+    <button class="btn btn-ghost btn-sm" onclick="cicloVer++;renderRoll()">›</button>
+    <select style="width:auto" onchange="rollCat=this.value;renderRoll()"><option value="">Todas</option>${CATS.map(k=>`<option ${k===rollCat?'selected':''}>${k}</option>`).join('')}</select></div>`;
+  h+=`<div class="roll-wrap"><table class="roll"><tr><th class="u1">Equipo</th>${dias.map(d=>`<th class="${d===hoy?'hoy':''}">${parseISO(d).getDate()}</th>`).join('')}</tr>`;
+  for(const e of eqs){
+    const fp=fechaProgramada(e.id,cicloVer),r=fp&&revDe(e.id,fp);
+    h+=`<tr><td class="u1" title="${esc(e.nombre)}"><span class="chip c-${esc(e.categoria)}"></span> <span class="eid">${esc(e.id)}</span>${esc(e.nombre)}</td>`;
+    for(const d of dias){
+      let pip='';
+      if(d===fp){pip=r?(r.tipo==='normal'?'<span class="pip p-ok" title="Revisado en fecha">✓</span>':'<span class="pip p-late" title="Revisado después ('+fmtFecha(r.fecha)+')">A</span>')
+        :d<hoy?'<span class="pip p-no" title="No se presentó">✕</span>':'<span class="pip p-pr" title="Programado">●</span>';}
+      else if(revisiones.some(x=>x.equipoId===e.id&&x.fecha===d&&x.tipo==='extra'))pip='<span class="pip p-x" title="Revisión extra">E</span>';
+      h+=`<td class="${d===hoy?'hoy':''}">${pip}</td>`;
+    }
+    h+='</tr>';
+  }
+  h+=`</table></div><div class="ley"><span><span class="pip p-pr">●</span> Programado</span><span><span class="pip p-ok">✓</span> En fecha</span><span><span class="pip p-late">A</span> Atrasado</span>
+    <span><span class="pip p-no">✕</span> No se presentó</span><span><span class="pip p-x">E</span> Extra</span></div>`;
+  v.innerHTML=h;
+}
+
+/* =====================================================================
+   PASO 4 · Folios de servicio y Reportes (tabla diesel_servicios)
+   ===================================================================== */
+let servicios=[];
+let SFORM=null;
+let repTab='revisiones', repOpen=null, histTab='revisiones';
+let repF={cat:'',eq:'',desde:'',hasta:''};
+
+function _srow(s){return{id:s.id,fecha:s.fecha,categoria:s.categoria,equipo_id:s.equipoId,equipo_nombre:s.equipoNombre,servicio:s.servicio,
+  turno:s.turno,km_horometro:s.kmHorometro,realiza:s.realiza,operador:s.operador,apoyo:s.apoyo||null,descripcion:s.descripcion,
+  comentarios:s.comentarios,necesidades:s.necesidades,fotos:s.fotos,revision_id:s.revisionId||null,editado:s.editado||null,saved_at:new Date(s.savedAt).toISOString()};}
+function _sdesde(w){return{id:w.id,folio:w.folio,fecha:w.fecha,categoria:w.categoria,equipoId:w.equipo_id,equipoNombre:w.equipo_nombre,servicio:w.servicio,
+  turno:w.turno,kmHorometro:w.km_horometro,realiza:w.realiza,operador:w.operador,apoyo:w.apoyo||'',descripcion:w.descripcion,
+  comentarios:w.comentarios,necesidades:w.necesidades,fotos:w.fotos||{},revisionId:w.revision_id||null,editado:w.editado||null,savedAt:new Date(w.saved_at).getTime()||0,pending:false};}
+async function sbUpsertSrv(s){
+  try{const x=await fetch(SB_URL+'/rest/v1/diesel_servicios?on_conflict=id',{method:'POST',
+    headers:{...SB_H,'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify(_srow(s))});
+    if(!x.ok)return false;const rows=await x.json();if(rows&&rows[0]&&rows[0].folio)s.folio=rows[0].folio;return true;}
+  catch(e){return false;}
+}
+async function sbDeleteSrv(id){try{const x=await fetch(SB_URL+'/rest/v1/diesel_servicios?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:SB_H});return x.ok;}catch(e){return false;}}
+function pendDelSrv(){return lsGet('dsl-pending-del-srv')||[];}
+let _ssync=false;
+async function syncServicios(){
+  if(_ssync)return;_ssync=true;
+  try{
+    const pd=pendDelSrv(),resto=[];for(const id of pd){if(!(await sbDeleteSrv(id)))resto.push(id);}
+    if(pd.length!==resto.length)lsSet('dsl-pending-del-srv',resto);
+    for(const s of servicios.filter(x=>x.pending)){
+      if(await sbUpsertSrv(s)){s.pending=false;s.syncedAt=Date.now();await dbPut('servicios',s);setDot(true);}else{setDot(false);break;}
+    }
+  }finally{_ssync=false;}
+  pintarActual();
+}
+async function fetchServicios(){
+  try{
+    const x=await fetch(SB_URL+'/rest/v1/diesel_servicios?select=*&order=saved_at.desc&limit=5000',{headers:SB_H,cache:'no-store'});
+    if(!x.ok)throw new Error('HTTP '+x.status);
+    const rows=await x.json(),ids=new Set(),pd=pendDelSrv();
+    for(const w of rows){const s=_sdesde(w);ids.add(s.id);if(pd.includes(s.id))continue;
+      const i=servicios.findIndex(z=>z.id===s.id);
+      if(i<0){servicios.push(s);await dbPut('servicios',s);}
+      else if(!servicios[i].pending&&(s.savedAt>servicios[i].savedAt||s.folio!==servicios[i].folio)){servicios[i]=s;await dbPut('servicios',s);}
+    }
+    for(let i=servicios.length-1;i>=0;i--){const s=servicios[i];
+      if(!s.pending&&!ids.has(s.id)&&Date.now()-(s.syncedAt||s.savedAt||0)>5*60000){servicios.splice(i,1);await dbDel('servicios',s.id);}}
+  }catch(e){}
+  pintarActual();
+}
+const folioTxt=s=>s.folio?'F-'+String(s.folio).padStart(3,'0'):'Folio pendiente';
+
+/* ---------- formulario de servicio ---------- */
+function abrirServicio(){
+  if(!usuario()){toast('Primero inicia sesión',false);return;}
+  SFORM={cat:'Ligero',eqId:'',servicio:'',fecha:todayStr(),km:'',operador:'',apoyo:'',desc:'',com:'',nec:'',fotos:{antes:null,despues:null},volver:'home'};
+  showView('sform');
+}
+function editarServicio(id){
+  const s=servicios.find(x=>x.id===id);if(!s)return;
+  SFORM={edit:id,cat:s.categoria,eqId:s.equipoId,servicio:s.servicio,fecha:s.fecha,km:s.kmHorometro==null?'':String(s.kmHorometro),operador:s.operador||'',
+    apoyo:s.apoyo||'',desc:s.descripcion||'',com:s.comentarios||'',nec:s.necesidades||'',fotos:{antes:null,despues:null},exist:JSON.parse(JSON.stringify(s.fotos||{})),volver:'admin'};
+  showView('sform');
+}
+function apoyosConocidos(){const set=new Set(['Personal Liumaq']);revisiones.concat(servicios).forEach(x=>{if(x.apoyo)set.add(x.apoyo);});return [...set];}
+function renderSForm(){
+  const v=$('view-sform');if(!SFORM){v.innerHTML='';return;}
+  const f=SFORM,orig=f.edit?servicios.find(x=>x.id===f.edit):null;
+  const eqs=cfg.equipos.filter(e=>e.categoria===f.cat);
+  const e=cfg.equipos.find(x=>x.id===f.eqId);
+  v.innerHTML=`<div id="form-top"><button onclick="cerrarSForm()">‹</button><b>${orig?'Corregir '+folioTxt(orig):'Registrar servicio'}</b></div>
+    <div id="form-meta"><span class="tag" style="background:#dbeafe;color:#1e40af">T${orig?orig.turno:getTurno()}</span>
+      <span class="tag" style="background:var(--bg);color:var(--sub)">Realiza: ${esc(orig?orig.realiza:usuario())}</span>${orig?'<span class="tag t-pend">✏️ Editando como Admin</span>':''}</div>
+    <div class="pad"><label>Categoría</label><div class="seg">${CATS.map(k=>`<button class="${k===f.cat?'on':''}" onclick="SFORM.cat='${k}';SFORM.eqId='';renderSForm()">${k}</button>`).join('')}</div>
+      <label>Equipo *</label><select onchange="SFORM.eqId=this.value;renderSForm()"><option value="">— Selecciona —</option>${eqs.map(x=>`<option value="${esc(x.id)}" ${x.id===f.eqId?'selected':''}>${esc(x.id)} · ${esc(x.nombre)}</option>`).join('')}</select></div>
+    <div class="pad"><label>Tipo de servicio *</label><div class="seg">${cfg.servicios.map(k=>`<button class="${k===f.servicio?'on':''}" onclick="SFORM.servicio='${esc(k)}';renderSForm()">${esc(k)}</button>`).join('')}</div></div>
+    <div class="pad two"><div><label>${f.cat==='Ligero'?'Kilometraje':'Horómetro'}</label><input type="number" inputmode="decimal" value="${esc(f.km)}" oninput="SFORM.km=this.value"></div>
+      <div><label>Fecha</label><input type="date" value="${esc(f.fecha)}" max="${todayStr()}" onchange="SFORM.fecha=this.value"></div></div>
+    <div class="pad two"><div><label>Operador / área que lo pide</label><input type="text" value="${esc(f.operador)}" oninput="SFORM.operador=this.value"></div>
+      <div><label>Apoyo externo</label><input type="text" list="dl-apoyo" placeholder="Ej. Personal Liumaq" value="${esc(f.apoyo)}" oninput="SFORM.apoyo=this.value"></div></div>
+    <datalist id="dl-apoyo">${apoyosConocidos().map(a=>`<option value="${esc(a)}">`).join('')}</datalist>
+    <div class="pad"><label>Descripción del trabajo *</label><textarea oninput="SFORM.desc=this.value" placeholder="Qué se hizo">${esc(f.desc)}</textarea></div>
+    <div class="fotos">${['antes','despues'].map(s=>`<div class="foto" onclick="pedirFoto(x=>tomarFotoS('${s}',x))">${(f.fotos[s]||(f.exist&&f.exist[s]&&f.exist[s].thumb))?`<img src="${f.fotos[s]||f.exist[s].thumb}"><button class="q" onclick="event.stopPropagation();SFORM.fotos['${s}']=null;if(SFORM.exist)delete SFORM.exist['${s}'];renderSForm()">✕</button>`:`📷<span>${s==='antes'?'Antes':'Después'}</span>`}</div>`).join('')}</div>
+    <div class="pad"><label>Comentarios generales</label><textarea oninput="SFORM.com=this.value">${esc(f.com)}</textarea></div>
+    <div class="pad"><label>Necesidades a requisitar</label><textarea oninput="SFORM.nec=this.value" placeholder="Refacciones o material que hay que pedir">${esc(f.nec)}</textarea></div>
+    <div class="pad"><div id="s-err" style="color:var(--red);font-size:12px;min-height:16px;margin-bottom:6px"></div>
+      <button class="btn btn-primary w100" id="s-save" onclick="guardarServicio()">${orig?'Guardar corrección':'Guardar folio'}</button></div>`;
+}
+async function tomarFotoS(slot,file){if(!file)return;try{SFORM.fotos[slot]=await leerImagen(file,1000,.8);renderSForm();}catch(e){toast(e.message,false);}}
+function cerrarSForm(){if(SFORM&&(SFORM.desc||SFORM.eqId)&&!SFORM.edit&&!confirm('¿Salir sin guardar el folio?'))return;const v=SFORM&&SFORM.volver;SFORM=null;showView(v||'home');}
+async function hacerThumb(full){const im=new Image();await new Promise(z=>{im.onload=z;im.src=full;});const k=150/Math.max(im.width,im.height);
+  const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.7);}
+async function guardarServicio(){
+  const f=SFORM,err=m=>{$('s-err').textContent=m;};
+  const e=cfg.equipos.find(x=>x.id===f.eqId);
+  if(!e)return err('Elige el equipo.');
+  if(!f.servicio)return err('Elige el tipo de servicio.');
+  if(!f.desc.trim())return err('Describe el trabajo realizado.');
+  if(!f.fecha||f.fecha>todayStr())return err('La fecha no puede ser futura.');
+  const b=$('s-save');b.disabled=true;b.textContent='Guardando…';
+  const orig=f.edit?servicios.find(x=>x.id===f.edit):null;
+  const id=orig?orig.id:'srv-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+  const quien=orig?orig.realiza:usuario();
+  const s={id,folio:orig?orig.folio:null,revisionId:orig?(orig.revisionId||null):null,fecha:f.fecha,categoria:e.categoria,equipoId:e.id,equipoNombre:e.nombre,servicio:f.servicio,
+    turno:orig?orig.turno:getTurno(),kmHorometro:String(f.km).trim()===''?null:Number(f.km),realiza:quien,operador:f.operador.trim(),
+    apoyo:f.apoyo.trim(),descripcion:f.desc.trim(),comentarios:f.com.trim(),necesidades:f.nec.trim(),
+    fotos:orig?(f.exist||{}):{},savedAt:Date.now(),pending:true,editado:orig?{por:'Admin',at:new Date().toISOString()}:null};
+  for(const sl of ['antes','despues'])if(f.fotos[sl]){
+    const full=await rotular(f.fotos[sl],`${e.id} – ${e.nombre}`,`${fmtFecha(f.fecha)} • ${quien} • ${f.servicio} • ${sl==='antes'?'Antes':'Después'}`);
+    s.fotos[sl]={status:'pendiente'};
+    await dbPut('fotos',{id:id+'_'+sl,kind:'srv',insId:id,slot:sl,full,thumb:await hacerThumb(full)});
+  }
+  if(orig)servicios[servicios.indexOf(orig)]=s;else servicios.push(s);
+  await dbPut('servicios',s);
+  const volver=f.volver;SFORM=null;toast(orig?'✔ Folio corregido':'✔ Servicio guardado');showView(volver||'home');
+  syncServicios().then(processFotos);
+}
+async function borrarServicio(id){
+  const s=servicios.find(x=>x.id===id);if(!s)return;
+  if(!confirm(`¿Borrar ${folioTxt(s)} de ${s.equipoId} del ${fmtFecha(s.fecha)}?\n\nSe elimina de todos los dispositivos.`))return;
+  servicios=servicios.filter(x=>x.id!==id);await dbDel('servicios',id);for(const sl of ['antes','despues'])await dbDel('fotos',id+'_'+sl);
+  if(!(await sbDeleteSrv(id))){const pd=pendDelSrv();if(!pd.includes(id))pd.push(id);lsSet('dsl-pending-del-srv',pd);toast('Borrado aquí; se borrará en Supabase al reconectar',false);}
+  else toast('✔ Folio borrado');
+  renderPanel();
+}
+
+/* ---------- REPORTES ---------- */
+function mesActual(){const d=new Date();return [dateStr(new Date(d.getFullYear(),d.getMonth(),1)),todayStr()];}
+function filtra(lst){return lst.filter(x=>(!repF.cat||x.categoria===repF.cat)&&(!repF.eq||x.equipoId===repF.eq)&&(!repF.desde||x.fecha>=repF.desde)&&(!repF.hasta||x.fecha<=repF.hasta));}
+const fotoHtml=fo=>['antes','despues'].filter(k=>fo&&fo[k]).map(k=>fo[k].status==='archivada'?`<span class="tag" style="background:var(--bg);color:var(--sub)">📦 ${k} archivada</span> `:fo[k].thumb?`<a href="${fo[k].url}" target="_blank"><img src="${fo[k].thumb}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;margin-right:6px"></a>`:`<span class="tag t-pend">📷 ${k} pendiente</span> `).join('');
+function detRev(r){
+  const malos=(r.items||[]).filter(i=>i.e!=='B');
+  const sv=servicios.find(x=>x.revisionId===r.id);
+  return `<b>${r.categoria==='Ligero'?'Km':'Horómetro'}:</b> ${r.kmHorometro??'—'} · <b>Operador:</b> ${esc(r.operador||'—')}${r.apoyo?` · <b>Apoyo:</b> ${esc(r.apoyo)}`:''}<br>
+    ${malos.length?malos.map(i=>`<span class="tag ${i.e==='M'?'t-no':'t-pend'}">${i.e==='M'?'✘':'~'}</span> ${esc(i.n)}${i.c?': '+esc(i.c):''}${i.f&&fotoHtml(i.f)?`<div style="margin:4px 0 6px 22px">${fotoHtml(i.f)}</div>`:''}${i.e==='M'?['antes','despues'].filter(sl=>!(i.f&&i.f[sl])).map(sl=>` <button class="btn btn-ghost btn-sm" style="margin:3px 0 3px 4px;padding:3px 8px" onclick="event.stopPropagation();adjuntarRetro('${r.id}',${(r.items||[]).indexOf(i)},'${sl}')">📷 Adjuntar ${sl==='antes'?'antes':'después'}</button>`).join(''):''}`).join('<br>'):'<span class="tag t-comp">✔</span> Todo el checklist en buen estado'}
+    ${r.observaciones?`<br><b>Comentarios:</b> ${esc(r.observaciones)}`:''}${r.necesidades?`<div class="req">Requisitar: ${esc(r.necesidades)}</div>`:''}
+    ${fotoHtml(r.fotos)?`<div style="margin-top:6px">${fotoHtml(r.fotos)}</div>`:''}${sv?`<div class="srvbox">🔧 <b>Servicio ${folioTxt(sv)} · ${esc(sv.servicio)}:</b> ${esc(sv.descripcion)}${fotoHtml(sv.fotos)?`<div style="margin-top:6px">${fotoHtml(sv.fotos)}</div>`:''}</div>`:''}${r.editado?`<div class="hint">✏️ Editada por Admin el ${fmtFecha(String(r.editado.at).slice(0,10))}</div>`:''}`;
+}
+function detSrv(s){
+  const rv=s.revisionId&&revisiones.find(x=>x.id===s.revisionId);
+  return `${rv?`<div class="hint" style="margin-bottom:4px">Hecho durante la revisión ${tipoLbl(rv).toLowerCase()} del ${fmtFecha(rv.fecha)}</div>`:''}<b>${s.categoria==='Ligero'?'Km':'Horómetro'}:</b> ${s.kmHorometro??'—'} · <b>Operador/área:</b> ${esc(s.operador||'—')}${s.apoyo?` · <b>Apoyo:</b> ${esc(s.apoyo)}`:''}<br>
+    <b>Trabajo:</b> ${esc(s.descripcion)}${s.comentarios?`<br><b>Comentarios:</b> ${esc(s.comentarios)}`:''}${s.necesidades?`<div class="req">Requisitar: ${esc(s.necesidades)}</div>`:''}
+    ${fotoHtml(s.fotos)?`<div style="margin-top:6px">${fotoHtml(s.fotos)}</div>`:''}${s.editado?`<div class="hint">✏️ Editado por Admin el ${fmtFecha(String(s.editado.at).slice(0,10))}</div>`:''}`;
+}
+function filaRep(key,color,izq,eq,sub,fecha,det){
+  const ab=repOpen===key;
+  return `<div class="rep${ab?' ab':''}" onclick="repOpen=repOpen==='${key}'?null:'${key}';renderReports()"><span class="c" style="background:var(--${color})"></span>
+    <span class="fo">${izq}</span><span class="eq"><b>${eq}</b><small>${sub}</small></span><span class="fe">${fecha}</span><span>${ab?'▾':'▸'}</span></div>${ab?`<div class="det">${det}</div>`:''}`;
+}
+const colorCat=c=>c==='Ligero'?'lig':c==='Pesado'?'pes':'gen';
+function renderReports(){
+  const v=$('view-reports');if(!cfg){v.innerHTML='<div class="vacio"><b>Cargando…</b></div>';return;}
+  if(!repF.desde&&!repF.hasta){[repF.desde,repF.hasta]=mesActual();}
+  const eqOpts=cfg.equipos.filter(e=>!repF.cat||e.categoria===repF.cat);
+  let h=`<div class="tabs">${[['revisiones','Revisiones'],['servicios','Servicios'],['unidad','Por unidad'],['stats','Estadísticas'],['ranking','Ranking'],['reinc','Reincidencias']].map(([k,t])=>`<div class="${repTab===k?'on':''}" onclick="repTab='${k}';repOpen=null;renderReports()">${t}</div>`).join('')}</div>
+    <div class="rfil"><select onchange="repF.cat=this.value;repF.eq='';renderReports()"><option value="">Todas las categorías</option>${CATS.map(k=>`<option ${k===repF.cat?'selected':''}>${k}</option>`).join('')}</select>
+      <select onchange="repF.eq=this.value;renderReports()"><option value="">${repTab==='unidad'?'— Elige una unidad —':'Todos los equipos'}</option>${eqOpts.map(e=>`<option value="${esc(e.id)}" ${e.id===repF.eq?'selected':''}>${esc(e.id)} · ${esc(e.nombre)}</option>`).join('')}</select>
+      <input type="date" value="${repF.desde}" onchange="repF.desde=this.value;renderReports()"><input type="date" value="${repF.hasta}" onchange="repF.hasta=this.value;renderReports()">
+      <button class="btn btn-ghost btn-sm" onclick="descargarCSV()">⬇ CSV</button></div>`;
+  if(repTab==='stats'){h+=htmlStats();}
+  else if(repTab==='ranking'){h+=htmlRanking();}
+  else if(repTab==='reinc'){h+=htmlReinc();}
+  else if(repTab==='revisiones'){
+    const L=filtra(revisiones).sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.savedAt-a.savedAt);
+    const fallas=L.reduce((a,r)=>a+(r.items||[]).filter(i=>i.e==='M').length,0);
+    h+=`<div class="kpi"><div><b>${L.length}</b>revisiones</div><div><b>${L.filter(r=>r.tipo!=='normal'&&r.tipo!=='extra').length}</b>atrasadas</div><div><b>${fallas}</b>puntos ✕</div><div><b>${L.filter(r=>r.necesidades).length}</b>con requisición</div></div>`;
+    h+=L.length?L.map(r=>{const m=(r.items||[]).filter(i=>i.e!=='B').length;
+      return filaRep('r'+r.id,colorCat(r.categoria),esc(r.equipoId),esc(r.equipoNombre),`${tipoLbl(r)} · ${esc(r.mecanico)}${m?` · <span style="color:var(--red)">${m} hallazgo(s)</span>`:''}${r.pending?' · ⏳':''}`,fmtFecha(r.fecha),detRev(r));}).join('')
+      :'<div class="vacio">Sin revisiones con esos filtros.</div>';
+  } else if(repTab==='servicios'){
+    const L=filtra(servicios).sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.savedAt-a.savedAt);
+    h+=`<div class="kpi"><div><b>${L.length}</b>folios</div><div><b>${L.filter(s=>/^PM/i.test(s.servicio)).length}</b>preventivos</div><div><b>${L.filter(s=>s.servicio==='Correctivo').length}</b>correctivos</div><div><b>${L.filter(s=>s.necesidades).length}</b>con requisición</div></div>`;
+    h+=L.length?L.map(s=>filaRep('s'+s.id,colorCat(s.categoria),folioTxt(s),`${esc(s.equipoId)} · ${esc(s.equipoNombre)}`,`${esc(s.servicio)} · ${esc(s.realiza)}${s.pending?' · ⏳':''}`,fmtFecha(s.fecha),detSrv(s))).join('')
+      :'<div class="vacio">Sin folios con esos filtros.</div>';
+  } else {
+    if(!repF.eq){h+='<div class="vacio"><b>Elige una unidad</b>Se mostrará todo su historial: revisiones y servicios, del más reciente al más antiguo.</div>';}
+    else{
+      const e=cfg.equipos.find(x=>x.id===repF.eq)||{};
+      const L=filtra(revisiones).map(r=>({t:'r',x:r})).concat(filtra(servicios).map(s=>({t:'s',x:s}))).sort((a,b)=>b.x.fecha.localeCompare(a.x.fecha)||b.x.savedAt-a.x.savedAt);
+      const ult=L.find(z=>z.x.kmHorometro!=null);
+      h+=`<div class="card"><b>${esc(e.id)} · ${esc(e.nombre)}</b><div class="eq-s">${esc(e.categoria)}${e.responsable?' · '+esc(e.responsable):''}</div>
+        <div class="eq-s">Último ${e.categoria==='Ligero'?'km':'horómetro'}: <b>${ult?ult.x.kmHorometro:'—'}</b>${ult?' ('+fmtFecha(ult.x.fecha)+')':''} · ${L.filter(z=>z.t==='r').length} revisiones · ${L.filter(z=>z.t==='s').length} servicios</div></div>`;
+      h+=L.length?L.map(z=>z.t==='r'?filaRep('r'+z.x.id,'accent','Revisión',z.x.tipo==='extra'?'Revisión extra':z.x.tipo==='reinspeccion'?'Reinspección':'Revisión quincenal',esc(z.x.mecanico),fmtFecha(z.x.fecha),detRev(z.x))
+        :filaRep('s'+z.x.id,colorCat(z.x.categoria),folioTxt(z.x),esc(z.x.servicio),esc(z.x.realiza),fmtFecha(z.x.fecha),detSrv(z.x))).join('')
+        :'<div class="vacio">Sin registros en esas fechas.</div>';
+    }
+  }
+  v.innerHTML=h;
+}
+function descargarCSV(){
+  const q=v=>{v=v==null?'':String(v);return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  let cols,rows,nombre;
+  if(repTab==='servicios'){
+    cols=['Folio','Fecha','Turno','Categoria','Equipo','Nombre','Servicio','Km/Horometro','Realiza','Operador/Area','Apoyo externo','Descripcion','Comentarios','Necesidades'];
+    rows=filtra(servicios).sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(s=>[folioTxt(s),fmtFecha(s.fecha),'T'+s.turno,s.categoria,s.equipoId,s.equipoNombre,s.servicio,s.kmHorometro,s.realiza,s.operador,s.apoyo,s.descripcion,s.comentarios,s.necesidades]);
+    nombre='diesel_servicios';
+  } else if(repTab==='unidad'){
+    cols=['Registro','Folio','Fecha','Turno','Tipo/Servicio','Equipo','Nombre','Km/Horometro','Quien','Operador','Apoyo externo','Detalle','Comentarios','Necesidades'];
+    const R=filtra(revisiones).map(r=>({f:r.fecha,a:r.savedAt,v:['Revision','',fmtFecha(r.fecha),'T'+r.turno,tipoLbl(r),r.equipoId,r.equipoNombre,r.kmHorometro,r.mecanico,r.operador,r.apoyo,
+      (r.items||[]).filter(i=>i.e!=='B').map(i=>(i.e==='M'?'✘ ':'~ ')+i.n+(i.c?': '+i.c:'')).join(' | ')||'Todo bien',r.observaciones,r.necesidades]}));
+    const S=filtra(servicios).map(x=>({f:x.fecha,a:x.savedAt,v:['Servicio',folioTxt(x),fmtFecha(x.fecha),'T'+x.turno,x.servicio,x.equipoId,x.equipoNombre,x.kmHorometro,x.realiza,x.operador,x.apoyo,x.descripcion,x.comentarios,x.necesidades]}));
+    rows=R.concat(S).sort((a,b)=>a.f.localeCompare(b.f)||a.a-b.a).map(z=>z.v);
+    nombre='diesel_unidad_'+(repF.eq||'todas');
+  } else {
+    cols=['Fecha','Turno','Tipo','Categoria','Equipo','Nombre','Km/Horometro','Mecanico','Operador','Apoyo externo','Hallazgos','Comentarios','Necesidades'];
+    rows=filtra(revisiones).filter(r=>repTab!=='unidad'||!repF.eq||r.equipoId===repF.eq).sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(r=>[fmtFecha(r.fecha),'T'+r.turno,tipoLbl(r),r.categoria,r.equipoId,r.equipoNombre,r.kmHorometro,r.mecanico,r.operador,r.apoyo,
+      (r.items||[]).filter(i=>i.e!=='B').map(i=>(i.e==='M'?'✘ ':'~ ')+i.n+(i.c?': '+i.c:'')).join(' | '),r.observaciones,r.necesidades]);
+    nombre='diesel_revisiones';
+  }
+  const csv=[cols.join(';')].concat(rows.map(r=>r.map(q).join(';'))).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`${nombre}_${repF.desde||'inicio'}_${repF.hasta||'hoy'}.csv`;a.click();URL.revokeObjectURL(a.href);
+}
+
+/* =====================================================================
+   PARIDAD CON GAMMAS (reglas tomadas de Gammas V60)
+   ===================================================================== */
+/* ---------- menú de foto: Cámara o Galería ---------- */
+let _fotoCb=null;
+function pedirFoto(cb){_fotoCb=cb;$('foto-menu').style.display='flex';}
+function cerrarFotoMenu(){$('foto-menu').style.display='none';_fotoCb=null;}
+function elegirFoto(origen){
+  const cb=_fotoCb;cerrarFotoMenu();if(!cb)return;
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';if(origen==='camara')inp.capture='environment';
+  inp.onchange=()=>{const f=inp.files&&inp.files[0];if(f)cb(f);};inp.click();
+}
+
+/* ---------- compartir resumen del turno (WhatsApp, etc.) ---------- */
+async function compartirTurno(){
+  const hoy=todayStr(),t=getTurno();
+  const deT=revisiones.filter(r=>r.fecha===hoy&&Number(r.turno)===t);
+  const srvT=servicios.filter(s=>s.fecha===hoy&&Number(s.turno)===t);
+  const sched=programadosEn(hoy),hechos=sched.filter(e=>revDe(e.id,hoy)),pend=sched.filter(e=>!revDe(e.id,hoy));
+  let B=0,R=0,M=0;const conMalos=[],fotos=[];
+  deT.forEach(r=>{(r.items||[]).forEach(i=>{if(i.e==='B')B++;else if(i.e==='R')R++;else if(i.e==='M')M++;});
+    const malos=(r.items||[]).filter(i=>i.e==='M');
+    if(malos.length){let l=`  • ${r.equipoId} (${r.equipoNombre})\n    Ítems: ${malos.map(m=>m.n+(m.c?' — '+m.c:'')).join(', ')}`;
+      if(r.observaciones)l+=`\n    Nota: ${r.observaciones}`;if(r.necesidades)l+=`\n    Requisitar: ${r.necesidades}`;conMalos.push(l);
+      malos.forEach(m=>{if(m.f&&m.f.antes&&m.f.antes.url)fotos.push({url:m.f.antes.url,label:`${r.equipoId}_${m.n}`});});}});
+  let tx=`📋 *Resumen turno T${t}* · Mtto Diésel · ${fmtFecha(hoy)}\nMecánico: ${usuario()||'—'}\n`;
+  tx+=`Equipos programados: ${sched.length} · Completados: ${hechos.length} · Pendientes: ${pend.length}\n`;
+  tx+=`Revisiones este turno: ${deT.length} · Ítems: ✔ ${B} · ~ ${R} · ✘ ${M}\n`;
+  if(srvT.length)tx+=`\n🔧 Servicios este turno:\n${srvT.map(s=>`  • ${folioTxt(s)} ${s.equipoId} — ${s.servicio}: ${s.descripcion}${s.apoyo?' (apoyo: '+s.apoyo+')':''}`).join('\n')}\n`;
+  if(pend.length)tx+=`\n⏳ Pendientes hoy:\n${pend.map(e=>`  • ${e.id} (${e.nombre})`).join('\n')}\n`;
+  tx+=conMalos.length?`\n⚠ Equipos con ítems en mal estado:\n${conMalos.join('\n')}`:`\n✅ Sin ítems en mal estado este turno.`;
+  let files=[];
+  if(fotos.length&&navigator.canShare){try{const bl=await Promise.all(fotos.slice(0,10).map(f=>fetch(f.url).then(r=>r.blob())));
+    files=bl.map((b,i)=>new File([b],fotos[i].label.replace(/[^a-zA-Z0-9_-]/g,'_')+'.jpg',{type:'image/jpeg'}));if(!navigator.canShare({files}))files=[];}catch(e){files=[];}}
+  if(navigator.share){try{const p={title:'Resumen del turno — Mtto Diésel MRT',text:tx};if(files.length)p.files=files;await navigator.share(p);return;}catch(e){}}
+  try{await navigator.clipboard.writeText(tx);toast('📋 Resumen copiado — pégalo donde quieras');}catch(e){toast('No se pudo compartir ni copiar',false);}
+}
+
+/* ---------- reinspección (Admin) ---------- */
+function reinspPanel(){
+  return `<div class="hint" style="margin-bottom:10px">El admin puede pedir una reinspección de cualquier equipo: agregar las fotos de <b>Después</b> a la última revisión, o hacer una revisión nueva.</div>
+    <div class="field"><label>Equipo</label><select id="ri-eq" onchange="window._riEq=this.value;renderPanel()">${cfg.equipos.map(e=>`<option value="${esc(e.id)}" ${window._riEq===e.id?'selected':''}>${esc(e.id)} · ${esc(e.nombre)}</option>`).join('')}</select></div>
+    <div id="ri-opc"></div>`;
+}
+function pintarReinsp(){
+  const sel=$('ri-eq');if(!sel)return;window._riEq=sel.value;
+  const ult=[...revisiones].filter(r=>r.equipoId===sel.value).sort((a,b)=>b.savedAt-a.savedAt)[0];
+  $('ri-opc').innerHTML=(ult?`<button class="btn btn-ghost w100" style="margin-bottom:8px" onclick="editarRevision('${ult.id}',true)">📷 Agregar "Después" a la última revisión (${fmtFecha(ult.fecha)} · ${esc(ult.mecanico)})</button>`:'<div class="hint" style="margin-bottom:8px">Este equipo aún no tiene revisiones.</div>')+
+    `<button class="btn btn-primary w100" onclick="nuevaReinsp('${esc(sel.value)}')">Nueva reinspección →</button>
+     <div class="hint" style="margin-top:6px">La reinspección nueva queda a nombre del mecánico con sesión iniciada en Hoy y no cuenta como la revisión programada.</div>`;
+}
+function nuevaReinsp(eqId){if(!usuario()){toast('Inicia sesión en Hoy con el mecánico que la hará',false);return;}abrirForm(eqId,'reinspeccion');}
+
+/* ---------- evidencia pendiente: adjuntar foto después ---------- */
+function adjuntarRetro(revId,k,slot){
+  pedirFoto(async file=>{
+    const r=revisiones.find(x=>x.id===revId);if(!r||!r.items[k])return;
+    try{
+      const d=await leerImagen(file,1000,.8),it=r.items[k];
+      const full=await rotular(d,`${r.equipoId} – ${it.n}`,`${fmtFecha(r.fecha)} • ${r.mecanico} • ${slot==='antes'?'Antes':'Después'}`);
+      it.f=it.f||{};it.f[slot]={status:'pendiente'};
+      await dbPut('fotos',{id:`${r.id}_i${k}_${slot}`,kind:'rev',insId:r.id,item:k,slot,full,thumb:await hacerThumb(full)});
+      r.pending=true;r.savedAt=Date.now();await dbPut('revisiones',r);
+      toast('📷 Foto agregada — subiendo…');renderReports();processFotos().then(()=>renderReports());
+    }catch(e){toast('No se pudo procesar la foto',false);}
+  });
+}
+
+/* ---------- reincidencias: marcar resuelta (se guarda en la config de Diésel) ---------- */
+async function marcarResuelta(key){
+  try{
+    const row=await sbLeerConfig();const val=row.value;
+    val.reincResueltas=val.reincResueltas||{};val.reincResueltas[key]=Date.now();
+    const at=await sbGuardarConfig(val);
+    cfg=val;remoteAt=at;lsSet('dsl-config',{value:val,updated_at:at});
+    if(draft&&!dirty())draft=clone(cfg);else if(draft){draft.reincResueltas=clone(val.reincResueltas);}
+    toast('✅ Marcada como resuelta');renderReports();
+  }catch(e){toast('Sin conexión: no se pudo marcar',false);}
+}
+
+/* ---------- forzar actualización en todos los dispositivos ---------- */
+async function forzarActualizacion(){
+  try{const row=await sbLeerConfig();const val=row.value;val._deployV=new Date().toISOString();
+    const at=await sbGuardarConfig(val);cfg=val;remoteAt=at;lsSet('dsl-config',{value:val,updated_at:at});
+    try{localStorage.setItem('dsl-deploy-v',val._deployV);}catch(_){}
+    if(draft&&!dirty())draft=clone(cfg);else if(draft)draft._deployV=val._deployV;
+    toast('✅ Señal enviada — los demás recargarán en menos de 1 min');}
+  catch(e){toast('Sin conexión',false);}
+}
+function revisarDeploy(){
+  if(!cfg||!cfg._deployV)return;let loc=null;try{loc=localStorage.getItem('dsl-deploy-v');}catch(_){}
+  if(loc!==cfg._deployV){try{localStorage.setItem('dsl-deploy-v',cfg._deployV);}catch(_){}
+    if(loc&&!FORM&&!SFORM&&!dirty()){swCheck();setTimeout(()=>location.reload(),4000);}}
+}
+
+/* ---------- limpiar duplicados (mismo equipo + fecha + turno + tipo) ---------- */
+async function limpiarDuplicados(){
+  const vistos=new Map(),dup=[];
+  [...revisiones].sort((a,b)=>b.savedAt-a.savedAt).forEach(r=>{const k=r.equipoId+'|'+r.fecha+'|'+r.turno+'|'+r.tipo;if(vistos.has(k))dup.push(r);else vistos.set(k,r);});
+  if(!dup.length){toast('No hay duplicados');return;}
+  if(!confirm(`Se borrarán ${dup.length} revisión(es) duplicada(s) (se conserva la más reciente de cada una). ¿Continuar?`))return;
+  for(const r of dup){revisiones=revisiones.filter(x=>x.id!==r.id);await dbDel('revisiones',r.id);
+    if(!(await sbDelete(r.id))){const pd=pendDel();if(!pd.includes(r.id))pd.push(r.id);lsSet('dsl-pending-del',pd);}}
+  toast(`🗑 ${dup.length} duplicado(s) eliminado(s)`);renderPanel();
+}
+
+/* ---------- Storage (solo la carpeta diesel/) ---------- */
+function storagePanel(){
+  return `<div class="card" style="margin:0 0 10px"><b>☁ Fotos de Diésel en Supabase</b><div id="st-sb" class="hint" style="margin-top:6px">Consultando…</div></div>
+    <div class="card" style="margin:0 0 10px"><b>📦 Cola local pendiente</b><div id="st-cola" class="hint" style="margin-top:6px">Consultando…</div></div>
+    <div class="card" style="margin:0"><b>🗄 Respaldar y liberar espacio</b>
+      <div class="hint" style="margin:6px 0 10px">Descarga un respaldo (JSON) de las revisiones y folios del período, con las direcciones de sus fotos, y luego borra esas fotos de Supabase. <b>Los registros se conservan</b>; las fotos quedan marcadas como archivadas.</div>
+      <div class="field"><label>Fotos anteriores a:</label><input type="month" id="st-mes"></div>
+      <div id="st-prev" class="hint" style="min-height:16px;margin-bottom:8px"></div>
+      <button class="btn btn-primary btn-sm w100" onclick="previewLimpieza()">Ver qué se limpiaría</button>
+      <button class="btn btn-ghost btn-sm w100" id="st-do" style="margin-top:8px;display:none;color:var(--red)" onclick="hacerLimpieza()">📥 Descargar respaldo y eliminar fotos</button></div>`;
+}
+async function cargarStorage(){
+  const el=$('st-sb'),cl=$('st-cola');if(!el)return;
+  try{let all=[],off=0;for(;;){const r=await fetch(`${SB_URL}/storage/v1/object/list/${SB_BUCKET}`,{method:'POST',headers:SB_H,
+      body:JSON.stringify({prefix:'diesel/',limit:1000,offset:off,sortBy:{column:'created_at',order:'desc'}})});
+      if(!r.ok)throw new Error('HTTP '+r.status);const pg=await r.json();all=all.concat(pg);if(pg.length<1000)break;off+=1000;}
+    const mb=all.reduce((s,f)=>s+((f.metadata&&f.metadata.size)||0),0)/1048576;
+    el.innerHTML=`<b>${mb.toFixed(2)} MB</b> en ${all.length} archivo(s) (${all.filter(f=>/_thumb/.test(f.name)).length} miniaturas). El bucket es compartido con Gammas; el límite gratuito es 1 GB entre los dos.`;
+  }catch(e){el.innerHTML='<span style="color:var(--amber)">Sin conexión o sin permiso para consultar.</span>';}
+  const cola=await dbAll('fotos');
+  cl.innerHTML=cola.length?`<b>${cola.length}</b> foto(s) por subir. <button class="btn btn-primary btn-sm" onclick="processFotos().then(cargarStorage)">Intentar subir ahora</button>`:'<span style="color:var(--green)">✔ Cola vacía — todas las fotos están arriba.</span>';
+}
+let _limp=null;
+function fotosDe(x){const out=[];const add=fo=>{if(!fo)return;for(const k of ['antes','despues'])if(fo[k]&&fo[k].url)out.push(fo[k]);};
+  add(x.fotos);(x.items||[]).forEach(i=>add(i.f));return out;}
+function previewLimpieza(){
+  const m=$('st-mes').value,pv=$('st-prev'),bt=$('st-do');
+  if(!m){pv.textContent='Elige un mes de corte.';bt.style.display='none';return;}
+  const corte=m+'-01';
+  const R=revisiones.filter(r=>r.fecha<corte&&fotosDe(r).length),S=servicios.filter(s=>s.fecha<corte&&fotosDe(s).length);
+  const n=R.concat(S).reduce((a,x)=>a+fotosDe(x).length*2,0);
+  _limp={corte,R,S};
+  if(!R.length&&!S.length){pv.innerHTML='<span style="color:var(--green)">✔ No hay fotos anteriores a ese mes.</span>';bt.style.display='none';return;}
+  pv.innerHTML=`Se respaldarán y borrarán ~<b>${n}</b> archivo(s) de <b>${R.length}</b> revisión(es) y <b>${S.length}</b> folio(s) anteriores al <b>${fmtFecha(corte)}</b>.`;bt.style.display='block';
+}
+async function hacerLimpieza(){
+  if(!_limp)return;const {corte,R,S}=_limp;const bt=$('st-do');bt.disabled=true;bt.textContent='Procesando…';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({exportado:new Date().toISOString(),corte,revisiones:R,servicios:S},null,2)],{type:'application/json'}));
+  a.download=`respaldo_fotos_diesel_hasta_${corte}.json`;a.click();URL.revokeObjectURL(a.href);
+  await new Promise(z=>setTimeout(z,800));
+  const nombres=[];R.concat(S).forEach(x=>fotosDe(x).forEach(f=>[f.url,f.thumb].forEach(u=>{const mm=String(u||'').match(/evidencias_gammas\/(diesel\/.+)$/);if(mm&&!nombres.includes(mm[1]))nombres.push(mm[1]);})));
+  let ok=0,err=0;
+  for(let i=0;i<nombres.length;i+=100){const b=nombres.slice(i,i+100);
+    try{const r=await fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}`,{method:'DELETE',headers:SB_H,body:JSON.stringify({prefixes:b})});if(r.ok)ok+=b.length;else err+=b.length;}catch(e){err+=b.length;}}
+  const archiva=fo=>{if(!fo)return;for(const k of ['antes','despues'])if(fo[k]&&fo[k].url)fo[k]={status:'archivada',corte};};
+  for(const r of R){archiva(r.fotos);(r.items||[]).forEach(i=>archiva(i.f));r.pending=true;r.savedAt=Date.now();await dbPut('revisiones',r);}
+  for(const s of S){archiva(s.fotos);s.pending=true;s.savedAt=Date.now();await dbPut('servicios',s);}
+  syncPending();syncServicios();
+  _limp=null;bt.disabled=false;bt.textContent='📥 Descargar respaldo y eliminar fotos';bt.style.display='none';
+  $('st-prev').innerHTML=`<span style="color:var(--green)">✔ ${ok} archivo(s) eliminado(s)${err?` · ${err} con error`:''}.</span>`;
+  toast(`🗑 Limpieza lista: ${ok} archivos`);setTimeout(cargarStorage,1500);
+}
+
+/* ---------- Reportes: Estadísticas, Ranking y Reincidencias ---------- */
+const barra=(lbl,pct,val)=>`<div class="bar-row"><div class="bar-l">${lbl}</div><div class="bar-t"><div class="bar-f" style="width:${Math.min(100,pct)}%"></div></div><div class="bar-v">${val}</div></div>`;
+function cuenta(lst){let B=0,R=0,M=0;lst.forEach(r=>(r.items||[]).forEach(i=>{if(i.e==='B')B++;else if(i.e==='R')R++;else if(i.e==='M')M++;}));return{B,R,M,T:B+R+M};}
+function htmlStats(){
+  const L=filtra(revisiones),c=cuenta(L),hoy=todayStr();
+  const sched=programadosEn(hoy),hechos=sched.filter(e=>revDe(e.id,hoy)).length;
+  const pctHoy=sched.length?Math.round(hechos/sched.length*100):100,pctM=c.T?Math.round(c.M/c.T*100):0;
+  const tur=[1,2].map(t=>{const x=cuenta(L.filter(r=>Number(r.turno)===t));return{t,pct:x.T?Math.round(x.M/x.T*100):0};});
+  const porCat=CATS.map(k=>({k,m:cuenta(L.filter(r=>r.categoria===k)).M})).sort((a,b)=>b.m-a.m),maxC=Math.max(1,...porCat.map(x=>x.m));
+  const wk={};L.forEach(r=>{const d=parseISO(r.fecha);d.setDate(d.getDate()-((d.getDay()+6)%7));const k=dateStr(d);wk[k]=wk[k]||[];wk[k].push(r);});
+  const sem=Object.keys(wk).sort().slice(-12).map(k=>{const x=cuenta(wk[k]);return{k,pct:x.T?Math.round(x.M/x.T*100):0};});
+  const sin=getSinReciente(),umbral=Math.max(cfg.cycleDays*2,14);
+  return `<div class="kpi"><div><b>${L.length}</b>revisiones en el periodo</div><div><b>${pctHoy}%</b>cumplimiento hoy (${hechos}/${sched.length})</div><div><b>${pctM}%</b>ítems en mal estado</div></div>
+    <div class="sh">Comparativo por turno (% ítems ✘)</div><div class="card">${tur.map(x=>barra(`T${x.t} · ${x.t===1?'Día':'Noche'}`,x.pct,x.pct+'%')).join('')}</div>
+    <div class="sh">Categorías con más ítems ✘</div><div class="card">${porCat.some(x=>x.m)?porCat.map(x=>barra(x.k,x.m/maxC*100,x.m)).join(''):'<div class="hint">Sin ítems ✘ en el periodo.</div>'}</div>
+    <div class="sh">Tendencia semanal (% ítems ✘)</div><div class="card">${sem.length?sem.map(x=>barra(fmtFecha(x.k),x.pct,x.pct+'%')).join(''):'<div class="hint">Aún no hay datos suficientes.</div>'}</div>
+    <div class="sh">⚠ Equipos sin revisión reciente (${umbral}+ días)</div><div class="card">${sin.length?sin.map(x=>`<div class="line"><span style="flex:1"><b>${esc(x.e.id)}</b> · ${esc(x.e.nombre)}</span><b style="color:var(--red)">${x.dias===null?'Nunca':x.dias+' días'}</b></div>`).join(''):'<div class="hint">Todos los equipos tienen revisiones recientes.</div>'}</div>`;
+}
+function htmlRanking(){
+  const L=filtra(revisiones);
+  const st=cfg.equipos.map(e=>{const p=L.filter(r=>r.equipoId===e.id),x=cuenta(p);return{e,n:p.length,m:x.M,pct:x.T?Math.round(x.M/x.T*100):0};})
+    .filter(s=>s.n>0).sort((a,b)=>b.m-a.m||b.pct-a.pct);
+  return st.length?`<div class="card">${st.map((s,i)=>`<div class="line" style="cursor:pointer" onclick="repTab='unidad';repF.eq='${esc(s.e.id)}';renderReports()">
+      <span class="n" style="min-width:24px;font-weight:800">${i+1}</span><span style="flex:1"><b>${esc(s.e.id)} · ${esc(s.e.nombre)}</b><br><span class="hint">${s.n} revisión(es) · ${s.pct}% de ítems ✘</span></span><b style="font-size:16px;color:var(--red)">${s.m}</b></div>`).join('')}</div>`
+    :'<div class="vacio">Sin revisiones en el periodo.</div>';
+}
+function htmlReinc(){
+  const res=cfg.reincResueltas||{},m={};
+  filtra(revisiones).forEach(r=>(r.items||[]).forEach(i=>{if(i.e!=='M')return;const k=r.equipoId+'||'+i.n;if(r.savedAt<=(res[k]||0))return;
+    m[k]=m[k]||{k,eq:r.equipoId,n:i.n,c:0,ult:r.fecha};m[k].c++;if(r.fecha>m[k].ult)m[k].ult=r.fecha;}));
+  const L=Object.values(m).filter(x=>x.c>=2).sort((a,b)=>b.c-a.c);
+  window._reinc=L;
+  return L.length?`<div class="card">${L.map((x,i)=>{const e=cfg.equipos.find(q=>q.id===x.eq);return `<div class="line">
+      <span class="n" style="min-width:24px;font-weight:800">${i+1}</span><span style="flex:1;cursor:pointer" onclick="repTab='unidad';repF.eq='${esc(x.eq)}';renderReports()"><b>${esc(x.eq)}${e?' · '+esc(e.nombre):''}</b><br><span class="hint">${esc(x.n)} · última vez: ${fmtFecha(x.ult)}</span></span>
+      <b style="color:var(--red)">×${x.c}</b><button class="btn btn-ghost btn-sm" onclick="marcarResuelta(window._reinc[${i}].k)">✅ Resuelta</button></div>`;}).join('')}</div>`
+    :'<div class="vacio">Sin reincidencias activas en el periodo: ningún punto marcado ✘ 2 o más veces en el mismo equipo.</div>';
+}
+
+/* ---------- servicio dentro de la revisión ---------- */
+function srvSeccion(f){
+  if(f.edit){const sv=servicios.find(x=>x.revisionId===f.edit);
+    return sv?`<div class="srvq"><h4>🔧 Servicio ligado: ${folioTxt(sv)} · ${esc(sv.servicio)}</h4><div class="hint">${esc(sv.descripcion)}<br>Se corrige en Admin → Historial → Folios de servicio.</div></div>`:'';}
+  const S=f.srv;
+  return `<div class="srvq"><h4>🔧 ¿Se le hizo servicio a este equipo?</h4>
+    <div class="seg"><button class="${!S.on?'on':''}" onclick="FORM.srv.on=false;renderForm()">No</button><button class="${S.on?'on':''}" onclick="FORM.srv.on=true;renderForm()">Sí</button></div>
+    ${S.on?`<label>Tipo de servicio *</label><div class="seg">${cfg.servicios.map(k=>`<button class="${k===S.servicio?'on':''}" onclick="FORM.srv.servicio='${esc(k)}';renderForm()">${esc(k)}</button>`).join('')}</div>
+      <label>Descripción del servicio *</label><textarea oninput="FORM.srv.desc=this.value" placeholder="Qué se le hizo">${esc(S.desc)}</textarea>
+      <div class="fotos" style="padding:10px 0 0">${['antes','despues'].map(sl=>`<div class="foto" onclick="pedirFoto(x=>fotoSrvRev('${sl}',x))">${S.fotos[sl]?`<img src="${S.fotos[sl]}"><button class="q" onclick="event.stopPropagation();delete FORM.srv.fotos['${sl}'];renderForm()">✕</button>`:`📷<span>${sl==='antes'?'Antes del servicio':'Después del servicio'}</span>`}</div>`).join('')}</div>
+      <div class="hint" style="margin-top:6px">Se guarda como folio de servicio ligado a esta revisión (mismo equipo, fecha, mecánico, km y apoyo).</div>`:''}</div>`;
+}
+async function fotoSrvRev(sl,file){if(!file)return;try{FORM.srv.fotos[sl]=await leerImagen(file,1000,.8);renderForm();}catch(e){toast(e.message,false);}}
+
+/* ---------- arranque ---------- */
+async function arrancar3(){
+  revisiones=(await dbAll('revisiones'))||[];
+  servicios=(await dbAll('servicios'))||[];
+  renderHome();
+  const ciclo=()=>Promise.all([fetchRemote(),fetchServicios()]).then(syncPending).then(syncServicios).then(processFotos);
+  ciclo();
+  setInterval(()=>{ciclo();if(!dirty())cargar();},30000);
+  window.addEventListener('online',()=>{ciclo();});
+  setInterval(()=>{pintarTurno();},60000);
+}
+
+cargar().then(arrancar3);
+
+/* ---------- actualización de la app (mismo sw.js que Mecánico) ---------- */
+var swReg=null;
+function swCheck(){if(swReg)swReg.update().catch(()=>{});}
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>{swReg=r;swCheck();}).catch(()=>{});
+  let recargando=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(recargando)return;
+    const t=setInterval(()=>{if(!FORM&&!SFORM&&!dirty()){clearInterval(t);recargando=true;location.reload();}},1000);
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')swCheck();});
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 // Gamas MRT – Service Worker
-const CACHE = 'gamas-mrt-v31';
-const ASSETS = ['./', './index.html'];
+const CACHE = 'gamas-mrt-v32';
+const ASSETS = ['./', './index.html', './diesel.html', './portada_mecanico.jpg', './portada_diesel.jpg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -20,6 +20,8 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // Mtto Diésel: sus datos de Supabase siempre se piden a la red (nunca de caché)
+  if (e.request.url.indexOf('/rest/v1/diesel_') !== -1) return;
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;

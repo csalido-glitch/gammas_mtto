@@ -286,9 +286,53 @@ label{font-size:12px;font-weight:600;color:var(--sub);display:block;margin-botto
 #install-banner{display:none;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px;flex-shrink:0;align-items:center;gap:10px;}
 #install-banner.show{display:flex;}
 #install-banner p{flex:1;font-size:12px;}
+/* ===== PORTADA Mtto Mecánico / Mtto Diésel (agregado 12-oct-26; no cambia nada de Mecánico) ===== */
+#portada{position:fixed;inset:0;z-index:99999;background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:auto;}
+#portada.oculta{display:none;}
+#portada .p-hdr{background:#1f2937;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+#portada .p-hdr h1{font-size:17px;font-weight:700;margin:0;flex:1;}
+#portada .p-body{padding:18px 14px;max-width:560px;width:100%;margin:0 auto;box-sizing:border-box;}
+#portada .p-hola{font-size:13px;color:var(--sub);margin-bottom:14px;}
+#portada .p-area{display:flex;flex-direction:column;justify-content:flex-end;min-height:190px;border-radius:16px;padding:18px 16px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden;cursor:pointer;background-size:cover;box-shadow:0 4px 14px rgba(0,0,0,.18);border:none;width:100%;text-align:left;font:inherit;}
+#portada .p-area>*{position:relative;z-index:1;}
+#portada .p-area::before{content:"";position:absolute;inset:0;z-index:0;}
+#portada .p-area h4{font-size:19px;margin:0 0 4px;text-shadow:0 1px 3px rgba(0,0,0,.35);}
+#portada .p-area p{font-size:12.5px;margin:0;opacity:.92;}
+#portada .p-area svg{position:absolute;right:12px;top:14px;width:30px;height:30px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+#portada .p-mec{background-image:url(portada_mecanico.jpg);background-position:40% center;}
+#portada .p-mec::before{background:linear-gradient(180deg,rgba(36,113,163,.15) 0%,rgba(36,113,163,.55) 45%,rgba(20,64,94,.95) 100%);}
+#portada .p-dsl{background-image:url(portada_diesel.jpg);background-position:60% 55%;}
+#portada .p-dsl::before{background:linear-gradient(180deg,rgba(180,83,9,.10) 0%,rgba(180,83,9,.55) 45%,rgba(110,48,4,.95) 100%);}
+#portada .p-pie{font-size:11px;color:var(--sub);text-align:center;margin-top:8px;}
 </style>
 </head>
 <body>
+<!-- ===== PORTADA (agregado 12-oct-26): elegir área. Mtto Mecánico sigue igual debajo ===== -->
+<div id="portada">
+  <div class="p-hdr"><h1>Mantenimiento – MRT</h1></div>
+  <div class="p-body">
+    <div class="p-hola" id="p-fecha">Selecciona un área</div>
+    <button class="p-area p-mec" onclick="portadaMecanico()">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      <h4>Mtto Mecánico</h4><p>Gamas de equipos de planta</p>
+    </button>
+    <button class="p-area p-dsl" onclick="portadaDiesel()">
+      <svg viewBox="0 0 24 24"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 9h4l3 3v4h-7z"/><circle cx="5.5" cy="18" r="2"/><circle cx="18.5" cy="18" r="2"/></svg>
+      <h4>Mtto Diésel</h4><p>Equipo ligero, pesado y generadores · quincenal</p>
+    </button>
+    <div class="p-pie">Cada área pide su usuario al entrar.</div>
+  </div>
+</div>
+<script>
+function portadaMecanico(){try{sessionStorage.setItem('mtto-area','mec');}catch(e){}document.getElementById('portada').classList.add('oculta');}
+function portadaDiesel(){try{sessionStorage.setItem('mtto-area','dsl');}catch(e){}location.href='diesel.html';}
+(function(){
+  var M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],d=new Date();
+  document.getElementById('p-fecha').textContent='Selecciona un área · '+d.getDate()+'-'+M[d.getMonth()]+'-'+String(d.getFullYear()).slice(2);
+  var a=null;try{a=sessionStorage.getItem('mtto-area');}catch(e){}
+  if(a==='mec')document.getElementById('portada').classList.add('oculta');
+})();
+</script>
 <div id="app">
   <div id="header">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
